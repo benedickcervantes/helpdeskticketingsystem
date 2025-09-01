@@ -1,9 +1,10 @@
-// app/register/page.jsx
+// src/app/register/page.jsx
 "use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { registerWithEmailAndPassword } from '@/app/utils/auth';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -50,19 +51,22 @@ export default function Register() {
       return;
     }
     
-    // Simulate registration process
     try {
-      setTimeout(() => {
-        setIsLoading(false);
+      const result = await registerWithEmailAndPassword(formData);
+      
+      if (result.success) {
         setSuccess(true);
         
-        // Show success message for 2 seconds, then redirect to login
+        // Show success message for 2 seconds, then redirect to appropriate page
         setTimeout(() => {
-          router.push('/login');
+          router.push(result.user.role === 'admin' ? '/admin' : '/login');
         }, 2000);
-      }, 1000);
+      } else {
+        setError(result.error);
+      }
     } catch (err) {
       setError('Registration failed. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -83,7 +87,7 @@ export default function Register() {
             Registration Successful!
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Your account has been created successfully. Redirecting to login...
+            Your account has been created successfully. Redirecting...
           </p>
         </div>
       </div>

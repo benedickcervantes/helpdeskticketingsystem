@@ -2,32 +2,61 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "./utils/auth";
+import { useAuth } from "./contexts/AuthContext";
+import { logout } from "./utils/auth";
 
 export default function Home() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const user = getCurrentUser();
-    setIsLoggedIn(!!user);
-    
-    // If user is logged in, show the option to go to tickets
-    // But don't automatically redirect - let them stay on the landing page
-  }, []);
+    // If user is authenticated and not loading, redirect to appropriate page
+    if (!loading && user) {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/tickets');
+      }
+    }
+  }, [user, loading, router]);
 
   const handleViewTickets = () => {
-    router.push('/tickets');
+    if (user?.role === 'admin') {
+      router.push('/admin');
+    } else {
+      router.push('/tickets');
+    }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
-    // No need to redirect since we're already on the main page
+  const handleLogout = async () => {
+    await logout();
   };
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, show a brief redirect message
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -49,31 +78,12 @@ export default function Home() {
               </div>
             </div>
             <nav className="hidden md:flex space-x-8">
-              {isLoggedIn ? (
-                <>
-                  <button
-                    onClick={handleViewTickets}
-                    className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                  >
-                    Go to Tickets
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-                    Login
-                  </Link>
-                  <Link href="/register" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-                    Register
-                  </Link>
-                </>
-              )}
+              <Link href="/login" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                Login
+              </Link>
+              <Link href="/register" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                Register
+              </Link>
             </nav>
           </div>
         </div>
@@ -91,46 +101,19 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isLoggedIn ? (
-              <>
-                <button
-                  onClick={handleViewTickets}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Go to Tickets
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link 
-                  href="/login" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Get Started
-                </Link>
-                <Link 
-                  href="/tickets" 
-                  className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  View Demo
-                </Link>
-              </>
-            )}
+            <Link 
+              href="/login" 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              Get Started
+            </Link>
+            <Link 
+              href="/register" 
+              className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              Create Account
+            </Link>
           </div>
-
-          {isLoggedIn && (
-            <div className="mt-4">
-              <p className="text-sm text-green-600 dark:text-green-400">
-                You are already logged in. Click "Go to Tickets" to access your dashboard.
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Features Section */}
