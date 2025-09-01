@@ -2,12 +2,13 @@
 export const mockTickets = [
   {
     id: 1,
-    title: 'Laptop not turning on',
-    description: 'My company laptop suddenly stopped turning on. The power light doesn\'t come on when I press the power button.',
-    status: 'open',
+    title: 'Login issue',
+    department: 'IT',
+    status: 'resolved',
+    createdAt: '2023-11-01T09:00:00Z',
+    resolvedAt: '2023-11-01T11:30:00Z',
     priority: 'high',
-    category: 'hardware',
-    createdAt: '2023-05-15T10:30:00Z',
+    category: 'software',
     createdBy: 'John Doe',
     assignedTo: 'IT Support',
     comments: [

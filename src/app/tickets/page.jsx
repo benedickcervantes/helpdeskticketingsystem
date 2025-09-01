@@ -7,28 +7,22 @@ import Link from 'next/link';
 import Layout from '../components/Layout/Layout';
 import TicketList from '../components/Tickets/TicketList';
 import TicketForm from '../components/Tickets/TicketForm';
+import ProtectedRoute from '../components/ProtectedRoute';
 import { mockTickets } from '../data/mockData';
-import { getCurrentUser, logout } from '../utils/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [user, setUser] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-    setUser(currentUser);
-    
     // Check if we should show the form from URL params
     if (searchParams.get('new') === 'true') {
       setShowForm(true);
@@ -37,14 +31,14 @@ export default function TicketsPage() {
     // Simulate loading tickets from API
     setTimeout(() => {
       // Filter tickets to show only user's tickets if they're not admin
-      const userTickets = currentUser.role === 'admin' 
+      const userTickets = user?.role === 'admin' 
         ? mockTickets 
-        : mockTickets.filter(ticket => ticket.createdBy === currentUser.name);
+        : mockTickets.filter(ticket => ticket.createdBy === user?.name);
       
       setTickets(userTickets);
       setIsLoading(false);
     }, 500);
-  }, [router, searchParams]);
+  }, [searchParams, user]);
 
   const handleCreateTicket = (ticketData) => {
     const newTicket = {
@@ -97,15 +91,8 @@ export default function TicketsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
+    <ProtectedRoute>
     <Layout user={user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -128,7 +115,7 @@ export default function TicketsPage() {
               </svg>
               New Ticket
             </button>
-            {user.role === 'admin' && (
+              {user?.role === 'admin' && (
               <Link
                 href="/admin"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -251,13 +238,13 @@ export default function TicketsPage() {
             isEditing={true}
             onCancel={() => setSelectedTicket(null)}
             onDelete={() => handleDeleteTicket(selectedTicket.id)}
-            userRole={user.role}
+              userRole={user?.role}
           />
         ) : (
           <TicketList 
             tickets={filteredTickets} 
             onTicketSelect={handleSelectTicket}
-            userRole={user.role}
+              userRole={user?.role}
           />
         )}
 
@@ -289,5 +276,6 @@ export default function TicketsPage() {
         )}
       </div>
     </Layout>
+    </ProtectedRoute>
   );
 }
