@@ -26,7 +26,7 @@ export default function Home() {
     if (user?.role === 'admin') {
       router.push('/admin');
     } else {
-      router.push('/tickets');
+    router.push('/tickets');
     }
   };
 
@@ -78,12 +78,12 @@ export default function Home() {
               </div>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <Link href="/login" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-                Login
-              </Link>
-              <Link href="/register" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
-                Register
-              </Link>
+                  <Link href="/login" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                    Login
+                  </Link>
+                  <Link href="/register" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                    Register
+                  </Link>
             </nav>
           </div>
         </div>
@@ -101,18 +101,18 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/login" 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-            >
-              Get Started
-            </Link>
-            <Link 
+                <Link 
+                  href="/login" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                  Get Started
+                </Link>
+                <Link 
               href="/register" 
-              className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-            >
+                  className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                >
               Create Account
-            </Link>
+                </Link>
           </div>
         </div>
 
