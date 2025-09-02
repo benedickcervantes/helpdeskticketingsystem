@@ -216,8 +216,8 @@ export const logout = async () => {
     localStorage.removeItem('user');
     // Use router.push instead of window.location for better UX
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
+    window.location.href = '/login';
+  }
   }
 };
 
