@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -8,6 +8,11 @@ const Header = () => {
   const { currentUser, userProfile, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -31,31 +36,33 @@ const Header = () => {
     return 'Dashboard';
   };
 
+  if (!mounted) return null;
+
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-lg border-b border-slate-200 sticky top-0 z-50">
+    <header className="bg-gray-900/80 backdrop-blur-md shadow-xl border-b border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 <span className="text-white font-bold text-xl">H</span>
               </div>
               <div>
-                <span className="text-xl font-bold text-gray-900">HelpDesk Pro</span>
-                <p className="text-xs text-slate-500 -mt-1">Enterprise IT Support</p>
+                <span className="text-xl font-bold text-white">HelpDesk Pro</span>
+                <p className="text-xs text-gray-400 -mt-1">Enterprise IT Support</p>
               </div>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-4">
             {currentUser ? (
               <>
                 {/* Dashboard Button - Prominent for logged-in users */}
                 <Link 
                   href={getDashboardLink()} 
-                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
@@ -68,7 +75,7 @@ const Header = () => {
                 {userProfile?.role === 'admin' && (
                   <Link 
                     href="/management" 
-                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -81,47 +88,47 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-3 p-2 rounded-xl hover:bg-slate-50 transition-colors duration-200"
+                    className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-700"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
                       <span className="text-white text-sm font-semibold">
                         {(userProfile?.name || currentUser.email).charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="text-left">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-white">
                         {userProfile?.name || currentUser.email}
                       </div>
                       {userProfile?.department && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-gray-400">
                           {userProfile.department}
                         </div>
                       )}
                     </div>
-                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
                   {/* Profile Dropdown */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
-                      <div className="px-4 py-3 border-b border-slate-100">
+                    <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-700">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
                             <span className="text-white font-semibold">
                               {(userProfile?.name || currentUser.email).charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold text-white">
                               {userProfile?.name || currentUser.email}
                             </div>
-                            <div className="text-sm text-slate-500">
+                            <div className="text-sm text-gray-400">
                               {userProfile?.email || currentUser.email}
                             </div>
                             {userProfile?.department && (
-                              <div className="text-xs text-slate-400">
+                              <div className="text-xs text-gray-500">
                                 {userProfile.department}
                               </div>
                             )}
@@ -131,7 +138,7 @@ const Header = () => {
                       <div className="py-2">
                         <Link
                           href="/profile"
-                          className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +148,7 @@ const Header = () => {
                         </Link>
                         <Link
                           href="/settings"
-                          className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +162,7 @@ const Header = () => {
                             handleLogout();
                             setIsProfileOpen(false);
                           }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-900/30 transition-colors"
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -170,7 +177,7 @@ const Header = () => {
             ) : (
               <Link 
                 href="/auth" 
-                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Sign In
               </Link>
@@ -181,7 +188,7 @@ const Header = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-600 hover:bg-slate-50 focus:outline-none focus:text-slate-600 transition-colors"
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:text-white transition-colors"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (
@@ -197,12 +204,12 @@ const Header = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-slate-200">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-800 border-t border-gray-700">
               {currentUser ? (
                 <>
                   <Link
                     href={getDashboardLink()}
-                    className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-slate-50 transition-colors"
+                    className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-white hover:text-white hover:bg-gray-700 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +221,7 @@ const Header = () => {
                   {userProfile?.role === 'admin' && (
                     <Link
                       href="/management"
-                      className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-slate-50 transition-colors"
+                      className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-white hover:text-white hover:bg-gray-700 transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,13 +231,13 @@ const Header = () => {
                     </Link>
                   )}
                   
-                  <div className="border-t border-slate-200 pt-3 mt-3">
+                  <div className="border-t border-gray-700 pt-3 mt-3">
                     <div className="px-3 py-2">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-white">
                         {userProfile?.name || currentUser.email}
                       </div>
                       {userProfile?.department && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-gray-400">
                           {userProfile.department}
                         </div>
                       )}
@@ -240,7 +247,7 @@ const Header = () => {
                         handleLogout();
                         setIsMenuOpen(false);
                       }}
-                      className="flex items-center w-full px-3 py-3 rounded-xl text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                      className="flex items-center w-full px-3 py-3 rounded-xl text-base font-medium text-red-400 hover:text-red-300 hover:bg-red-900/30 transition-colors"
                     >
                       <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -252,7 +259,7 @@ const Header = () => {
               ) : (
                 <Link
                   href="/auth"
-                  className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-slate-50 transition-colors"
+                  className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-white hover:text-white hover:bg-gray-700 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

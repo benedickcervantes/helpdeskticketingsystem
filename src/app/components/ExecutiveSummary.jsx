@@ -48,7 +48,7 @@ const ExecutiveSummary = ({ tickets, users, metrics, healthStatus }) => {
       insights.push({
         type: 'info',
         title: 'High Support Volume',
-        message: `${metrics.totalTickets} support requests indicate high IT support demand. Consider proactive measures.`
+        message: `Processing ${metrics.totalTickets} support requests indicates high system usage and potential need for capacity planning.`
       });
     }
 
@@ -57,40 +57,44 @@ const ExecutiveSummary = ({ tickets, users, metrics, healthStatus }) => {
 
   const getRecommendations = () => {
     const recommendations = [];
-    
+
+    // Resolution rate recommendations
     if (metrics.resolutionRate < 80) {
       recommendations.push({
         priority: 'High',
         action: 'Improve Resolution Rate',
-        description: 'Implement additional training programs and knowledge base updates to increase resolution success rate.',
-        impact: 'Will improve employee satisfaction and reduce repeat requests.'
+        description: 'Implement additional training programs and process improvements to increase first-call resolution.',
+        impact: 'Reduced support costs and improved employee satisfaction'
       });
     }
 
+    // Response time recommendations
     if (metrics.avgResolutionTime > 48) {
       recommendations.push({
-        priority: 'High',
-        action: 'Reduce Resolution Time',
-        description: 'Streamline support processes and implement automation tools to reduce average resolution time.',
-        impact: 'Will minimize productivity loss and improve user experience.'
+        priority: 'Critical',
+        action: 'Optimize Response Times',
+        description: 'Review and streamline support processes to reduce average resolution time.',
+        impact: 'Improved productivity and reduced business disruption'
       });
     }
 
+    // Critical issues recommendations
     if (metrics.criticalTickets > 0) {
       recommendations.push({
         priority: 'Critical',
         action: 'Address Critical Issues',
-        description: 'Immediately assign senior technicians to resolve critical support requests.',
-        impact: 'Will prevent business disruption and maintain operational continuity.'
+        description: 'Immediately resolve all critical support requests to prevent business impact.',
+        impact: 'Prevents potential business disruption and maintains service quality'
       });
     }
 
-    if (metrics.customerSatisfaction < 80) {
+    // Capacity planning recommendations
+    if (metrics.totalTickets > 150) {
       recommendations.push({
-        priority: 'Medium',
-        action: 'Improve Customer Satisfaction',
-        description: 'Implement feedback collection system and regular satisfaction surveys.',
-        impact: 'Will help identify areas for improvement and measure support quality.'
+        priority: 'High',
+        action: 'Capacity Planning',
+        description: 'Consider expanding support team or implementing self-service options.',
+        impact: 'Better resource allocation and improved service levels'
       });
     }
 
@@ -103,95 +107,126 @@ const ExecutiveSummary = ({ tickets, users, metrics, healthStatus }) => {
   return (
     <div className="space-y-8">
       {/* Executive Overview */}
-      <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-xl p-6 border border-emerald-200">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Executive Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-2xl p-6 md:p-8 border border-emerald-500/20">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Support Health Status</h3>
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              healthStatus.color === 'emerald' ? 'bg-emerald-100 text-emerald-800' :
-              healthStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' :
-              healthStatus.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-red-100 text-red-800'
-            }`}>
-              {healthStatus.status}
-            </div>
-            <p className="text-sm text-gray-600 mt-2">{healthStatus.message}</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Executive Summary</h1>
+            <p className="text-gray-400">IT Support Performance Overview</p>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Key Metrics</h3>
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>Total Requests:</span>
-                <span className="font-semibold">{metrics.totalTickets}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Resolution Rate:</span>
-                <span className="font-semibold text-emerald-600">{metrics.resolutionRate}%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Avg. Resolution Time:</span>
-                <span className="font-semibold">{metrics.avgResolutionTime}h</span>
-              </div>
+          <div className="mt-4 lg:mt-0">
+            <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+              healthStatus.status === 'Excellent' ? 'bg-emerald-500/20 text-emerald-400' :
+              healthStatus.status === 'Good' ? 'bg-blue-500/20 text-blue-400' :
+              healthStatus.status === 'Fair' ? 'bg-yellow-500/20 text-yellow-400' :
+              'bg-red-500/20 text-red-400'
+            }`}>
+              <div className={`w-2 h-2 rounded-full mr-2 ${
+                healthStatus.status === 'Excellent' ? 'bg-emerald-400' :
+                healthStatus.status === 'Good' ? 'bg-blue-400' :
+                healthStatus.status === 'Fair' ? 'bg-yellow-400' :
+                'bg-red-400'
+              }`}></div>
+              Support Health: {healthStatus.status}
             </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-400">Total Requests</span>
+              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p className="text-2xl md:text-3xl font-bold text-white">{metrics.totalTickets}</p>
+            <p className="text-xs text-gray-500 mt-1">Support requests</p>
+          </div>
+          
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-400">Resolution Rate</span>
+              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-2xl md:text-3xl font-bold text-white">{metrics.resolutionRate}%</p>
+            <p className="text-xs text-gray-500 mt-1">Successfully resolved</p>
+          </div>
+          
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-400">Avg Resolution Time</span>
+              <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-2xl md:text-3xl font-bold text-white">{metrics.avgResolutionTime}h</p>
+            <p className="text-xs text-gray-500 mt-1">Hours to resolve</p>
+          </div>
+          
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-400">Customer Satisfaction</span>
+              <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <p className="text-2xl md:text-3xl font-bold text-white">{metrics.customerSatisfaction}%</p>
+            <p className="text-xs text-gray-500 mt-1">Overall satisfaction</p>
           </div>
         </div>
       </div>
 
       {/* Business Insights */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Business Insights</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">Business Insights</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {insights.map((insight, index) => (
-            <div key={index} className={`p-6 rounded-xl border-l-4 ${
-              insight.type === 'positive' ? 'bg-emerald-50 border-emerald-400' :
-              insight.type === 'negative' ? 'bg-red-50 border-red-400' :
-              insight.type === 'urgent' ? 'bg-orange-50 border-orange-400' :
-              'bg-blue-50 border-blue-400'
+            <div key={index} className={`p-4 md:p-6 rounded-xl border transition-all duration-300 ${
+              insight.type === 'positive' ? 'bg-emerald-500/10 border-emerald-500/30' :
+              insight.type === 'negative' ? 'bg-red-500/10 border-red-500/30' :
+              insight.type === 'urgent' ? 'bg-orange-500/10 border-orange-500/30' :
+              'bg-blue-500/10 border-blue-500/30'
             }`}>
               <div className="flex items-start">
-                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mr-3 ${
-                  insight.type === 'positive' ? 'bg-emerald-100' :
-                  insight.type === 'negative' ? 'bg-red-100' :
-                  insight.type === 'urgent' ? 'bg-orange-100' :
-                  'bg-blue-100'
+                <div className={`p-2 rounded-lg mr-3 flex-shrink-0 ${
+                  insight.type === 'positive' ? 'bg-emerald-500/20' :
+                  insight.type === 'negative' ? 'bg-red-500/20' :
+                  insight.type === 'urgent' ? 'bg-orange-500/20' :
+                  'bg-blue-500/20'
                 }`}>
                   {insight.type === 'positive' && (
-                    <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   )}
                   {insight.type === 'negative' && (
-                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  )}
-                  {insight.type === 'urgent' && (
-                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                     </svg>
                   )}
+                  {insight.type === 'urgent' && (
+                    <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
                   {insight.type === 'info' && (
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   )}
                 </div>
-                <div>
-                  <h3 className={`text-lg font-semibold ${
-                    insight.type === 'positive' ? 'text-emerald-800' :
-                    insight.type === 'negative' ? 'text-red-800' :
-                    insight.type === 'urgent' ? 'text-orange-800' :
-                    'text-blue-800'
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-sm md:text-base font-semibold mb-2 ${
+                    insight.type === 'positive' ? 'text-emerald-300' :
+                    insight.type === 'negative' ? 'text-red-300' :
+                    insight.type === 'urgent' ? 'text-orange-300' :
+                    'text-blue-300'
                   }`}>
                     {insight.title}
                   </h3>
-                  <p className={`text-sm mt-1 ${
-                    insight.type === 'positive' ? 'text-emerald-700' :
-                    insight.type === 'negative' ? 'text-red-700' :
-                    insight.type === 'urgent' ? 'text-orange-700' :
-                    'text-blue-700'
-                  }`}>
+                  <p className="text-xs md:text-sm text-gray-400 leading-relaxed">
                     {insight.message}
                   </p>
                 </div>
@@ -203,31 +238,31 @@ const ExecutiveSummary = ({ tickets, users, metrics, healthStatus }) => {
 
       {/* Strategic Recommendations */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Strategic Recommendations</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">Strategic Recommendations</h2>
         <div className="space-y-4">
           {recommendations.map((rec, index) => (
-            <div key={index} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center mb-2">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mr-3 ${
-                      rec.priority === 'Critical' ? 'bg-red-100 text-red-800' :
-                      rec.priority === 'High' ? 'bg-orange-100 text-orange-800' :
-                      'bg-yellow-100 text-yellow-800'
+            <div key={index} className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6 hover:border-emerald-500/30 transition-all duration-300">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center mb-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-2 sm:mb-0 sm:mr-3 ${
+                      rec.priority === 'Critical' ? 'bg-red-500/20 text-red-400' :
+                      rec.priority === 'High' ? 'bg-orange-500/20 text-orange-400' :
+                      'bg-yellow-500/20 text-yellow-400'
                     }`}>
                       {rec.priority} Priority
                     </span>
-                    <h3 className="text-lg font-semibold text-gray-900">{rec.action}</h3>
+                    <h3 className="text-base md:text-lg font-semibold text-white">{rec.action}</h3>
                   </div>
-                  <p className="text-gray-600 mb-3">{rec.description}</p>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-700">
-                      <span className="font-medium">Business Impact:</span> {rec.impact}
+                  <p className="text-sm md:text-base text-gray-400 mb-3">{rec.description}</p>
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <p className="text-xs md:text-sm text-gray-300">
+                      <span className="font-medium text-white">Business Impact:</span> {rec.impact}
                     </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                <div className="mt-4 lg:mt-0 lg:ml-4 flex-shrink-0">
+                  <button className="w-full lg:w-auto px-4 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl hover:from-emerald-700 hover:to-cyan-700 transition-all duration-300 text-sm font-medium">
                     View Details
                   </button>
                 </div>
@@ -239,40 +274,40 @@ const ExecutiveSummary = ({ tickets, users, metrics, healthStatus }) => {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors text-left">
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl hover:bg-emerald-500/20 transition-all duration-300 text-left group">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-emerald-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 mr-3 group-hover:text-emerald-300 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <div>
-                <h3 className="font-semibold text-emerald-800">Generate Report</h3>
-                <p className="text-sm text-emerald-600">Create executive summary report</p>
+              <div className="min-w-0">
+                <h3 className="text-sm md:text-base font-semibold text-emerald-300 group-hover:text-emerald-200 transition-colors">Generate Report</h3>
+                <p className="text-xs md:text-sm text-emerald-400 group-hover:text-emerald-300 transition-colors">Create executive summary report</p>
               </div>
             </div>
           </button>
           
-          <button className="p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors text-left">
+          <button className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl hover:bg-blue-500/20 transition-all duration-300 text-left group">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mr-3 group-hover:text-blue-300 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <div>
-                <h3 className="font-semibold text-blue-800">Schedule Review</h3>
-                <p className="text-sm text-blue-600">Set up regular performance reviews</p>
+              <div className="min-w-0">
+                <h3 className="text-sm md:text-base font-semibold text-blue-300 group-hover:text-blue-200 transition-colors">Schedule Review</h3>
+                <p className="text-xs md:text-sm text-blue-400 group-hover:text-blue-300 transition-colors">Set up regular performance reviews</p>
               </div>
             </div>
           </button>
           
-          <button className="p-4 bg-cyan-50 border border-cyan-200 rounded-xl hover:bg-cyan-100 transition-colors text-left">
+          <button className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl hover:bg-cyan-500/20 transition-all duration-300 text-left group sm:col-span-2 lg:col-span-1">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-cyan-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-cyan-400 mr-3 group-hover:text-cyan-300 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <div>
-                <h3 className="font-semibold text-cyan-800">Export Data</h3>
-                <p className="text-sm text-cyan-600">Download performance data</p>
+              <div className="min-w-0">
+                <h3 className="text-sm md:text-base font-semibold text-cyan-300 group-hover:text-cyan-200 transition-colors">Export Data</h3>
+                <p className="text-xs md:text-sm text-cyan-400 group-hover:text-cyan-300 transition-colors">Download performance data</p>
               </div>
             </div>
           </button>
