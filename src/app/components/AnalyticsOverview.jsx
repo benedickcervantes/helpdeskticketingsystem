@@ -16,64 +16,60 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  RadialBarChart,
-  RadialBar
+  ResponsiveContainer
 } from 'recharts';
 
 const AnalyticsOverview = ({ tickets, users, dateRange }) => {
-  const [chartData, setChartData] = useState({});
+  const [chartData, setChartData] = useState({
+    dailyTrends: [],
+    statusDistribution: [],
+    priorityDistribution: [],
+    departmentPerformance: [],
+    resolutionTrends: [],
+    monthlyComparison: [],
+    slaData: [],
+    responseTimeDistribution: []
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (tickets.length > 0) {
+    if (tickets && tickets.length > 0) {
       generateChartData();
+    } else {
+      setIsLoading(false);
     }
   }, [tickets, dateRange]);
 
   const generateChartData = () => {
     setIsLoading(true);
     
-    // Daily ticket trends
-    const dailyData = generateDailyTrends();
-    
-    // Status distribution
-    const statusData = generateStatusDistribution();
-    
-    // Priority distribution
-    const priorityData = generatePriorityDistribution();
-    
-    // Department performance
-    const departmentData = generateDepartmentData();
-    
-    // Resolution time trends
-    const resolutionData = generateResolutionTrends();
-    
-    // Monthly comparison
-    const monthlyData = generateMonthlyComparison();
-    
-    // SLA performance
+    const dailyTrends = generateDailyTrends();
+    const statusDistribution = generateStatusDistribution();
+    const priorityDistribution = generatePriorityDistribution();
+    const departmentPerformance = generateDepartmentData();
+    const resolutionTrends = generateResolutionTrends();
+    const monthlyComparison = generateMonthlyComparison();
     const slaData = generateSLAData();
-    
-    // Response time distribution
-    const responseTimeData = generateResponseTimeDistribution();
+    const responseTimeDistribution = generateResponseTimeDistribution();
 
     setChartData({
-      dailyTrends: dailyData,
-      statusDistribution: statusData,
-      priorityDistribution: priorityData,
-      departmentPerformance: departmentData,
-      resolutionTrends: resolutionData,
-      monthlyComparison: monthlyData,
-      slaPerformance: slaData,
-      responseTimeDistribution: responseTimeData
+      dailyTrends,
+      statusDistribution,
+      priorityDistribution,
+      departmentPerformance,
+      resolutionTrends,
+      monthlyComparison,
+      slaData,
+      responseTimeDistribution
     });
     
     setIsLoading(false);
   };
 
   const generateDailyTrends = () => {
-    const days = parseInt(dateRange);
+    if (!tickets || tickets.length === 0) return [];
+    
+    const days = parseInt(dateRange) || 30;
     const data = [];
     
     for (let i = days - 1; i >= 0; i--) {
@@ -99,37 +95,42 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
   };
 
   const generateStatusDistribution = () => {
-    const statusCounts = {
-      'Open': tickets.filter(t => t.status === 'open').length,
-      'In Progress': tickets.filter(t => t.status === 'in-progress').length,
-      'Resolved': tickets.filter(t => t.status === 'resolved').length
-    };
+    if (!tickets || tickets.length === 0) return [];
     
-    return Object.entries(statusCounts).map(([status, count]) => ({
-      name: status,
-      value: count,
-      color: status === 'Open' ? '#ef4444' : status === 'In Progress' ? '#f59e0b' : '#10b981'
-    }));
+    const statusCounts = {
+      open: tickets.filter(t => t.status === 'open').length,
+      'in-progress': tickets.filter(t => t.status === 'in-progress').length,
+      resolved: tickets.filter(t => t.status === 'resolved').length
+    };
+
+    return [
+      { name: 'Open', value: statusCounts.open, color: '#ef4444' },
+      { name: 'In Progress', value: statusCounts['in-progress'], color: '#f59e0b' },
+      { name: 'Resolved', value: statusCounts.resolved, color: '#10b981' }
+    ];
   };
 
   const generatePriorityDistribution = () => {
-    const priorityCounts = {
-      'Critical': tickets.filter(t => t.priority === 'critical').length,
-      'High': tickets.filter(t => t.priority === 'high').length,
-      'Medium': tickets.filter(t => t.priority === 'medium').length,
-      'Low': tickets.filter(t => t.priority === 'low').length
-    };
+    if (!tickets || tickets.length === 0) return [];
     
-    return Object.entries(priorityCounts).map(([priority, count]) => ({
-      name: priority,
-      value: count,
-      color: priority === 'Critical' ? '#dc2626' : 
-             priority === 'High' ? '#ea580c' : 
-             priority === 'Medium' ? '#d97706' : '#16a34a'
-    }));
+    const priorityCounts = {
+      critical: tickets.filter(t => t.priority === 'critical').length,
+      high: tickets.filter(t => t.priority === 'high').length,
+      medium: tickets.filter(t => t.priority === 'medium').length,
+      low: tickets.filter(t => t.priority === 'low').length
+    };
+
+    return [
+      { name: 'Critical', value: priorityCounts.critical, color: '#dc2626' },
+      { name: 'High', value: priorityCounts.high, color: '#ea580c' },
+      { name: 'Medium', value: priorityCounts.medium, color: '#d97706' },
+      { name: 'Low', value: priorityCounts.low, color: '#16a34a' }
+    ];
   };
 
   const generateDepartmentData = () => {
+    if (!tickets || tickets.length === 0 || !users) return [];
+    
     const departmentStats = {};
     
     tickets.forEach(ticket => {
@@ -137,6 +138,7 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
       if (user && user.department) {
         if (!departmentStats[user.department]) {
           departmentStats[user.department] = {
+            department: user.department,
             total: 0,
             resolved: 0,
             open: 0,
@@ -151,18 +153,13 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
       }
     });
 
-    return Object.entries(departmentStats).map(([dept, stats]) => ({
-      department: dept,
-      total: stats.total,
-      resolved: stats.resolved,
-      open: stats.open,
-      inProgress: stats.inProgress,
-      resolutionRate: stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 0
-    })).sort((a, b) => b.total - a.total);
+    return Object.values(departmentStats).sort((a, b) => b.total - a.total);
   };
 
   const generateResolutionTrends = () => {
-    const days = parseInt(dateRange);
+    if (!tickets || tickets.length === 0) return [];
+    
+    const days = parseInt(dateRange) || 30;
     const data = [];
     
     for (let i = days - 1; i >= 0; i--) {
@@ -179,13 +176,12 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
         dayTickets.reduce((sum, ticket) => {
           const created = ticket.createdAt?.toDate ? ticket.createdAt.toDate() : new Date(ticket.createdAt);
           const resolved = ticket.updatedAt?.toDate ? ticket.updatedAt.toDate() : new Date(ticket.updatedAt);
-          return sum + ((resolved - created) / (1000 * 60 * 60)); // hours
+          return sum + ((resolved - created) / (1000 * 60 * 60));
         }, 0) / dayTickets.length : 0;
       
       data.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        avgResolutionTime: Math.round(avgResolutionTime),
-        resolvedCount: dayTickets.length
+        avgResolutionTime: Math.round(avgResolutionTime)
       });
     }
     
@@ -193,55 +189,64 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
   };
 
   const generateMonthlyComparison = () => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    const currentMonth = new Date().getMonth();
+    if (!tickets || tickets.length === 0) return [];
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentYear = new Date().getFullYear();
     
     return months.map((month, index) => {
       const monthTickets = tickets.filter(ticket => {
         const ticketDate = ticket.createdAt?.toDate ? ticket.createdAt.toDate() : new Date(ticket.createdAt);
-        return ticketDate.getMonth() === (currentMonth - 5 + index + 12) % 12;
+        return ticketDate.getMonth() === index && ticketDate.getFullYear() === currentYear;
       });
       
       return {
         month,
         tickets: monthTickets.length,
-        resolved: monthTickets.filter(t => t.status === 'resolved').length,
-        avgResolutionTime: monthTickets.length > 0 ? 
-          Math.round(monthTickets.reduce((sum, ticket) => {
-            const created = ticket.createdAt?.toDate ? ticket.createdAt.toDate() : new Date(ticket.createdAt);
-            const resolved = ticket.updatedAt?.toDate ? ticket.updatedAt.toDate() : new Date(ticket.updatedAt);
-            return sum + ((resolved - created) / (1000 * 60 * 60));
-          }, 0) / monthTickets.length) : 0
+        resolved: monthTickets.filter(t => t.status === 'resolved').length
       };
     });
   };
 
   const generateSLAData = () => {
-    const totalTickets = tickets.length;
-    const resolvedTickets = tickets.filter(t => t.status === 'resolved').length;
-    const slaCompliant = tickets.filter(ticket => {
-      if (ticket.status !== 'resolved') return false;
-      const created = ticket.createdAt?.toDate ? ticket.createdAt.toDate() : new Date(ticket.createdAt);
-      const resolved = ticket.updatedAt?.toDate ? ticket.updatedAt.toDate() : new Date(ticket.updatedAt);
-      const hours = (resolved - created) / (1000 * 60 * 60);
-      return hours <= 48; // 48-hour SLA
-    }).length;
+    if (!tickets || tickets.length === 0) return [];
     
-    return [
-      { name: 'SLA Compliant', value: slaCompliant, color: '#10b981' },
-      { name: 'SLA Breached', value: resolvedTickets - slaCompliant, color: '#ef4444' }
-    ];
+    const slaTargets = {
+      critical: 2, // 2 hours
+      high: 8,     // 8 hours
+      medium: 24,  // 24 hours
+      low: 72      // 72 hours
+    };
+
+    return Object.entries(slaTargets).map(([priority, target]) => {
+      const priorityTickets = tickets.filter(t => t.priority === priority && t.status === 'resolved');
+      const compliantTickets = priorityTickets.filter(ticket => {
+        const created = ticket.createdAt?.toDate ? ticket.createdAt.toDate() : new Date(ticket.createdAt);
+        const resolved = ticket.updatedAt?.toDate ? ticket.updatedAt.toDate() : new Date(ticket.updatedAt);
+        const hours = (resolved - created) / (1000 * 60 * 60);
+        return hours <= target;
+      });
+
+      return {
+        priority: priority.charAt(0).toUpperCase() + priority.slice(1),
+        target: `${target}h`,
+        compliance: priorityTickets.length > 0 ? Math.round((compliantTickets.length / priorityTickets.length) * 100) : 0,
+        total: priorityTickets.length
+      };
+    });
   };
 
   const generateResponseTimeDistribution = () => {
-    const ranges = [
-      { range: '0-4h', min: 0, max: 4, color: '#10b981' },
-      { range: '4-24h', min: 4, max: 24, color: '#3b82f6' },
-      { range: '1-3d', min: 24, max: 72, color: '#f59e0b' },
-      { range: '3-7d', min: 72, max: 168, color: '#ef4444' },
-      { range: '7d+', min: 168, max: Infinity, color: '#6b7280' }
-    ];
+    if (!tickets || tickets.length === 0) return [];
     
+    const ranges = [
+      { range: '0-1h', min: 0, max: 1 },
+      { range: '1-4h', min: 1, max: 4 },
+      { range: '4-8h', min: 4, max: 8 },
+      { range: '8-24h', min: 8, max: 24 },
+      { range: '24h+', min: 24, max: Infinity }
+    ];
+
     return ranges.map(range => {
       const count = tickets.filter(ticket => {
         if (ticket.status !== 'resolved') return false;
@@ -250,11 +255,10 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
         const hours = (resolved - created) / (1000 * 60 * 60);
         return hours >= range.min && hours < range.max;
       }).length;
-      
+
       return {
         range: range.range,
-        count,
-        color: range.color
+        count
       };
     });
   };
@@ -262,11 +266,11 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold">{label}</p>
+        <div className="bg-gray-800 border border-gray-700 p-3 rounded-lg shadow-lg">
+          <p className="font-semibold text-white">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} style={{ color: entry.color }}>
-              {entry.dataKey}: {entry.value}
+            <p key={index} className="text-gray-200">
+              {entry.dataKey}: <span style={{ color: entry.color }}>{entry.value}</span>
             </p>
           ))}
         </div>
@@ -279,10 +283,10 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
     return (
       <div className="space-y-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-80 bg-gray-200 rounded-xl"></div>
+              <div key={i} className="h-80 bg-gray-700 rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -291,23 +295,72 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Analytics Overview</h2>
-        <p className="text-gray-600">Real-time data visualization and performance metrics</p>
+    <div className="space-y-6 md:space-y-8">
+      <div className="text-center mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Analytics Overview</h2>
+        <p className="text-gray-400">Comprehensive data visualization and insights</p>
+      </div>
+
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs md:text-sm font-medium text-gray-400">Total Tickets</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <p className="text-xl md:text-2xl font-bold text-white">{tickets?.length || 0}</p>
+        </div>
+        
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs md:text-sm font-medium text-gray-400">Resolved</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-xl md:text-2xl font-bold text-white">
+            {tickets?.filter(t => t.status === 'resolved').length || 0}
+          </p>
+        </div>
+        
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs md:text-sm font-medium text-gray-400">Open</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-xl md:text-2xl font-bold text-white">
+            {tickets?.filter(t => t.status === 'open').length || 0}
+          </p>
+        </div>
+        
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs md:text-sm font-medium text-gray-400">Critical</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-xl md:text-2xl font-bold text-white">
+            {tickets?.filter(t => t.priority === 'critical').length || 0}
+          </p>
+        </div>
       </div>
 
       {/* Daily Trends - Line Chart */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Daily Ticket Trends</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData.dailyTrends}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-4">Daily Ticket Trends</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={chartData.dailyTrends || []}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+            <XAxis dataKey="date" stroke="#9CA3AF" fontSize={12} />
+            <YAxis stroke="#9CA3AF" fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={3} name="Total Tickets" />
+            <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} name="Total Tickets" />
             <Line type="monotone" dataKey="open" stroke="#ef4444" strokeWidth={2} name="Open" />
             <Line type="monotone" dataKey="inProgress" stroke="#f59e0b" strokeWidth={2} name="In Progress" />
             <Line type="monotone" dataKey="resolved" stroke="#10b981" strokeWidth={2} name="Resolved" />
@@ -316,50 +369,50 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
       </div>
 
       {/* Status and Priority Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Status Distribution - Pie Chart */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Status Distribution</h3>
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={chartData.statusDistribution}
+                data={chartData.statusDistribution || []}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
+                outerRadius={60}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {chartData.statusDistribution.map((entry, index) => (
+                {(chartData.statusDistribution || []).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
         {/* Priority Distribution - Donut Chart */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Priority Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Priority Distribution</h3>
+          <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={chartData.priorityDistribution}
+                data={chartData.priorityDistribution || []}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
+                innerRadius={40}
+                outerRadius={60}
                 paddingAngle={5}
                 dataKey="value"
               >
-                {chartData.priorityDistribution.map((entry, index) => (
+                {(chartData.priorityDistribution || []).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -367,13 +420,13 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
       </div>
 
       {/* Department Performance - Bar Chart */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Department Performance</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData.departmentPerformance}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="department" />
-            <YAxis />
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-4">Department Performance</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData.departmentPerformance || []}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+            <XAxis dataKey="department" stroke="#9CA3AF" fontSize={12} />
+            <YAxis stroke="#9CA3AF" fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Bar dataKey="total" fill="#3b82f6" name="Total Tickets" />
@@ -384,13 +437,13 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
       </div>
 
       {/* Resolution Time Trends - Area Chart */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Average Resolution Time Trends</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={chartData.resolutionTrends}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-4">Average Resolution Time Trends</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <AreaChart data={chartData.resolutionTrends || []}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+            <XAxis dataKey="date" stroke="#9CA3AF" fontSize={12} />
+            <YAxis stroke="#9CA3AF" fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
             <Area type="monotone" dataKey="avgResolutionTime" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
           </AreaChart>
@@ -398,61 +451,63 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
       </div>
 
       {/* Monthly Comparison and SLA Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Comparison - Bar Chart */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Monthly Comparison</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData.monthlyComparison}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis yAxisId="left" />
-              <YAxis yAxisId="right" orientation="right" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Monthly Comparison */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <h3 className="text-lg md:text-xl font-bold text-white mb-4">Monthly Comparison</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData.monthlyComparison || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+              <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
+              <YAxis stroke="#9CA3AF" fontSize={12} />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              <Bar yAxisId="left" dataKey="tickets" fill="#3b82f6" name="Total Tickets" />
-              <Bar yAxisId="left" dataKey="resolved" fill="#10b981" name="Resolved" />
+              <Bar dataKey="tickets" fill="#3b82f6" name="Total Tickets" />
+              <Bar dataKey="resolved" fill="#10b981" name="Resolved" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* SLA Performance - Radial Bar Chart */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">SLA Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="80%" data={chartData.slaPerformance}>
-              <RadialBar dataKey="value" cornerRadius={10} fill="#10b981" />
-              <Tooltip />
-            </RadialBarChart>
-          </ResponsiveContainer>
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              SLA Compliance: {Math.round((chartData.slaPerformance[0]?.value / (chartData.slaPerformance[0]?.value + chartData.slaPerformance[1]?.value)) * 100) || 0}%
-            </p>
+        {/* SLA Performance */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <h3 className="text-lg md:text-xl font-bold text-white mb-4">SLA Compliance</h3>
+          <div className="space-y-3">
+            {(chartData.slaData || []).map((sla, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                <div>
+                  <span className="text-sm font-medium text-white">{sla.priority}</span>
+                  <span className="text-xs text-gray-400 ml-2">({sla.target})</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-gray-600 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        sla.compliance >= 90 ? 'bg-emerald-500' :
+                        sla.compliance >= 80 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${sla.compliance}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium text-white w-12 text-right">{sla.compliance}%</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Response Time Distribution - Horizontal Bar Chart */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Response Time Distribution</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData.responseTimeDistribution} layout="horizontal">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="range" type="category" width={80} />
+      {/* Response Time Distribution */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-4">Response Time Distribution</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData.responseTimeDistribution || []}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+            <XAxis dataKey="range" stroke="#9CA3AF" fontSize={12} />
+            <YAxis stroke="#9CA3AF" fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="count" fill="#3b82f6" />
+            <Bar dataKey="count" fill="#8b5cf6" />
           </BarChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Real-time Update Indicator */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-emerald-500 rounded-full mr-3 animate-pulse"></div>
-          <p className="text-emerald-800 font-medium">Real-time data updates every 30 seconds</p>
-        </div>
       </div>
     </div>
   );

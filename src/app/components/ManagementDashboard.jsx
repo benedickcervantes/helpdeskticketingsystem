@@ -167,18 +167,18 @@ const ManagementDashboard = () => {
   };
 
   const StatCard = ({ title, value, change, changeType, icon, color, subtitle, status }) => (
-    <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-slate-100">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 hover:border-emerald-500/30 transition-all duration-300 transform hover:-translate-y-1">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-semibold text-slate-600 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
-          {subtitle && <p className="text-xs text-slate-500 mb-2">{subtitle}</p>}
+          <p className="text-sm font-semibold text-gray-400 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-white mb-1">{value}</p>
+          {subtitle && <p className="text-xs text-gray-500 mb-2">{subtitle}</p>}
           {status && (
             <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              status === 'Excellent' ? 'bg-emerald-100 text-emerald-800' :
-              status === 'Good' ? 'bg-blue-100 text-blue-800' :
-              status === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-red-100 text-red-800'
+              status === 'Excellent' ? 'bg-emerald-500/20 text-emerald-400' :
+              status === 'Good' ? 'bg-blue-500/20 text-blue-400' :
+              status === 'Fair' ? 'bg-yellow-500/20 text-yellow-400' :
+              'bg-red-500/20 text-red-400'
             }`}>
               {status}
             </div>
@@ -186,16 +186,16 @@ const ManagementDashboard = () => {
           {change && (
             <div className="flex items-center mt-2">
               <span className={`text-sm font-medium ${
-                changeType === 'increase' ? 'text-emerald-600' : 
-                changeType === 'decrease' ? 'text-red-600' : 'text-slate-600'
+                changeType === 'increase' ? 'text-emerald-400' : 
+                changeType === 'decrease' ? 'text-red-400' : 'text-gray-400'
               }`}>
                 {changeType === 'increase' ? '↗' : changeType === 'decrease' ? '↘' : '→'} {change}
               </span>
-              <span className="text-xs text-slate-500 ml-1">vs last period</span>
+              <span className="text-xs text-gray-500 ml-1">vs last period</span>
             </div>
           )}
         </div>
-        <div className={`p-3 rounded-full ${color} ml-4`}>
+        <div className={`p-3 rounded-xl ${color} ml-4 backdrop-blur-sm`}>
           {icon}
         </div>
       </div>
@@ -204,10 +204,10 @@ const ManagementDashboard = () => {
 
   const HealthIndicator = ({ status, message }) => (
     <div className={`p-6 rounded-xl border-2 ${
-      status.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
-      status.color === 'blue' ? 'bg-blue-50 border-blue-200' :
-      status.color === 'yellow' ? 'bg-yellow-50 border-yellow-200' :
-      'bg-red-50 border-red-200'
+      status.color === 'emerald' ? 'bg-emerald-500/10 border-emerald-500/30' :
+      status.color === 'blue' ? 'bg-blue-500/10 border-blue-500/30' :
+      status.color === 'yellow' ? 'bg-yellow-500/10 border-yellow-500/30' :
+      'bg-red-500/10 border-red-500/30'
     }`}>
       <div className="flex items-center">
         <div className={`w-4 h-4 rounded-full mr-3 ${
@@ -218,18 +218,18 @@ const ManagementDashboard = () => {
         }`}></div>
         <div>
           <h3 className={`text-lg font-bold ${
-            status.color === 'emerald' ? 'text-emerald-800' :
-            status.color === 'blue' ? 'text-blue-800' :
-            status.color === 'yellow' ? 'text-yellow-800' :
-            'text-red-800'
+            status.color === 'emerald' ? 'text-emerald-400' :
+            status.color === 'blue' ? 'text-blue-400' :
+            status.color === 'yellow' ? 'text-yellow-400' :
+            'text-red-400'
           }`}>
             Support Health: {status.status}
           </h3>
           <p className={`text-sm ${
-            status.color === 'emerald' ? 'text-emerald-700' :
-            status.color === 'blue' ? 'text-blue-700' :
-            status.color === 'yellow' ? 'text-yellow-700' :
-            'text-red-700'
+            status.color === 'emerald' ? 'text-emerald-300' :
+            status.color === 'blue' ? 'text-blue-300' :
+            status.color === 'yellow' ? 'text-yellow-300' :
+            'text-red-300'
           }`}>
             {status.message}
           </p>
@@ -240,13 +240,13 @@ const ManagementDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="h-8 bg-gray-700 rounded w-1/4 mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
+                <div key={i} className="h-32 bg-gray-700 rounded-xl"></div>
               ))}
             </div>
           </div>
@@ -260,21 +260,21 @@ const ManagementDashboard = () => {
   const departmentPerformance = getDepartmentPerformance();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Executive Dashboard</h1>
-              <p className="text-gray-600">Comprehensive IT Support Performance Overview</p>
+              <h1 className="text-3xl font-bold text-white mb-2">Executive Dashboard</h1>
+              <p className="text-gray-400">Comprehensive IT Support Performance Overview</p>
             </div>
             <div className="text-right">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
+              <div className="flex items-center text-sm text-emerald-400 mb-2">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
                 <span>Live Data</span>
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500">
                 Last updated: {lastUpdate.toLocaleTimeString()}
               </p>
             </div>
@@ -285,7 +285,7 @@ const ManagementDashboard = () => {
             <select 
               value={dateRange} 
               onChange={(e) => setDateRange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="px-4 py-2 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-gray-700 text-white transition-all duration-200"
             >
               <option value="7">Last 7 days</option>
               <option value="30">Last 30 days</option>
@@ -311,7 +311,7 @@ const ManagementDashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             }
-            color="bg-emerald-500"
+            color="bg-emerald-500/20"
           />
           
           <StatCard
@@ -324,7 +324,7 @@ const ManagementDashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             }
-            color="bg-blue-500"
+            color="bg-blue-500/20"
           />
           
           <StatCard
@@ -337,7 +337,7 @@ const ManagementDashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             }
-            color="bg-cyan-500"
+            color="bg-cyan-500/20"
           />
           
           <StatCard
@@ -350,20 +350,20 @@ const ManagementDashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             }
-            color="bg-slate-500"
+            color="bg-gray-500/20"
           />
         </div>
 
         {/* Critical Issues Alert */}
         {metrics.criticalTickets > 0 && (
-          <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-xl">
+          <div className="mb-8 p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
             <div className="flex items-center">
-              <svg className="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
               <div>
-                <h3 className="text-lg font-bold text-red-800">Critical Issues Require Attention</h3>
-                <p className="text-red-700">
+                <h3 className="text-lg font-bold text-red-400">Critical Issues Require Attention</h3>
+                <p className="text-red-300">
                   {metrics.criticalTickets} critical support request{metrics.criticalTickets > 1 ? 's' : ''} need immediate resolution
                 </p>
               </div>
@@ -373,35 +373,35 @@ const ManagementDashboard = () => {
 
         {/* Department Performance */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Department Performance</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Department Performance</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {departmentPerformance.map((dept) => (
-              <div key={dept.department} className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">{dept.department}</h3>
+              <div key={dept.department} className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
+                <h3 className="text-lg font-bold text-white mb-4">{dept.department}</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-slate-600">Total Requests:</span>
-                    <span className="font-semibold">{dept.total}</span>
+                    <span className="text-sm text-gray-400">Total Requests:</span>
+                    <span className="font-semibold text-white">{dept.total}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-slate-600">Resolved:</span>
-                    <span className="font-semibold text-emerald-600">{dept.resolved}</span>
+                    <span className="text-sm text-gray-400">Resolved:</span>
+                    <span className="font-semibold text-emerald-400">{dept.resolved}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-slate-600">Resolution Rate:</span>
+                    <span className="text-sm text-gray-400">Resolution Rate:</span>
                     <span className={`font-semibold ${
-                      dept.resolutionRate >= 90 ? 'text-emerald-600' :
-                      dept.resolutionRate >= 80 ? 'text-blue-600' :
-                      dept.resolutionRate >= 70 ? 'text-yellow-600' :
-                      'text-red-600'
+                      dept.resolutionRate >= 90 ? 'text-emerald-400' :
+                      dept.resolutionRate >= 80 ? 'text-blue-400' :
+                      dept.resolutionRate >= 70 ? 'text-yellow-400' :
+                      'text-red-400'
                     }`}>
                       {dept.resolutionRate}%
                     </span>
                   </div>
                   {dept.critical > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-sm text-red-600">Critical Issues:</span>
-                      <span className="font-semibold text-red-600">{dept.critical}</span>
+                      <span className="text-sm text-red-400">Critical Issues:</span>
+                      <span className="font-semibold text-red-400">{dept.critical}</span>
                     </div>
                   )}
                 </div>
@@ -412,7 +412,7 @@ const ManagementDashboard = () => {
 
         {/* Navigation Tabs */}
         <div className="mb-8">
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-8 border-b border-gray-700">
             {[
               { id: 'overview', name: 'Executive Summary' },
               { id: 'analytics', name: 'Analytics Overview' },
@@ -424,10 +424,10 @@ const ManagementDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-emerald-500 text-emerald-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-emerald-500 text-emerald-400'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
                 }`}
               >
                 {tab.name}
@@ -437,7 +437,7 @@ const ManagementDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
           {activeTab === 'overview' && (
             <ExecutiveSummary 
               tickets={filteredTickets} 
