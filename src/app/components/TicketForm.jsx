@@ -1,5 +1,7 @@
 'use client';
 
+import { ModernSpinner } from "./LoadingComponents";
+
 import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';

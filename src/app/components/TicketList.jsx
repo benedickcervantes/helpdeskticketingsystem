@@ -1,5 +1,7 @@
 'use client';
 
+import { SkeletonCard, LoadingDots } from "./LoadingComponents";
+
 import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
@@ -226,18 +228,20 @@ const TicketList = ({ showAllTickets = false }) => {
   if (loading) {
     return (
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-700 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-700 rounded"></div>
-            ))}
+        <div className="flex items-center justify-between mb-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-700 rounded w-48"></div>
           </div>
+          <LoadingDots />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <SkeletonCard key={i} className="p-4" />
+          ))}
         </div>
       </div>
     );
   }
-
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
       {/* Header */}

@@ -1,5 +1,7 @@
 'use client';
 
+import { SkeletonCard, SkeletonChart, LoadingDots } from "./LoadingComponents";
+
 import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, query, onSnapshot, where, orderBy } from 'firebase/firestore';
@@ -242,19 +244,25 @@ const ManagementDashboard = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-gray-700 rounded-xl"></div>
-              ))}
+          <div className="flex items-center justify-between mb-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-700 rounded w-1/4"></div>
             </div>
+            <LoadingDots />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SkeletonChart height={300} />
+            <SkeletonChart height={300} />
           </div>
         </div>
       </div>
     );
   }
-
   const metrics = getBusinessMetrics();
   const healthStatus = getSupportHealthStatus();
   const departmentPerformance = getDepartmentPerformance();

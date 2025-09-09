@@ -3,36 +3,52 @@
 import { useAuth } from './contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { MainLoadingScreen } from './components/LoadingComponents';
 
 export default function HomePage() {
   const { currentUser, userProfile, loading } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Simulate loading progress
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+
     if (!loading && currentUser) {
-      if (userProfile?.role === 'admin') {
-        router.push('/admin');
-      } else {
-        router.push('/user');
-      }
+      clearInterval(progressInterval);
+      setLoadingProgress(100);
+      setTimeout(() => {
+        if (userProfile?.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/user');
+        }
+      }, 500);
     }
+
+    return () => clearInterval(progressInterval);
   }, [currentUser, userProfile, loading, router]);
 
   if (!mounted) return null;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-emerald-500/30 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent rounded-full border-t-emerald-500 animate-spin"></div>
-          </div>
-          <p className="mt-4 text-gray-300 font-medium">Loading...</p>
-        </div>
-      </div>
+      <MainLoadingScreen 
+        message="Initializing Helpdesk System"
+        showProgress={true}
+        progress={loadingProgress}
+      />
     );
   }
 

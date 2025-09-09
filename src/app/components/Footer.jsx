@@ -1,4 +1,37 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+
 const Footer = () => {
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Force re-render when pathname changes
+  useEffect(() => {
+    // This ensures the footer updates when the route changes
+  }, [pathname]);
+
+  if (!mounted) {
+    return (
+      <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-white border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-700 rounded w-1/4 mx-auto mb-4"></div>
+              <div className="h-3 bg-gray-700 rounded w-1/2 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-white border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -54,36 +87,36 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="/user" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
+                <Link href="/user" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
                   <svg className="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   Dashboard
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/user" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
+                <Link href="/user" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
                   <svg className="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   Create Ticket
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/user" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
+                <Link href="/user" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
                   <svg className="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   My Tickets
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/auth" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
+                <Link href="/auth" className="text-gray-400 hover:text-emerald-400 transition-colors duration-300 flex items-center group">
                   <svg className="w-4 h-4 mr-2 text-gray-600 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   Login
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

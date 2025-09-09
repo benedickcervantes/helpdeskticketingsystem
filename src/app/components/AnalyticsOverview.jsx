@@ -281,19 +281,107 @@ const AnalyticsOverview = ({ tickets, users, dateRange }) => {
 
   if (isLoading) {
     return (
-      <div className="space-y-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-80 bg-gray-700 rounded-xl"></div>
-            ))}
+      <div className="space-y-6 md:space-y-8">
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Analytics Overview</h2>
+          <p className="text-gray-400">Loading comprehensive data visualization and insights</p>
+        </div>
+
+        {/* Key Metrics Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+              <div className="animate-pulse">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="h-3 bg-gray-600 rounded w-20"></div>
+                  <div className="w-5 h-5 bg-gray-600 rounded"></div>
+                </div>
+                <div className="h-8 bg-gray-600 rounded w-16"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Daily Trends Chart Skeleton */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-600 rounded w-48 mb-4"></div>
+            <div className="h-64 bg-gray-600/20 rounded"></div>
+          </div>
+        </div>
+
+        {/* Status and Priority Distribution Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-600 rounded w-40 mb-4"></div>
+              <div className="flex items-center justify-center h-64">
+                <div className="w-32 h-32 bg-gray-600 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-600 rounded w-44 mb-4"></div>
+              <div className="flex items-center justify-center h-64">
+                <div className="w-32 h-32 bg-gray-600 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Department Performance Skeleton */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-600 rounded w-52 mb-4"></div>
+            <div className="h-64 bg-gray-600/20 rounded"></div>
+          </div>
+        </div>
+
+        {/* Resolution Time Trends Skeleton */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-600 rounded w-56 mb-4"></div>
+            <div className="h-64 bg-gray-600/20 rounded"></div>
+          </div>
+        </div>
+
+        {/* Monthly Comparison and SLA Performance Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-600 rounded w-44 mb-4"></div>
+              <div className="h-64 bg-gray-600/20 rounded"></div>
+            </div>
+          </div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-600 rounded w-36 mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
+                    <div className="h-4 bg-gray-600 rounded w-20"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-16 bg-gray-600 rounded-full h-2"></div>
+                      <div className="h-4 bg-gray-600 rounded w-8"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Response Time Distribution Skeleton */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-600 rounded w-60 mb-4"></div>
+            <div className="h-64 bg-gray-600/20 rounded"></div>
           </div>
         </div>
       </div>
     );
   }
-
   return (
     <div className="space-y-6 md:space-y-8">
       <div className="text-center mb-6 md:mb-8">

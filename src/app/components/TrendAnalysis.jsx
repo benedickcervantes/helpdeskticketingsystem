@@ -1,5 +1,7 @@
 'use client';
 
+import { SkeletonChart, LoadingDots } from "./LoadingComponents";
+
 import { useState, useEffect } from 'react';
 import {
   LineChart,
@@ -292,18 +294,20 @@ const TrendAnalysis = ({ tickets, users, dateRange }) => {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-80 bg-gray-700 rounded-xl"></div>
-            ))}
+        <div className="flex items-center justify-between mb-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-700 rounded w-1/4"></div>
           </div>
+          <LoadingDots />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <SkeletonChart key={i} height={320} />
+          ))}
         </div>
       </div>
     );
   }
-
   return (
     <div className="space-y-8">
       <div className="text-center mb-8">

@@ -91,27 +91,6 @@ const Header = () => {
     return 'Dashboard';
   };
 
-  // Profile photo component
-  const ProfilePhoto = ({ size = 'w-8 h-8', className = '' }) => {
-    if (userProfile?.photoURL) {
-      return (
-        <img
-          src={userProfile.photoURL}
-          alt="Profile"
-          className={`${size} rounded-lg object-cover ${className}`}
-        />
-      );
-    }
-    
-    return (
-      <div className={`${size} bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center ${className}`}>
-        <span className="text-white text-sm font-semibold">
-          {(userProfile?.name || currentUser?.email || 'U').charAt(0).toUpperCase()}
-        </span>
-      </div>
-    );
-  };
-
   if (!mounted) return null;
 
   return (
@@ -167,7 +146,11 @@ const Header = () => {
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center space-x-2 xl:space-x-3 p-2 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-700"
                   >
-                    <ProfilePhoto />
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
+                        {(userProfile?.name || currentUser.email).charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                     <div className="text-left hidden xl:block">
                       <div className="text-sm font-semibold text-white truncate max-w-32">
                         {userProfile?.name || currentUser.email}
@@ -188,7 +171,11 @@ const Header = () => {
                     <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
                       <div className="px-4 py-3 border-b border-gray-700">
                         <div className="flex items-center space-x-3">
-                          <ProfilePhoto size="w-10 h-10" />
+                          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-semibold">
+                              {(userProfile?.name || currentUser.email).charAt(0).toUpperCase()}
+                            </span>
+                          </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-white truncate">
                               {userProfile?.name || currentUser.email}
@@ -301,7 +288,11 @@ const Header = () => {
                     {/* User info section */}
                     <div className="px-3 py-3 bg-gray-700/50 rounded-lg border border-gray-600/50">
                       <div className="flex items-center space-x-3">
-                        <ProfilePhoto size="w-10 h-10" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {(userProfile?.name || currentUser.email).charAt(0).toUpperCase()}
+                          </span>
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-white truncate">
                             {userProfile?.name || currentUser.email}
