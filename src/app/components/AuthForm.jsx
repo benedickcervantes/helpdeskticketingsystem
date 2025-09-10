@@ -48,18 +48,17 @@ const AuthForm = () => {
   }, [searchParams]);
 
   const departments = [
-    'Sales',
-    'Marketing',
-    'IT',
-    'HR',
-    'Finance',
-    'Operations',
-    'Customer Service',
-    'Engineering',
-    'Design',
-    'Other'
+    "CRG (Customer Relation Group)",
+    "TG (Takeout Group)",
+    "Billing and Collection Group",
+    "Treasury Group",
+    "Finance and Tax Group",
+    "Disbursement Group",
+    "RSD (Real Estate Services Department)",
+    "Engineering Department",
+    "Sales and Marketing Group",
+    "Leasing Group"
   ];
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -76,6 +75,8 @@ const AuthForm = () => {
       return 'No account found with this email address.';
     } else if (error.code === 'auth/wrong-password') {
       return 'Incorrect password. Please try again.';
+    } else if (error.code === 'auth/invalid-credential') {
+      return 'Invalid email or password. Please check your credentials and try again.';
     } else if (error.code === 'auth/email-already-in-use') {
       return 'An account with this email already exists.';
     } else if (error.code === 'auth/weak-password') {
@@ -161,7 +162,7 @@ const AuthForm = () => {
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            {isLogin ? 'Sign in to your HelpDesk Pro account' : 'Join thousands of IT professionals'}
+            {isLogin ? 'Sign in to your FCDC account' : 'Join thousands of IT professionals'}
           </p>
         </div>
 

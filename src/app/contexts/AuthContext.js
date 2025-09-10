@@ -48,7 +48,6 @@ export const AuthProvider = ({ children }) => {
       
       return user;
     } catch (error) {
-      console.error('Signup error:', error);
       throw error;
     } finally {
       setAuthLoading(false);
@@ -66,10 +65,8 @@ export const AuthProvider = ({ children }) => {
       await updateDoc(doc(db, 'users', user.uid), {
         lastLogin: serverTimestamp()
       });
-      
       return user;
     } catch (error) {
-      console.error('Signin error:', error);
       throw error;
     } finally {
       setAuthLoading(false);

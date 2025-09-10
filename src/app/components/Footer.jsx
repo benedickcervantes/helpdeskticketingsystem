@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 
 const Footer = () => {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -16,6 +18,9 @@ const Footer = () => {
   useEffect(() => {
     // This ensures the footer updates when the route changes
   }, [pathname]);
+
+  // Hide footer for authenticated users
+  if (!mounted || currentUser) return null;
 
   if (!mounted) {
     return (
@@ -40,15 +45,15 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">H</span>
+                <span className="text-white font-bold text-lg">F</span>
               </div>
               <div>
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">HelpDesk Pro</span>
-                <p className="text-xs text-gray-400 -mt-1">Enterprise IT Support</p>
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">FCDC</span>
+                <p className="text-xs text-gray-400 -mt-1">Helpdesk Enterprise IT Support</p>
               </div>
             </div>
             <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
-              Professional IT Helpdesk Ticketing System for efficient support management and issue resolution. 
+              Professional FCDC IT Support Ticketing System for efficient support management and issue resolution. 
               Streamline your IT operations with our advanced platform.
             </p>
             <div className="flex space-x-4">
@@ -167,7 +172,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm">
-              © 2024 HelpDesk Pro. All rights reserved.
+              © 2024 FCDC. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-500 hover:text-emerald-400 text-sm transition-colors duration-300 flex items-center group">

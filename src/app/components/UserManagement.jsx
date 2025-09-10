@@ -32,8 +32,7 @@ const UserManagement = () => {
     isActive: true,
   });
 
-  const departments = ['IT', 'HR', 'Finance', 'Marketing', 'Sales', 'Operations', 'Customer Support', 'Other'];
-  const roles = ['user', 'admin'];
+  const departments = ["CRG (Customer Relation Group)", "TG (Takeout Group)", "Billing and Collection Group", "Treasury Group", "Finance and Tax Group", "Disbursement Group", "RSD (Real Estate Services Department)", "Engineering Department", "Sales and Marketing Group", "Leasing Group"];  const roles = ['user', 'admin'];
 
   useEffect(() => {
     const usersQuery = query(collection(db, 'users'));

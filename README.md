@@ -277,3 +277,32 @@ For support and questions:
 ---
 
 Built with ❤️ using Next.js, Firebase, and modern web technologies.
+
+## Environment Variables
+
+This project uses environment variables to secure sensitive configuration data like API keys. 
+
+### Setup for Development
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Fill in your actual Firebase configuration values in `.env.local`
+
+### Environment Variables
+
+- `NEXT_PUBLIC_FIREBASE_API_KEY` - Your Firebase API key
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` - Your Firebase auth domain
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID` - Your Firebase project ID
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` - Your Firebase storage bucket
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` - Your Firebase messaging sender ID
+- `NEXT_PUBLIC_FIREBASE_APP_ID` - Your Firebase app ID
+
+### Security Notes
+
+- Never commit `.env.local` or `.env` files to version control
+- The `.env.example` file is safe to commit as it contains no real secrets
+- For production deployment, set these environment variables in your hosting platform
+

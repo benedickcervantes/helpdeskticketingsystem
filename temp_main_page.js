@@ -45,7 +45,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <MainLoadingScreen 
-        message="Initializing Helpdesk System"
+        message="Initializing FCDC System"
         showProgress={true}
         progress={loadingProgress}
       />

@@ -45,7 +45,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <MainLoadingScreen 
-        message="Initializing Helpdesk System"
+        message="Initializing FCDC System"
         showProgress={true}
         progress={loadingProgress}
       />
@@ -87,7 +87,7 @@ export default function HomePage() {
           <div className="text-center">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium mb-8 backdrop-blur-sm border border-emerald-500/20">
               <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-              Enterprise-Grade IT Support Platform
+              FCDC Enterprise-Grade IT Support Platform
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-200 to-cyan-300">
@@ -246,10 +246,10 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+CiAgPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIgZmlsbD0iIzE2MzY1YSIgZmlsbC1vcGFjaXR5PSIwLjEiIC8+Cjw9zdmc+')]"></div>
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to Transform Your IT Support?
+            Ready to Transform Your FCDC IT Support?
           </h2>
           <p className="text-xl text-gray-300 mb-10">
-            Join thousands of enterprises already using HelpDesk Pro to deliver exceptional IT support experiences.
+            Join thousands of enterprises already using FCDC to deliver exceptional IT support experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 

@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import TicketList from './TicketList';
+import AutoResolutionManager from './AutoResolutionManager';
 import UserManagement from './UserManagement';
+import FeedbackAnalytics from './FeedbackAnalytics';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -104,6 +106,16 @@ const AdminDashboard = () => {
             >
               User Management
             </button>
+            <button
+              onClick={() => setActiveTab('feedback')}
+              className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'feedback'
+                  ? 'border-emerald-500 text-emerald-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
+              }`}
+            >
+              Feedback Analytics
+            </button>
           </nav>
         </div>
 
@@ -181,6 +193,12 @@ const AdminDashboard = () => {
                   >
                     Manage Users
                   </button>
+                  <button
+                    onClick={() => setActiveTab('feedback')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-700/50 rounded-xl transition-colors"
+                  >
+                    View Feedback Analytics
+                  </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-700/50 rounded-xl transition-colors">
                     System Settings
                   </button>
@@ -236,7 +254,12 @@ const AdminDashboard = () => {
         {activeTab === 'users' && (
           <UserManagement />
         )}
+
+        {activeTab === 'feedback' && (
+          <FeedbackAnalytics />
+        )}
       </div>
+      <AutoResolutionManager />
     </div>
   );
 };
