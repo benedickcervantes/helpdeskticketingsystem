@@ -1,118 +1,18 @@
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
-  const { currentUser, userProfile, logout } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { currentUser } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const mobileMenuRef = useRef(null);
-  const profileMenuRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
-      }
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
-    };
-
-    if (isMenuOpen || isProfileOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isMenuOpen, isProfileOpen]);
-
-  // Close mobile menu on escape key
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setIsMenuOpen(false);
-        setIsProfileOpen(false);
-      }
-    };
-
-    if (isMenuOpen || isProfileOpen) {
-      document.addEventListener('keydown', handleEscape);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isMenuOpen, isProfileOpen]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMenuOpen]);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const getDashboardLink = () => {
-    if (userProfile?.role === 'admin') {
-      return '/admin';
-    }
-    return '/user';
-  };
-
-  const getDashboardText = () => {
-    if (userProfile?.role === 'admin') {
-      return 'Admin Dashboard';
-    }
-    return 'Dashboard';
-  };
-
-  // Profile photo component
-  const ProfilePhoto = ({ size = 'w-8 h-8', className = '' }) => {
-    if (userProfile?.photoURL) {
-      return (
-        <img
-          src={userProfile.photoURL}
-          alt="Profile"
-          className={`${size} rounded-lg object-cover ${className}`}
-        />
-      );
-    }
-    
-    return (
-      <div className={`${size} bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center ${className}`}>
-        <span className="text-white text-sm font-semibold">
-          {(userProfile?.name || currentUser?.email || 'U').charAt(0).toUpperCase()}
-        </span>
-      </div>
-    );
-  };
-
-  if (!mounted) return null;
+  // Hide header for authenticated users
+  if (!mounted || currentUser) return null;
 
   return (
     <header className="bg-gray-900/90 backdrop-blur-md shadow-xl border-b border-gray-700 sticky top-0 z-50">
@@ -122,282 +22,53 @@ const Header = () => {
           <div className="flex items-center flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                <span className="text-white font-bold text-xl">H</span>
+                <span className="text-white font-bold text-xl">F</span>
               </div>
               <div className="block">
-                <span className="text-lg sm:text-xl font-bold text-white">HelpDesk Pro</span>
-                <p className="text-xs text-gray-400 -mt-1">Enterprise IT Support</p>
+                <span className="text-lg sm:text-xl font-bold text-white">FCDC</span>
+                <p className="text-xs text-gray-400 -mt-1">Helpdesk Enterprise IT Support</p>
               </div>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Only for non-authenticated users */}
           <nav className="hidden lg:flex items-center space-x-4">
-            {currentUser ? (
-              <>
-                {/* Dashboard Button */}
-                <Link 
-                  href={getDashboardLink()} 
-                  className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-4 xl:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                  </svg>
-                  <span className="hidden xl:inline">{getDashboardText()}</span>
-                  <span className="xl:hidden">Dashboard</span>
-                </Link>
-
-                {/* Management Dashboard Link for Admin Users */}
-                {userProfile?.role === 'admin' && (
-                  <Link 
-                    href="/management" 
-                    className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-4 xl:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span className="hidden xl:inline">Executive Dashboard</span>
-                    <span className="xl:hidden">Management</span>
-                  </Link>
-                )}
-
-                {/* User Profile Dropdown */}
-                <div className="relative" ref={profileMenuRef}>
-                  <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-2 xl:space-x-3 p-2 rounded-xl hover:bg-gray-800 transition-colors duration-200 border border-gray-700"
-                  >
-                    <ProfilePhoto />
-                    <div className="text-left hidden xl:block">
-                      <div className="text-sm font-semibold text-white truncate max-w-32">
-                        {userProfile?.name || currentUser.email}
-                      </div>
-                      {userProfile?.department && (
-                        <div className="text-xs text-gray-400 truncate max-w-32">
-                          {userProfile.department}
-                        </div>
-                      )}
-                    </div>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {/* Profile Dropdown */}
-                  {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-xl shadow-xl border border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                      <div className="px-4 py-3 border-b border-gray-700">
-                        <div className="flex items-center space-x-3">
-                          <ProfilePhoto size="w-10 h-10" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-white truncate">
-                              {userProfile?.name || currentUser.email}
-                            </div>
-                            <div className="text-sm text-gray-400 truncate">
-                              {userProfile?.email || currentUser.email}
-                            </div>
-                            {userProfile?.department && (
-                              <div className="text-xs text-gray-500 truncate">
-                                {userProfile.department}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="py-2">
-                        <Link
-                          href="/profile"
-                          className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
-                          onClick={() => setIsProfileOpen(false)}
-                        >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          Profile Settings
-                        </Link>
-                        <button
-                          onClick={() => {
-                            handleLogout();
-                            setIsProfileOpen(false);
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-900/30 transition-colors"
-                        >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                          </svg>
-                          Sign Out
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center space-x-2 xl:space-x-3">
-                {/* Sign In Button */}
-                <Link 
-                  href="/auth" 
-                  className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-4 xl:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 713-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  <span>Sign In</span>
-                </Link>
-                
-                {/* Register Button */}
-                <Link 
-                  href="/auth?register=true" 
-                  className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-4 xl:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                  <span>Register</span>
-                </Link>
-              </div>
-            )}
+            <div className="flex items-center space-x-2 xl:space-x-3">
+              {/* Sign In Button */}
+              <Link 
+                href="/auth" 
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-4 xl:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 713-3h7a3 3 0 713 3v1" />
+                </svg>
+                <span>Sign In</span>
+              </Link>
+              
+              {/* Register Button */}
+              <Link 
+                href="/auth?register=true" 
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-4 xl:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                <span>Register</span>
+              </Link>
+            </div>
           </nav>
 
-          {/* Mobile menu button */}
-          <div className="lg:hidden" ref={mobileMenuRef}>
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="relative p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:text-white focus:bg-gray-800 transition-all duration-200 active:scale-95"
-              aria-label="Toggle mobile menu"
-              aria-expanded={isMenuOpen}
+          {/* Mobile menu button - Only for non-authenticated users */}
+          <div className="lg:hidden">
+            <Link
+              href="/auth"
+              className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl text-base font-medium text-white bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 transition-all duration-200 active:scale-95"
             >
-              <div className="w-6 h-6 relative">
-                {/* Animated hamburger icon */}
-                <span 
-                  className={`absolute left-0 top-1 w-6 h-0.5 bg-current transition-all duration-300 ${
-                    isMenuOpen ? 'rotate-45 translate-y-2' : ''
-                  }`}
-                />
-                <span 
-                  className={`absolute left-0 top-2.5 w-6 h-0.5 bg-current transition-all duration-300 ${
-                    isMenuOpen ? 'opacity-0' : ''
-                  }`}
-                />
-                <span 
-                  className={`absolute left-0 top-4 w-6 h-0.5 bg-current transition-all duration-300 ${
-                    isMenuOpen ? '-rotate-45 -translate-y-2' : ''
-                  }`}
-                />
-              </div>
-            </button>
-
-            {/* Mobile Navigation */}
-            <div 
-              className={`absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-gray-800/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700 overflow-hidden transition-all duration-300 transform origin-top-right ${
-                isMenuOpen 
-                  ? 'opacity-100 scale-100 translate-y-0' 
-                  : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
-              }`}
-            >
-              <div className="px-4 py-3 space-y-2">
-                {currentUser ? (
-                  <>
-                    {/* User info section */}
-                    <div className="px-3 py-3 bg-gray-700/50 rounded-lg border border-gray-600/50">
-                      <div className="flex items-center space-x-3">
-                        <ProfilePhoto size="w-10 h-10" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white truncate">
-                            {userProfile?.name || currentUser.email}
-                          </div>
-                          {userProfile?.department && (
-                            <div className="text-xs text-gray-400 truncate">
-                              {userProfile.department}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Navigation Links */}
-                    <Link
-                      href={getDashboardLink()}
-                      className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-white hover:text-white hover:bg-gray-700/70 transition-all duration-200 active:scale-95"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                      </svg>
-                      <span>{getDashboardText()}</span>
-                    </Link>
-                    
-                    {userProfile?.role === 'admin' && (
-                      <Link
-                        href="/management"
-                        className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-white hover:text-white hover:bg-gray-700/70 transition-all duration-200 active:scale-95"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        <span>Executive Dashboard</span>
-                      </Link>
-                    )}
-                    
-                    {/* Divider */}
-                    <div className="border-t border-gray-600/50 my-2"></div>
-                    
-                    {/* Profile Links */}
-                    <Link
-                      href="/profile"
-                      className="flex items-center space-x-3 px-3 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700/70 transition-all duration-200 active:scale-95"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span>Profile Settings</span>
-                    </Link>
-                    
-                    {/* Sign Out Button */}
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="flex items-center space-x-3 w-full px-3 py-3 rounded-xl text-base font-medium text-red-400 hover:text-red-300 hover:bg-red-900/30 transition-all duration-200 active:scale-95"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      <span>Sign Out</span>
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    {/* Mobile Sign In Button */}
-                    <Link
-                      href="/auth"
-                      className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl text-base font-medium text-white bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 transition-all duration-200 active:scale-95"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 713-3h7a3 3 0 013 3v1" />
-                      </svg>
-                      <span>Sign In</span>
-                    </Link>
-
-                    {/* Mobile Register Button */}
-                    <Link
-                      href="/auth?register=true"
-                      className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl text-base font-medium text-white bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 transition-all duration-200 active:scale-95"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
-                      <span>Register</span>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 713-3h7a3 3 0 713 3v1" />
+              </svg>
+              <span>Sign In</span>
+            </Link>
           </div>
         </div>
       </div>
