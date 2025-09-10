@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import Header from "./components/Header";
+import AppLayout from "./components/AppLayout";
 import Footer from "./components/Footer";
 
 const geistSans = Geist({
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "HelpDesk - IT Support Ticketing System",
-  description: "Professional IT Helpdesk Ticketing System for efficient support management and issue resolution.",
+  title: "FCDC HelpDesk - IT Support Ticketing System",
+  description: "Professional FCDC IT Support Ticketing System for efficient support management and issue resolution.",
 };
 
 export default function RootLayout({ children }) {
@@ -28,10 +29,17 @@ export default function RootLayout({ children }) {
       >
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
+            {/* Header - Always visible */}
             <Header />
-            <main className="flex-1">
-              {children}
-            </main>
+            
+            {/* Main Content Area */}
+            <div className="flex-1">
+              <AppLayout>
+                {children}
+              </AppLayout>
+            </div>
+            
+            {/* Footer - Always visible */}
             <Footer />
           </div>
         </AuthProvider>

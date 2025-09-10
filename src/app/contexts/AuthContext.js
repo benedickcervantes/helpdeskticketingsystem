@@ -25,9 +25,11 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
 
   // Sign up function
   const signup = async (email, password, name, role = 'user', department = '') => {
+    setAuthLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -46,18 +48,15 @@ export const AuthProvider = ({ children }) => {
       
       return user;
     } catch (error) {
-      // Create a clean error object without logging the raw Firebase error
-      const firebaseError = {
-        code: error.code,
-        message: error.message,
-        name: error.name
-      };
-      throw firebaseError;
+      throw error;
+    } finally {
+      setAuthLoading(false);
     }
   };
 
   // Sign in function
   const signin = async (email, password) => {
+    setAuthLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -66,27 +65,24 @@ export const AuthProvider = ({ children }) => {
       await updateDoc(doc(db, 'users', user.uid), {
         lastLogin: serverTimestamp()
       });
-      
       return user;
     } catch (error) {
-      // Create a clean error object without logging the raw Firebase error
-      const firebaseError = {
-        code: error.code,
-        message: error.message,
-        name: error.name
-      };
-      throw firebaseError;
+      throw error;
+    } finally {
+      setAuthLoading(false);
     }
   };
 
   // Sign out function
   const logout = async () => {
+    setAuthLoading(true);
     try {
       await signOut(auth);
     } catch (error) {
-      // Only log logout errors as they're less common
       console.error('Logout error:', error);
       throw error;
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -104,18 +100,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Initialize authentication state
   useEffect(() => {
     setMounted(true);
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        const profile = await getUserProfile(user.uid);
-        setUserProfile(profile);
-      } else {
+      try {
+        if (user) {
+          setCurrentUser(user);
+          // Fetch user profile
+          const profile = await getUserProfile(user.uid);
+          setUserProfile(profile);
+        } else {
+          setCurrentUser(null);
+          setUserProfile(null);
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error);
         setCurrentUser(null);
         setUserProfile(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -124,7 +130,9 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     userProfile,
+    setUserProfile,
     loading,
+    authLoading,
     mounted,
     signin,
     signup,

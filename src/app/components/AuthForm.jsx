@@ -1,6 +1,8 @@
 'use client';
+import { useSearchParams } from 'next/navigation';
+import { ModernSpinner } from "./LoadingComponents";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -16,66 +18,77 @@ const AuthForm = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  const { signin, signup } = useAuth();
+  const { signin, signup, authLoading, currentUser } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (currentUser && !authLoading) {
+      const userRole = currentUser.role || 'user';
+      if (userRole === 'admin') {
+        router.push('/admin');
+      } else if (userRole === 'manager') {
+        router.push('/management');
+      } else {
+        router.push('/user');
+      }
+    }
+  }, [currentUser, authLoading, router]);
+
+  // Check for register query parameter
+  useEffect(() => {
+    const registerParam = searchParams.get('register');
+    if (registerParam === 'true') {
+      setIsLogin(false);
+    }
+  }, [searchParams]);
 
   const departments = [
-    'Sales',
-    'Marketing',
-    'IT',
-    'HR',
-    'Finance',
-    'Operations',
-    'Customer Service',
-    'Engineering',
-    'Design',
-    'Other'
+    "CRG (Customer Relation Group)",
+    "TG (Takeout Group)",
+    "Billing and Collection Group",
+    "Treasury Group",
+    "Finance and Tax Group",
+    "Disbursement Group",
+    "RSD (Real Estate Services Department)",
+    "Engineering Department",
+    "Sales and Marketing Group",
+    "Leasing Group"
   ];
-
-  // Function to get user-friendly error messages
-  const getErrorMessage = (error) => {
-    // Handle different error formats
-    const errorCode = error?.code || error?.errorCode;
-    const errorMessage = error?.message || error?.errorMessage;
-    
-    switch (errorCode) {
-      case 'auth/invalid-credential':
-        return 'Invalid email or password. Please check your credentials and try again.';
-      case 'auth/user-not-found':
-        return 'No account found with this email address. Please check your email or create a new account.';
-      case 'auth/wrong-password':
-        return 'Incorrect password. Please try again or reset your password.';
-      case 'auth/invalid-email':
-        return 'Please enter a valid email address.';
-      case 'auth/user-disabled':
-        return 'This account has been disabled. Please contact support for assistance.';
-      case 'auth/too-many-requests':
-        return 'Too many failed attempts. Please wait a moment before trying again.';
-      case 'auth/email-already-in-use':
-        return 'An account with this email already exists. Please use a different email or try signing in.';
-      case 'auth/weak-password':
-        return 'Password should be at least 6 characters long.';
-      case 'auth/operation-not-allowed':
-        return 'This sign-in method is not enabled. Please contact support.';
-      case 'auth/network-request-failed':
-        return 'Network error. Please check your internet connection and try again.';
-      default:
-        // If we can't identify the specific error, show a generic message
-        if (errorMessage && errorMessage.includes('invalid-credential')) {
-          return 'Invalid email or password. Please check your credentials and try again.';
-        }
-        return errorMessage || 'An unexpected error occurred. Please try again.';
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (error) setError('');
+    setSuccessMessage('');
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError('');
-    setSuccessMessage('');
+  const getErrorMessage = (error) => {
+    if (error.code === 'auth/user-not-found') {
+      return 'No account found with this email address.';
+    } else if (error.code === 'auth/wrong-password') {
+      return 'Incorrect password. Please try again.';
+    } else if (error.code === 'auth/invalid-credential') {
+      return 'Invalid email or password. Please check your credentials and try again.';
+    } else if (error.code === 'auth/email-already-in-use') {
+      return 'An account with this email already exists.';
+    } else if (error.code === 'auth/weak-password') {
+      return 'Password should be at least 6 characters long.';
+    } else if (error.code === 'auth/invalid-email') {
+      return 'Please enter a valid email address.';
+    } else if (error.code === 'auth/too-many-requests') {
+      return 'Too many failed attempts. Please try again later.';
+    } else if (error.message) {
+      return error.message;
+    }
+    return 'An error occurred. Please try again.';
   };
 
   const handleSubmit = async (e) => {
@@ -87,7 +100,7 @@ const AuthForm = () => {
     try {
       if (isLogin) {
         await signin(formData.email, formData.password);
-        router.push('/user');
+        // Don't redirect here - let useEffect handle it
       } else {
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match');
@@ -102,7 +115,6 @@ const AuthForm = () => {
         
         await signup(formData.email, formData.password, formData.name, 'user', formData.department);
         
-        // Show success message and redirect directly to dashboard
         setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
         
         // Clear form data
@@ -114,13 +126,9 @@ const AuthForm = () => {
           confirmPassword: ''
         });
         
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          router.push('/user');
-        }, 2000);
+        // Redirect will be handled by useEffect
       }
     } catch (error) {
-      // Handle error silently and show user-friendly message
       const friendlyMessage = getErrorMessage(error);
       setError(friendlyMessage);
     } finally {
@@ -128,199 +136,277 @@ const AuthForm = () => {
     }
   };
 
+  // Show loading screen if authentication is in progress
+  if (authLoading && currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="text-center">
+          <ModernSpinner size="xl" color="emerald" />
+          <p className="mt-4 text-gray-300 font-medium">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-emerald-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl mb-6">
-            <span className="text-white font-bold text-2xl">H</span>
+        <div className="text-center">
+          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl">
+            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="mt-6 text-3xl font-bold text-white">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
-          <p className="text-slate-600">
-            {isLogin ? 'Sign in to your HelpDesk Pro account' : 'Join thousands of IT professionals'}
+          <p className="mt-2 text-sm text-gray-400">
+            {isLogin ? 'Sign in to your FCDC account' : 'Join thousands of IT professionals'}
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        {/* Form */}
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
             {!isLogin && (
               <>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-300 mb-2">
                     Full Name
                   </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required={!isLogin}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                    placeholder="Enter your full name"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
+                  <div className="relative input-icon-container">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
+                      <span className="text-gray-400 text-lg font-bold">👨‍💼</span>
+                    </div>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required={!isLogin}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                      placeholder="Enter full name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      disabled={loading || authLoading}
+                    />
+                  </div>
                 </div>
                 
                 <div>
-                  <label htmlFor="department" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="department" className="block text-sm font-semibold text-gray-300 mb-2">
                     Department
                   </label>
-                  <select
-                    id="department"
-                    name="department"
-                    required={!isLogin}
-                    value={formData.department}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                  >
-                    <option value="">Select your department</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative input-icon-container">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
+                      <span className="text-gray-400 text-lg font-bold">🏢</span>
+                    </div>
+                    <select
+                      id="department"
+                      name="department"
+                      required={!isLogin}
+                      value={formData.department}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white appearance-none input-field"
+                      disabled={loading || authLoading}
+                    >
+                      <option value="" className="text-gray-400">Select your department</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept} className="text-white bg-gray-800">
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none z-10 input-icon">
+                      <span className="text-gray-400 text-sm">▼</span>
+                    </div>
+                  </div>
                 </div>
               </>
             )}
             
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
                 Email Address
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
+              <div className="relative input-icon-container">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
+                  <span className="text-gray-400 text-lg font-bold">📧</span>
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                  placeholder="Enter email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading || authLoading}
+                />
+              </div>
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-300 mb-2">
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+              <div className="relative input-icon-container">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
+                  <div className="relative group">
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-emerald-400 transition-all duration-300 transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
+                  </div>
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  className="w-full pl-10 pr-14 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                  placeholder="Enter password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading || authLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center z-10 text-gray-400 hover:text-emerald-400 transition-all duration-300 group"
+                  disabled={loading || authLoading}
+                >
+                  <div className="relative">
+                    {showPassword ? (
+                      <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
+                  </div>
+                </button>
+              </div>
             </div>
             
             {!isLogin && (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-300 mb-2">
                   Confirm Password
                 </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required={!isLogin}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
+                <div className="relative input-icon-container">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
+                    <div className="relative group">
+                      <svg className="w-5 h-5 text-gray-400 group-hover:text-emerald-400 transition-all duration-300 transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
+                    </div>
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required={!isLogin}
+                    className="w-full pl-10 pr-14 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                    placeholder="Confirm password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    disabled={loading || authLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center z-10 text-gray-400 hover:text-emerald-400 transition-all duration-300 group"
+                    disabled={loading || authLoading}
+                  >
+                    <div className="relative">
+                      {showConfirmPassword ? (
+                        <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
+                    </div>
+                  </button>
+                </div>
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              <div className="bg-red-900/30 border border-red-700 text-red-400 px-4 py-3 rounded-xl text-sm">
                 <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium">{error}</p>
-                  </div>
+                  <span className="text-red-400 mr-2 flex-shrink-0">⚠️</span>
+                  {error}
                 </div>
               </div>
             )}
 
             {successMessage && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm">
+              <div className="bg-emerald-900/30 border border-emerald-700 text-emerald-400 px-4 py-3 rounded-xl text-sm">
                 <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium">{successMessage}</p>
-                  </div>
+                  <span className="text-emerald-400 mr-2 flex-shrink-0">✅</span>
+                  {successMessage}
                 </div>
               </div>
             )}
+          </div>
 
+          <div>
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={loading || authLoading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {isLogin ? 'Signing in...' : 'Creating account...'}
+              {loading || authLoading ? (
+                <div className="flex items-center">
+                  <ModernSpinner size="sm" color="white" />
+                  <span className="ml-2">
+                    {isLogin ? 'Signing In...' : 'Creating Account...'}
+                  </span>
                 </div>
               ) : (
-                isLogin ? 'Sign In' : 'Create Account'
+                <div className="flex items-center">
+                  <span className="mr-2">
+                    {isLogin ? '🔑' : '👨‍💼'}
+                  </span>
+                  {isLogin ? 'Sign In' : 'Create Account'}
+                </div>
               )}
             </button>
-          </form>
+          </div>
 
           {/* Toggle between login and signup */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <p className="text-sm text-gray-400">
+              {isLogin ? "Don't have an account?" : 'Already have an account?'}
               <button
+                type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError('');
                   setSuccessMessage('');
-                  setFormData({
-                    email: '',
-                    password: '',
-                    name: '',
-                    department: '',
-                    confirmPassword: ''
-                  });
                 }}
-                className="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                className="ml-2 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
               >
                 {isLogin ? 'Sign up' : 'Sign in'}
               </button>
             </p>
           </div>
-        </div>
-
-        {/* Background Elements */}
-        <div className="fixed inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-slate-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{animationDelay: '4s'}}></div>
-        </div>
+        </form>
       </div>
     </div>
   );
