@@ -280,3 +280,69 @@ export const getTicketFeedbackStatus = async (ticketId, userId) => {
     return { feedbackSubmitted: false };
   }
 };
+
+// Admin notification functions
+export const createAdminTicketCreatedNotification = async (ticketData, userInfo) => {
+  try {
+    const notification = {
+      type: 'ticket_created',
+      title: 'New Ticket Created',
+      message: `User ${userInfo.name || userInfo.email} created a new ticket: "${ticketData.title}"`,
+      adminNotification: true,
+      ticketId: ticketData.id,
+      userId: ticketData.createdBy,
+      priority: ticketData.priority,
+      category: ticketData.category,
+      createdAt: new Date(),
+      read: false
+    };
+    
+    return await createNotification(notification);
+  } catch (error) {
+    console.error('Error creating admin ticket created notification:', error);
+    throw error;
+  }
+};
+
+export const createAdminFeedbackSubmittedNotification = async (feedbackData, userInfo, ticketInfo) => {
+  try {
+    const notification = {
+      type: 'feedback_submitted',
+      title: 'Feedback Submitted',
+      message: `User ${userInfo.name || userInfo.email} submitted feedback for ticket: "${ticketInfo.title}" (Rating: ${feedbackData.rating}/5)`,
+      adminNotification: true,
+      ticketId: feedbackData.ticketId,
+      userId: feedbackData.userId,
+      feedbackId: feedbackData.id,
+      rating: feedbackData.rating,
+      createdAt: new Date(),
+      read: false
+    };
+    
+    return await createNotification(notification);
+  } catch (error) {
+    console.error('Error creating admin feedback submitted notification:', error);
+    throw error;
+  }
+};
+
+// Get admin notifications
+export const getAdminNotifications = (callback) => {
+  const q = query(
+    collection(db, 'notifications'),
+    where('adminNotification', '==', true)
+  );
+  
+  return onSnapshot(q, callback);
+};
+
+// Get unread admin notification count
+export const getUnreadAdminNotificationCount = (callback) => {
+  const q = query(
+    collection(db, 'notifications'),
+    where('adminNotification', '==', true),
+    where('read', '==', false)
+  );
+  
+  return onSnapshot(q, callback);
+};

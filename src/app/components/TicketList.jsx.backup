@@ -151,10 +151,27 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
     setShowFeedbackForm(true);
   };
 
-  const handleCloseFeedbackForm = () => {
-    setShowFeedbackForm(false);
-    setSelectedTicketForFeedback(null);
+  const handleFeedbackSubmit = async (feedbackData) => {
+    try {
+      // Save feedback to database
+      const feedbackRef = doc(collection(db, "feedback"));
+      await setDoc(feedbackRef, {
+        ticketId: selectedTicketForFeedback.id,
+        ticketTitle: selectedTicketForFeedback.title,
+        createdBy: currentUser.uid,
+        createdAt: new Date(),
+        ...feedbackData
+      });
+      
+      setShowFeedbackForm(false);
+      setSelectedTicketForFeedback(null);
+      alert('Feedback submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Failed to submit feedback. Please try again.');
+    }
   };
+
   const handleViewDetails = (ticket) => {
     setSelectedTicketDetails(ticket);
     setShowTicketDetails(true);
@@ -701,13 +718,38 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
         </div>
       )}
 
-      {/* Feedback Form */}
-      <FeedbackForm
-        ticketId={selectedTicketForFeedback?.id}
-        ticketTitle={selectedTicketForFeedback?.title}
-        isOpen={showFeedbackForm}
-        onClose={handleCloseFeedbackForm}
-      />
+      {/* Feedback Form Modal */}
+      {showFeedbackForm && selectedTicketForFeedback && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Request Feedback</h2>
+                <button
+                  onClick={() => {
+                    setShowFeedbackForm(false);
+                    setSelectedTicketForFeedback(null);
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <FeedbackForm
+                ticket={selectedTicketForFeedback}
+                onSubmit={handleFeedbackSubmit}
+                onCancel={() => {
+                  setShowFeedbackForm(false);
+                  setSelectedTicketForFeedback(null);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

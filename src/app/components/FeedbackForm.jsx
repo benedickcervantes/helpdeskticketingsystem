@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
-import { checkFeedbackExists, markFeedbackAsSubmitted } from '../lib/notificationUtils';
+import { checkFeedbackExists, markFeedbackAsSubmitted, createAdminFeedbackSubmittedNotification } from '../lib/notificationUtils';
 
 const FeedbackForm = ({ ticketId, ticketTitle, isOpen, onClose }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [formData, setFormData] = useState({
     rating: '',
     suggestions: ''
@@ -58,7 +58,19 @@ const FeedbackForm = ({ ticketId, ticketTitle, isOpen, onClose }) => {
         createdAt: serverTimestamp()
       };
 
-      await addDoc(collection(db, 'feedback'), feedbackData);
+      const feedbackRef = await addDoc(collection(db, 'feedback'), feedbackData);
+      
+      // Create admin notification for feedback submission
+      try {
+        await createAdminFeedbackSubmittedNotification(
+          { id: feedbackRef.id, ...feedbackData },
+          { name: userProfile?.name, email: userProfile?.email },
+          { title: ticketTitle }
+        );
+      } catch (notificationError) {
+        console.error('Error creating admin notification:', notificationError);
+        // Don't fail the feedback submission if notification fails
+      }
       
       // Mark feedback as submitted in the ticket
       await markFeedbackAsSubmitted(ticketId, currentUser.uid);

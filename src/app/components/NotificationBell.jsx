@@ -2,30 +2,46 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUnreadNotificationCount } from '../lib/notificationUtils';
+import { getUnreadNotificationCount, getUnreadAdminNotificationCount } from '../lib/notificationUtils';
 
 const NotificationBell = ({ onClick, isActive = false }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     if (!currentUser) return;
 
-    const unsubscribe = getUnreadNotificationCount(currentUser.uid, (snapshot) => {
-      const newCount = snapshot.docs.length;
-      
-      // Trigger animation if count increased
-      if (newCount > unreadCount) {
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 1000);
-      }
-      
-      setUnreadCount(newCount);
-    });
+    // Determine if user is admin
+    const isAdmin = userProfile?.role === 'admin';
+    
+    // Subscribe to appropriate notifications
+    const unsubscribe = isAdmin 
+      ? getUnreadAdminNotificationCount((snapshot) => {
+          const newCount = snapshot.docs.length;
+          
+          // Trigger animation if count increased
+          if (newCount > unreadCount) {
+            setIsAnimating(true);
+            setTimeout(() => setIsAnimating(false), 1000);
+          }
+          
+          setUnreadCount(newCount);
+        })
+      : getUnreadNotificationCount(currentUser.uid, (snapshot) => {
+          const newCount = snapshot.docs.length;
+          
+          // Trigger animation if count increased
+          if (newCount > unreadCount) {
+            setIsAnimating(true);
+            setTimeout(() => setIsAnimating(false), 1000);
+          }
+          
+          setUnreadCount(newCount);
+        });
 
     return () => unsubscribe();
-  }, [currentUser, unreadCount]);
+  }, [currentUser, userProfile, unreadCount]);
 
   return (
     <button
@@ -35,8 +51,8 @@ const NotificationBell = ({ onClick, isActive = false }) => {
           ? 'bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 text-emerald-400 shadow-lg shadow-emerald-500/20' 
           : 'text-gray-400 hover:text-white hover:bg-gradient-to-br hover:from-gray-700/50 hover:to-gray-600/50'
       }`}
-      title="Notifications"
-      aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+      title={`${userProfile?.role === 'admin' ? 'Admin ' : ''}Notifications`}
+      aria-label={`${userProfile?.role === 'admin' ? 'Admin ' : ''}Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
     >
       {/* Notification Bell Icon */}
       <div className={`relative ${isAnimating ? 'animate-bounce' : ''}`}>
