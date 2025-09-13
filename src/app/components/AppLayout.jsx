@@ -38,9 +38,13 @@ const AppLayout = ({ children }) => {
     return pathname === '/admin' || pathname === '/management' || pathname === '/profile';
   };
 
-  // Check if popup menu should be available (for all authenticated users)
+  // Check if popup menu should be available (only on landing page for authenticated users)
   const shouldShowPopupMenu = () => {
-    return currentUser !== null;
+    if (!currentUser) return false;
+    
+    // Only show popup menu on landing page (home page)
+    // Disable on dashboard pages: /user, /admin, /management
+    return pathname === '/';
   };
 
   if (!mounted) return null;
@@ -50,7 +54,7 @@ const AppLayout = ({ children }) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <Header />
-        <main className="pt-16">
+        <main className="pt-16 pb-6">
           {children}
         </main>
       </div>
@@ -59,8 +63,8 @@ const AppLayout = ({ children }) => {
 
   // For authenticated users - layout with header and conditional sidebar
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Header - Always visible with popup menu toggle for all authenticated users */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Header - Popup menu only available on landing page */}
       <Header 
         onSidebarToggle={shouldShowPopupMenu() ? togglePopupMenu : null} 
         isSidebarOpen={isPopupMenuOpen}
@@ -75,13 +79,11 @@ const AppLayout = ({ children }) => {
           />
         )}
         
-        {/* Main Content - Clean spacing from header */}
-        <main className={`flex-1 transition-all duration-300 ease-in-out pt-16 ${
+        {/* Main Content - FINE-TUNED SPACING FROM HEADER AND BOTTOM */}
+        <main className={`flex-1 transition-all duration-300 ease-in-out pt-14 pb-6 ${
           shouldShowSidebar() ? 'lg:ml-64 ml-0' : 'ml-0'
         }`}>
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
 
@@ -93,11 +95,13 @@ const AppLayout = ({ children }) => {
         />
       )}
 
-      {/* Popup Menu Overlay - Rendered outside of header for true overlay effect */}
-      <PopupMenu 
-        isOpen={isPopupMenuOpen} 
-        onClose={closePopupMenu} 
-      />
+      {/* Popup Menu Overlay - Only available on landing page */}
+      {shouldShowPopupMenu() && (
+        <PopupMenu 
+          isOpen={isPopupMenuOpen} 
+          onClose={closePopupMenu} 
+        />
+      )}
     </div>
   );
 };
