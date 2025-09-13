@@ -245,11 +245,34 @@ const AdminDashboard = () => {
       )}
 
       {activeTab === 'tickets' && (
-        <div className="space-y-8 pb-8">
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-6">All Support Tickets</h2>
-            <TicketList />
+        <div className="space-y-6 pb-8">
+          {/* Admin Ticket Management Header */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-white mb-2">All Support Tickets</h2>
+              <p className="text-sm text-gray-400">Comprehensive ticket management with advanced filtering and search</p>
+            </div>
+            
+            {/* Admin-specific quick stats */}
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              <div className="bg-red-500/20 text-red-400 px-2 py-1 rounded border border-red-500/30">
+                {stats.open} Open
+              </div>
+              <div className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded border border-yellow-500/30">
+                {stats.inProgress} In Progress
+              </div>
+              <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded border border-purple-500/30">
+                {stats.critical} Critical
+              </div>
+            </div>
           </div>
+
+          {/* Enhanced TicketList with admin privileges */}
+          <TicketList 
+            showAllTickets={true} 
+            showUserTicketsOnly={false}
+            adminMode={true}
+          />
         </div>
       )}
 
