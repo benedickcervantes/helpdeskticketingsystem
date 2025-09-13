@@ -139,7 +139,7 @@ const AuthForm = () => {
   // Show loading screen if authentication is in progress
   if (authLoading && currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen flex items-center justify-center ">
         <div className="text-center">
           <ModernSpinner size="xl" color="emerald" />
           <p className="mt-4 text-gray-300 font-medium">Authenticating...</p>
@@ -149,7 +149,7 @@ const AuthForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
