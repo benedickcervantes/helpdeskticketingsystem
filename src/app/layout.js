@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
-import Header from "./components/Header";
 import AppLayout from "./components/AppLayout";
 import Footer from "./components/Footer";
 
@@ -29,10 +28,7 @@ export default function RootLayout({ children }) {
       >
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
-            {/* Header - Always visible */}
-            <Header />
-            
-            {/* Main Content Area */}
+            {/* AppLayout handles header and sidebar */}
             <div className="flex-1">
               <AppLayout>
                 {children}
