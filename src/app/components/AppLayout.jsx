@@ -65,10 +65,7 @@ const AppLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Header - Popup menu only available on landing page */}
-      <Header 
-        onSidebarToggle={shouldShowPopupMenu() ? togglePopupMenu : null} 
-        isSidebarOpen={isPopupMenuOpen}
-      />
+      <Header />
       
       <div className="flex">
         {/* Sidebar - Only show for specific pages */}

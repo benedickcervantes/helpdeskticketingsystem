@@ -5,6 +5,7 @@ import { collection, addDoc, query, where, onSnapshot, doc, updateDoc, serverTim
 export const NOTIFICATION_TYPES = {
   TICKET_RESOLVED: 'ticket_resolved',
   TICKET_UPDATED: 'ticket_updated',
+  TICKET_STATUS_CHANGED: 'ticket_status_changed',
   FEEDBACK_REQUESTED: 'feedback_requested'
 };
 
@@ -18,7 +19,7 @@ export const createNotification = async (notificationData) => {
     };
     
     const docRef = await addDoc(collection(db, 'notifications'), notification);
-      return docRef.id;
+    return docRef.id;
   } catch (error) {
     console.error('Error creating notification:', error);
     throw error;
@@ -41,9 +42,61 @@ export const createTicketResolutionNotification = async (ticketData, resolvedBy)
       read: false
     };
     
-    return await createNotification(notification);
+    const notificationId = await createNotification(notification);
+    
+    // Create automatic feedback request notification after a short delay
+    setTimeout(async () => {
+      try {
+        await createFeedbackRequestNotification(ticketData);
+      } catch (error) {
+        console.error('Error creating feedback request notification:', error);
+      }
+    }, 30000); // 30 second delay for feedback request
+    
+    return notificationId;
   } catch (error) {
     console.error('Error creating ticket resolution notification:', error);
+    throw error;
+  }
+};
+
+// MISSING FUNCTION - Create user ticket resolution notification (called from TicketList.jsx)
+export const createUserTicketResolutionNotification = async (ticketData, resolvedBy) => {
+  try {
+    return await createTicketResolutionNotification(ticketData, resolvedBy);
+  } catch (error) {
+    console.error('Error creating user ticket resolution notification:', error);
+    throw error;
+  }
+};
+
+// MISSING FUNCTION - Create user ticket status change notification (called from TicketList.jsx)
+export const createUserTicketStatusChangeNotification = async (ticketData, newStatus, changedBy) => {
+  try {
+    const statusMessages = {
+      'open': 'Your ticket has been reopened and is awaiting review.',
+      'in-progress': 'Your ticket is now being worked on by the IT team.',
+      'resolved': 'Your ticket has been resolved.',
+      'closed': 'Your ticket has been closed.'
+    };
+
+    const notification = {
+      type: NOTIFICATION_TYPES.TICKET_STATUS_CHANGED,
+      title: 'Ticket Status Updated',
+      message: `Your ticket "${ticketData.title}" status changed to "${newStatus}". ${statusMessages[newStatus] || ''}`,
+      userId: ticketData.createdBy,
+      ticketId: ticketData.id,
+      newStatus: newStatus,
+      changedBy: changedBy,
+      priority: ticketData.priority,
+      category: ticketData.category,
+      createdAt: new Date(),
+      read: false
+    };
+    
+    return await createNotification(notification);
+  } catch (error) {
+    console.error('Error creating user ticket status change notification:', error);
     throw error;
   }
 };
@@ -81,7 +134,7 @@ export const markNotificationAsRead = async (notificationId) => {
   }
 };
 
-// Get user notifications
+// Get user notifications (FIXED: removed incorrect userNotification filter)
 export const getUserNotifications = (userId, callback) => {
   const q = query(
     collection(db, 'notifications'),
@@ -91,7 +144,7 @@ export const getUserNotifications = (userId, callback) => {
   return onSnapshot(q, callback);
 };
 
-// Get unread notification count
+// Get unread notification count (FIXED: removed incorrect userNotification filter)
 export const getUnreadNotificationCount = (userId, callback) => {
   const q = query(
     collection(db, 'notifications'),
@@ -101,9 +154,6 @@ export const getUnreadNotificationCount = (userId, callback) => {
   
   return onSnapshot(q, callback);
 };
-
-
-
 
 // Automatic ticket resolution system
 export const autoResolveTicket = async (ticketId, resolvedBy = 'system') => {
@@ -130,11 +180,6 @@ export const autoResolveTicket = async (ticketId, resolvedBy = 'system') => {
       // Create resolution notification
       await createTicketResolutionNotification(ticketData, resolvedBy);
       
-      // Create feedback request notification after a delay
-      setTimeout(async () => {
-        await createFeedbackRequestNotification(ticketData);
-      }, 10000); // 10 second delay for feedback request
-      
       return ticketData;
     }
   } catch (error) {
@@ -153,7 +198,7 @@ export const autoResolveEligibleTickets = async () => {
     // Criteria: open status, older than 7 days, low/medium priority
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        // Remove orderBy to avoid composite index requirement
+    // Remove orderBy to avoid composite index requirement
     const q = query(
       collection(db, 'tickets'),
       where('status', '==', 'open'),
@@ -285,7 +330,7 @@ export const getTicketFeedbackStatus = async (ticketId, userId) => {
 export const createAdminTicketCreatedNotification = async (ticketData, userInfo) => {
   try {
     const notification = {
-      type: 'ticket_created',
+      type: 'new_ticket_created',
       title: 'New Ticket Created',
       message: `User ${userInfo.name || userInfo.email} created a new ticket: "${ticketData.title}"`,
       adminNotification: true,
@@ -346,3 +391,17 @@ export const getUnreadAdminNotificationCount = (callback) => {
   
   return onSnapshot(q, callback);
 };
+
+// FIXED: Get unread user notification count (removed incorrect userNotification filter)
+export const getUnreadUserNotificationCount = (userId, callback) => {
+  const q = query(
+    collection(db, 'notifications'),
+    where('userId', '==', userId),
+    where('read', '==', false)
+  );
+  
+  return onSnapshot(q, callback);
+};
+
+// Alias for backward compatibility
+export const createAdminNewTicketNotification = createAdminTicketCreatedNotification;

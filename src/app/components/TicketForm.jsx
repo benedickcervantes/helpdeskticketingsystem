@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
-import { createAdminTicketCreatedNotification } from '../lib/notificationUtils';
+import { createAdminNewTicketNotification } from '../lib/notificationUtils';
 
 const TicketForm = ({ onTicketCreated }) => {
   const { currentUser, userProfile, loading: authLoading } = useAuth();
@@ -112,7 +112,7 @@ const TicketForm = ({ onTicketCreated }) => {
       
       // Create admin notification for new ticket
       try {
-        await createAdminTicketCreatedNotification(
+        await createAdminNewTicketNotification(
           { id: docRef.id, ...ticketData },
           { name: userProfile?.name, email: userProfile?.email }
         );

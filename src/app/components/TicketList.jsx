@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
-import { createTicketResolutionNotification, createFeedbackRequestNotification } from '../lib/notificationUtils';
+import { createTicketResolutionNotification, createFeedbackRequestNotification, createUserTicketResolutionNotification, createUserTicketStatusChangeNotification } from '../lib/notificationUtils';
 import { getTicketFeedbackStatus } from '../lib/notificationUtils';
 import FeedbackForm from './FeedbackForm';
 
@@ -135,17 +135,21 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
         updatedAt: new Date()
       });
 
-      if (newStatus === 'resolved') {
-        const ticket = tickets.find(t => t.id === ticketId);
-        if (ticket) {
-          await createTicketResolutionNotification(ticket);
+      // Notify user about status change
+      const ticket = tickets.find(t => t.id === ticketId);
+      if (ticket) {
+        const currentUser = { name: 'IT Team', email: 'admin@company.com' };
+        
+        if (newStatus === 'resolved') {
+          await createUserTicketResolutionNotification(ticket, currentUser);
+        } else {
+          await createUserTicketStatusChangeNotification(ticket, newStatus, currentUser);
         }
       }
     } catch (error) {
       console.error('Error updating ticket status:', error);
     }
   };
-
   const handleFeedbackRequest = (ticket) => {
     setSelectedTicketForFeedback(ticket);
     setShowFeedbackForm(true);
