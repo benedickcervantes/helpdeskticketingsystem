@@ -35,7 +35,7 @@ const AppLayout = ({ children }) => {
     if (!currentUser) return false;
     
     // Show sidebar for admin and management pages
-    return pathname === '/admin' || pathname === '/management' || pathname === '/profile';
+    return pathname === '/admin' || pathname === '/management';
   };
 
   // Check if popup menu should be available (only on landing page for authenticated users)

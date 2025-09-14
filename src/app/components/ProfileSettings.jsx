@@ -15,8 +15,7 @@ const ProfileSettings = () => {
     name: '',
     email: '',
     department: '',
-    phone: '',
-    bio: ''
+    phone: ''
   });
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -31,8 +30,7 @@ const ProfileSettings = () => {
         name: userProfile.name || '',
         email: userProfile.email || currentUser?.email || '',
         department: userProfile.department || '',
-        phone: userProfile.phone || '',
-        bio: userProfile.bio || ''
+        phone: userProfile.phone || ''
       });
       setPhotoUrl(userProfile.photoURL || '');
     }
@@ -144,7 +142,6 @@ const ProfileSettings = () => {
         name: formData.name.trim(),
         department: formData.department.trim(),
         phone: formData.phone.trim(),
-        bio: formData.bio.trim(),
         updatedAt: new Date()
       };
 
@@ -234,28 +231,28 @@ const ProfileSettings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700/50 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 px-6 py-6 border-b border-gray-700/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-700/50">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Profile Settings</h1>
-                  <p className="text-gray-400">Manage your account information and preferences</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white">Profile Settings</h1>
+                  <p className="text-sm sm:text-base text-gray-400">Manage your account information and preferences</p>
                 </div>
               </div>
               
               {/* Back Button */}
               <Link
                 href={getDashboardLink()}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 border border-gray-600/50"
+                className="flex items-center justify-center sm:justify-start space-x-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 border border-gray-600/50 text-sm sm:text-base"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -265,16 +262,16 @@ const ProfileSettings = () => {
             </div>
           </div>
 
-          <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="p-4 sm:p-6">
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
               {/* Profile Photo Section */}
-              <div className="bg-gray-700/30 rounded-xl p-6 border border-gray-600/30">
+              <div className="bg-gray-700/30 rounded-xl p-4 sm:p-6 border border-gray-600/30">
                 <h2 className="text-lg font-semibold text-white mb-4">Profile Photo</h2>
                 
-                <div className="flex items-center space-x-6">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                   {/* Current Photo */}
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-600 bg-gray-700 flex items-center justify-center">
+                  <div className="relative flex justify-center sm:justify-start">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-gray-600 bg-gray-700 flex items-center justify-center">
                       {photoPreview ? (
                         <img 
                           src={photoPreview} 
@@ -289,7 +286,7 @@ const ProfileSettings = () => {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-                          <span className="text-white text-2xl font-bold">
+                          <span className="text-white text-xl sm:text-2xl font-bold">
                             {formData.name?.charAt(0)?.toUpperCase() || 'U'}
                           </span>
                         </div>
@@ -305,12 +302,12 @@ const ProfileSettings = () => {
 
                   {/* Photo Actions */}
                   <div className="flex-1 space-y-3">
-                    <div className="flex space-x-3">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {photoUrl || photoPreview ? 'Change Photo' : 'Upload Photo'}
                       </button>
@@ -320,7 +317,7 @@ const ProfileSettings = () => {
                           type="button"
                           onClick={removePhoto}
                           disabled={uploading}
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full sm:w-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Remove
                         </button>
@@ -335,23 +332,23 @@ const ProfileSettings = () => {
                       className="hidden"
                     />
                     
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 text-center sm:text-left">
                       JPG, PNG or GIF. Max size 5MB.
                     </p>
                     
                     {errors.photo && (
-                      <p className="text-sm text-red-400">{errors.photo}</p>
+                      <p className="text-sm text-red-400 text-center sm:text-left">{errors.photo}</p>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Personal Information */}
-              <div className="bg-gray-700/30 rounded-xl p-6 border border-gray-600/30">
+              <div className="bg-gray-700/30 rounded-xl p-4 sm:p-6 border border-gray-600/30">
                 <h2 className="text-lg font-semibold text-white mb-4">Personal Information</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="sm:col-span-2 md:col-span-1">
                     <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                       Full Name *
                     </label>
@@ -370,7 +367,7 @@ const ProfileSettings = () => {
                     )}
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2 md:col-span-1">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                       Email Address
                     </label>
@@ -385,7 +382,7 @@ const ProfileSettings = () => {
                     <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2 md:col-span-1">
                     <label htmlFor="department" className="block text-sm font-medium text-gray-300 mb-2">
                       Department
                     </label>
@@ -400,7 +397,7 @@ const ProfileSettings = () => {
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2 md:col-span-1">
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
                       Phone Number
                     </label>
@@ -414,21 +411,6 @@ const ProfileSettings = () => {
                       placeholder="Enter your phone number"
                     />
                   </div>
-                </div>
-
-                <div className="mt-6">
-                  <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 resize-none"
-                    placeholder="Tell us about yourself..."
-                  />
                 </div>
               </div>
 
@@ -446,14 +428,14 @@ const ProfileSettings = () => {
               )}
 
               {/* Submit Button */}
-              <div className="flex justify-end">
+              <div className="flex justify-center sm:justify-end">
                 <button
                   type="submit"
                   disabled={loading || uploading}
-                  className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   {loading ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>Saving...</span>
                     </div>

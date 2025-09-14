@@ -41,11 +41,11 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Left side - Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center flex-1 min-w-0">
               {/* Logo - Updated to match footer */}
               <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
-                  <span className="text-white font-bold text-lg">F</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
+                  <span className="text-white font-bold text-sm sm:text-lg">F</span>
                 </div>
                 <div className="block">
                   <h1 className="text-sm sm:text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
@@ -61,7 +61,7 @@ const Header = () => {
             {/* Right side - Different content based on authentication */}
             {currentUser ? (
               /* Authenticated users */
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
                 {/* Notification Bell */}
                 <NotificationBell 
                   onClick={handleNotificationBellClick} 
@@ -72,18 +72,18 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-2 sm:space-x-3 p-1.5 sm:p-2 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
+                    className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 p-1 sm:p-1.5 lg:p-2 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
                   >
                     <ProfilePhoto />
-                    <div className="block text-left">
-                      <p className="text-sm font-medium text-white truncate max-w-20 sm:max-w-24">
+                    <div className="block text-left min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-16 sm:max-w-20 lg:max-w-24">
                         {userProfile?.name || 'User'}
                       </p>
-                      <p className="hidden sm:block text-xs sm:text-sm text-gray-400 truncate max-w-20 sm:max-w-24">
-                        {userProfile?.role || 'User'}
+                      <p className="text-xs text-emerald-400 truncate max-w-16 sm:max-w-20 lg:max-w-24">
+                        {userProfile?.department || 'Department'}
                       </p>
                     </div>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -102,7 +102,7 @@ const Header = () => {
                               {userProfile?.email || 'user@example.com'}
                             </p>
                             <p className="text-xs text-emerald-400 font-medium">
-                              {userProfile?.role || 'User'}
+                              {userProfile?.department || 'Department'}
                             </p>
                           </div>
                         </div>

@@ -149,25 +149,23 @@ const AuthForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center  py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl">
-            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+          <div className="mx-auto h-14 w-14 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl">
+            <span className="text-white font-bold text-lg">F</span>
           </div>
-          <h2 className="mt-6 text-3xl font-bold text-white">
+          <h2 className="mt-4 text-2xl sm:text-3xl font-bold text-white">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-gray-400">
             {isLogin ? 'Sign in to your FCDC account' : 'Join thousands of IT professionals'}
           </p>
         </div>
 
         {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             {!isLogin && (
               <>
@@ -283,7 +281,7 @@ const AuthForm = () => {
                     {showPassword ? (
                       <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                      </svg>
+                      </svg>                      
                     ) : (
                       <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -307,6 +305,7 @@ const AuthForm = () => {
                       <svg className="w-5 h-5 text-gray-400 group-hover:text-emerald-400 transition-all duration-300 transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
+                      
                       <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
                     </div>
                   </div>
@@ -390,7 +389,7 @@ const AuthForm = () => {
           </div>
 
           {/* Toggle between login and signup */}
-          <div className="mt-6 text-center">
+          <div className="mt-4 text-center">
             <p className="text-sm text-gray-400">
               {isLogin ? "Don't have an account?" : 'Already have an account?'}
               <button
