@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUnreadNotificationCount, getUnreadAdminNotificationCount } from '../lib/notificationUtils';
+import { getUnreadUserNotificationCount, getUnreadAdminNotificationCount } from '../lib/notificationUtils';
 
 const NotificationBell = ({ onClick, isActive = false }) => {
   const { currentUser, userProfile } = useAuth();
@@ -13,6 +13,7 @@ const NotificationBell = ({ onClick, isActive = false }) => {
     if (!currentUser) return;
 
     // Determine if user is admin
+
     const isAdmin = userProfile?.role === 'admin';
     
     // Subscribe to appropriate notifications
@@ -28,7 +29,8 @@ const NotificationBell = ({ onClick, isActive = false }) => {
           
           setUnreadCount(newCount);
         })
-      : getUnreadNotificationCount(currentUser.uid, (snapshot) => {
+      : getUnreadUserNotificationCount(currentUser.uid, (snapshot) => {
+
           const newCount = snapshot.docs.length;
           
           // Trigger animation if count increased

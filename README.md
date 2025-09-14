@@ -1,6 +1,6 @@
-# IT Helpdesk Ticketing System
+# FCDC Helpdesk Enterprise IT Support
 
-A comprehensive IT Helpdesk Ticketing System built with Next.js 14, Tailwind CSS, and Firebase. This system provides separate dashboards for users, admins, and top management with role-based access control.
+A comprehensive FCDC Helpdesk Enterprise IT Support built with Next.js 14, Tailwind CSS, and Firebase. This system provides separate dashboards for users, admins, and top management with role-based access control.
 
 ## 🚀 Features
 
