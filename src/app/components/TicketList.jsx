@@ -2,7 +2,7 @@
 
 import { SkeletonCard, LoadingDots } from "./LoadingComponents";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebaseconfig';
 import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,165 @@ import { createTicketResolutionNotification, createFeedbackRequestNotification, 
 import { getTicketFeedbackStatus } from '../lib/notificationUtils';
 import FeedbackForm from './FeedbackForm';
 
+// Enhanced StatusDropdown Component with better color scheme and centered text
+const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const buttonRef = useRef(null);
+  
+  const statusOptions = [
+    { 
+      value: 'open', 
+      label: 'Open', 
+      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+      buttonColor: 'hover:bg-cyan-500/10 hover:text-cyan-300',
+      icon: '🔵'
+    },
+    { 
+      value: 'in-progress', 
+      label: 'In Progress', 
+      color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+      buttonColor: 'hover:bg-yellow-500/10 hover:text-yellow-300',
+      icon: '🟡'
+    },
+    { 
+      value: 'resolved', 
+      label: 'Mark Resolved', 
+      color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+      buttonColor: 'hover:bg-emerald-500/10 hover:text-emerald-300',
+      icon: '✅'
+    },
+  ];
+
+  const handleStatusSelect = (newStatus) => {
+    onStatusChange(ticketId, newStatus);
+    setIsOpen(false);
+  };
+
+  const getCurrentStatusLabel = () => {
+    const status = statusOptions.find(option => option.value === currentStatus);
+    if (status) {
+      return status.label;
+    }
+    // Handle the display for current status
+    switch (currentStatus) {
+      case 'open': return 'Open';
+      case 'in-progress': return 'In Progress';
+      case 'resolved': return 'Resolved';
+      case 'closed': return 'Closed';
+      default: return 'Update Status';
+    }
+  };
+
+  const getCurrentStatusIcon = () => {
+    const status = statusOptions.find(option => option.value === currentStatus);
+    return status ? status.icon : '📋';
+  };
+
+
+  const getCurrentStatusColors = () => {
+    switch (currentStatus) {
+      case 'open':
+        return {
+          bg: 'bg-gradient-to-r from-cyan-600 to-cyan-500',
+          hover: 'hover:from-cyan-500 hover:to-cyan-400',
+          border: 'border-cyan-500 hover:border-cyan-400',
+          text: 'text-white'
+        };
+      case 'in-progress':
+        return {
+          bg: 'bg-gradient-to-r from-yellow-600 to-yellow-500',
+          hover: 'hover:from-yellow-500 hover:to-yellow-400',
+          border: 'border-yellow-500 hover:border-yellow-400',
+          text: 'text-white'
+        };
+      case 'resolved':
+        return {
+          bg: 'bg-gradient-to-r from-emerald-600 to-emerald-500',
+          hover: 'hover:from-emerald-500 hover:to-emerald-400',
+          border: 'border-emerald-500 hover:border-emerald-400',
+          text: 'text-white'
+        };
+      case 'closed':
+        return {
+          bg: 'bg-gradient-to-r from-gray-600 to-gray-500',
+          hover: 'hover:from-gray-500 hover:to-gray-400',
+          border: 'border-gray-500 hover:border-gray-400',
+          text: 'text-white'
+        };
+      default:
+        return {
+          bg: 'bg-gradient-to-r from-blue-600 to-blue-500',
+          hover: 'hover:from-blue-500 hover:to-blue-400',
+          border: 'border-blue-500 hover:border-blue-400',
+          text: 'text-white'
+        };
+    }
+  };
+
+  const calculateDropdownPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && !event.target.closest('.status-dropdown')) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="relative status-dropdown z-[99999] isolate" style={{ zIndex: 99999 }}>
+      <button
+        onClick={() => { calculateDropdownPosition(); setIsOpen(!isOpen); }}
+        className={`w-full px-3 sm:px-4 py-2 ${getCurrentStatusColors().bg} ${getCurrentStatusColors().hover} ${getCurrentStatusColors().text} rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 ${getCurrentStatusColors().border} shadow-md hover:shadow-lg`}
+      >
+        <span className="text-lg">{getCurrentStatusIcon()}</span>
+        <span className="text-center">{getCurrentStatusLabel()}</span>
+        <svg 
+          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="fixed bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-2xl z-[99999] overflow-hidden isolate transform backdrop-blur-sm" style={{ top: dropdownPosition.top, left: dropdownPosition.left, width: dropdownPosition.width, zIndex: 99999 }}>
+          {statusOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleStatusSelect(option.value)}
+              className={`w-full px-4 py-3 text-center text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                currentStatus === option.value 
+                  ? 'bg-gray-700/50 cursor-not-allowed opacity-60' 
+                  : `text-white hover:scale-105 ${option.buttonColor}`
+              }`}
+              disabled={currentStatus === option.value}
+            >
+              <span className="text-lg">{option.icon}</span>
+              <span className="text-center font-semibold">{option.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, adminMode = false }) => {
   const { currentUser, userProfile } = useAuth();
   const [tickets, setTickets] = useState([]);
@@ -150,6 +309,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
       console.error('Error updating ticket status:', error);
     }
   };
+  
   const handleFeedbackRequest = (ticket) => {
     setSelectedTicketForFeedback(ticket);
     setShowFeedbackForm(true);
@@ -159,6 +319,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
     setShowFeedbackForm(false);
     setSelectedTicketForFeedback(null);
   };
+  
   const handleViewDetails = (ticket) => {
     setSelectedTicketDetails(ticket);
     setShowTicketDetails(true);
@@ -448,7 +609,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
         {filteredTickets.map((ticket) => (
           <div
             key={ticket.id}
-            className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300"
+            className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300"
           >
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -492,17 +653,20 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                 </div>
               </div>
 
+              {/* Updated Action Buttons Section - StatusDropdown replaces individual buttons */}
               <div className="flex flex-col sm:flex-row gap-2 xl:flex-col xl:min-w-[200px]">
-                {adminMode && ticket.status !== 'resolved' && ticket.status !== 'closed' && (
-                  <button
-                    onClick={() => handleStatusChange(ticket.id, 'resolved')}
-                    className="px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
-                  >
-                    Mark Resolved
-                  </button>
+                {/* Status Dropdown - only show for admin mode or if user wants to see status changes */}
+                {(adminMode || !adminMode) && ticket.status !== 'closed' && (
+                  <StatusDropdown
+                    currentStatus={ticket.status}
+                    ticketId={ticket.id}
+                    onStatusChange={handleStatusChange}
+                    adminMode={adminMode}
+                  />
                 )}
                 
-                {ticket.status === 'resolved' && (
+                {/* Request Feedback button - only show for non-admin mode when status is resolved */}
+                {!adminMode && ticket.status === 'resolved' && (
                   <button
                     onClick={() => handleFeedbackRequest(ticket)}
                     className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
@@ -525,7 +689,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
 
       {/* Enhanced Ticket Details Modal */}
       {showTicketDetails && selectedTicketDetails && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-2 sm:p-4">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 w-full max-w-6xl max-h-[95vh] overflow-hidden shadow-2xl">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border-b border-gray-700/50 p-4 sm:p-6">
@@ -559,7 +723,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
             <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
               <div className="space-y-6">
                 {/* Ticket Header */}
-                <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700/50">
+                <div className="bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
                   <div className="space-y-4">
                     <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">{selectedTicketDetails.title}</h3>
                     
@@ -588,7 +752,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                   {/* Description - Takes 2 columns on large screens */}
-                  <div className="lg:col-span-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700/50">
+                  <div className="lg:col-span-2 bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
                     <div className="flex items-center gap-2 mb-4">
                       <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -599,7 +763,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                   </div>
 
                   {/* Ticket Information - Takes 1 column on large screens */}
-                  <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700/50">
+                  <div className="bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
                     <div className="flex items-center gap-2 mb-4">
                       <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -633,7 +797,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
 
                 {/* Additional Information */}
                 {(selectedTicketDetails.category || selectedTicketDetails.department || selectedTicketDetails.tags) && (
-                  <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-700/50">
+                  <div className="bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
                     <div className="flex items-center gap-2 mb-4">
                       <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -671,7 +835,8 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-700/50">
-                  {selectedTicketDetails.status === 'resolved' && (
+                  {/* Request Feedback button - only show for non-admin mode when status is resolved */}
+                  {!adminMode && selectedTicketDetails.status === 'resolved' && (
                     <button
                       onClick={() => {
                         setShowTicketDetails(false);
