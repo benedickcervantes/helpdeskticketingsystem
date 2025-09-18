@@ -6,6 +6,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import TicketForm from './TicketForm';
 import TicketList from './TicketList';
+import { ModernButton, IconButton, RefreshButton } from './ModernButtons';
 
 const UserDashboard = () => {
   const { currentUser } = useAuth();

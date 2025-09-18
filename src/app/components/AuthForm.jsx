@@ -1,6 +1,7 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { ModernSpinner } from "./LoadingComponents";
+import { ModernButton } from "./ModernButtons";
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
