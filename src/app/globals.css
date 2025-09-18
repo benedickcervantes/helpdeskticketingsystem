@@ -524,3 +524,1061 @@ svg {
     min-width: 44px;
   }
 }
+
+/* Enhanced Modern Animations */
+@keyframes morphing-spinner {
+  0% {
+    border-radius: 50%;
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    border-radius: 20%;
+    transform: rotate(90deg) scale(1.1);
+  }
+  50% {
+    border-radius: 50%;
+    transform: rotate(180deg) scale(0.9);
+  }
+  75% {
+    border-radius: 20%;
+    transform: rotate(270deg) scale(1.1);
+  }
+  100% {
+    border-radius: 50%;
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 30px rgba(16, 185, 129, 0.4);
+  }
+}
+
+@keyframes slide-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-bounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* New Animation Classes */
+.animate-morphing-spinner {
+  animation: morphing-spinner 2s ease-in-out infinite;
+}
+
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
+
+.animate-wave {
+  animation: wave 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-up-fade {
+  animation: slide-up-fade 0.5s ease-out;
+}
+
+.animate-scale-bounce {
+  animation: scale-bounce 0.6s ease-out;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.animate-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #10b981 50%,
+    #ffffff 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 2s linear infinite;
+}
+
+/* Enhanced Button Styles */
+.btn-modern {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.btn-modern:hover::before {
+  left: 100%;
+}
+
+.btn-modern:active {
+  transform: scale(0.98);
+}
+
+/* Glassmorphism Enhancements */
+.glass-card {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card:hover {
+  background: rgba(17, 24, 39, 0.9);
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Enhanced Loading States */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    #374151 25%,
+    #4b5563 50%,
+    #374151 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Modern Card Hover Effects */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Focus States */
+.focus-modern {
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.focus-modern:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* Responsive Typography */
+.text-responsive {
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+}
+
+.heading-responsive {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  line-height: 1.2;
+}
+
+/* Modern Scrollbar */
+.scrollbar-modern {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 185, 129, 0.3) transparent;
+}
+
+.scrollbar-modern::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-modern::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-modern::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar-modern::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .mobile-button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .dark-glass {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Performance Optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Accessibility Improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.focus-visible:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.6);
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-optimized {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Additional Modern Animations */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes wiggle {
+  0%, 7% {
+    transform: rotateZ(0);
+  }
+  15% {
+    transform: rotateZ(-15deg);
+  }
+  20% {
+    transform: rotateZ(10deg);
+  }
+  25% {
+    transform: rotateZ(-10deg);
+  }
+  30% {
+    transform: rotateZ(6deg);
+  }
+  35% {
+    transform: rotateZ(-4deg);
+  }
+  40%, 100% {
+    transform: rotateZ(0);
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+@keyframes rubber-band {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scaleX(1.25) scaleY(0.75);
+  }
+  40% {
+    transform: scaleX(0.75) scaleY(1.25);
+  }
+  50% {
+    transform: scaleX(1.15) scaleY(0.85);
+  }
+  65% {
+    transform: scaleX(0.95) scaleY(1.05);
+  }
+  75% {
+    transform: scaleX(1.05) scaleY(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes flip {
+  0% {
+    transform: perspective(400px) rotateY(0);
+  }
+  40% {
+    transform: perspective(400px) rotateY(-90deg);
+  }
+  60% {
+    transform: perspective(400px) rotateY(-90deg);
+  }
+  100% {
+    transform: perspective(400px) rotateY(0);
+  }
+}
+
+@keyframes zoom-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoom-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes slide-in-blurred-top {
+  0% {
+    transform: translateY(-1000px) scaleY(2.5) scaleX(0.2);
+    transform-origin: 50% 0%;
+    filter: blur(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scaleY(1) scaleX(1);
+    transform-origin: 50% 50%;
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-blurred-bottom {
+  0% {
+    transform: translateY(1000px) scaleY(2.5) scaleX(0.2);
+    transform-origin: 50% 100%;
+    filter: blur(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scaleY(1) scaleX(1);
+    transform-origin: 50% 50%;
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* Animation Classes */
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-rubber-band {
+  animation: rubber-band 1s ease-in-out;
+}
+
+.animate-flip {
+  animation: flip 0.6s ease-in-out;
+}
+
+.animate-zoom-in {
+  animation: zoom-in 0.5s ease-out;
+}
+
+.animate-zoom-out {
+  animation: zoom-out 0.5s ease-out;
+}
+
+.animate-slide-in-blurred-top {
+  animation: slide-in-blurred-top 0.6s cubic-bezier(0.230, 1.000, 0.320, 1.000) both;
+}
+
+.animate-slide-in-blurred-bottom {
+  animation: slide-in-blurred-bottom 0.6s cubic-bezier(0.230, 1.000, 0.320, 1.000) both;
+}
+
+/* Enhanced Hover Effects */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-rotate {
+  transition: transform 0.3s ease;
+}
+
+.hover-rotate:hover {
+  transform: rotate(5deg);
+}
+
+/* Modern Button Hover Effects */
+.btn-hover-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-hover-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.btn-hover-effect:hover::before {
+  left: 100%;
+}
+
+/* Loading States */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    #374151 25%,
+    #4b5563 50%,
+    #374151 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Modern Scrollbar */
+.modern-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 185, 129, 0.3) transparent;
+}
+
+.modern-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modern-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modern-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.modern-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
+}
+
+/* Enhanced Focus States */
+.focus-ring-modern {
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.focus-ring-modern:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+/* Performance Optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .dark-glass {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-optimized {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* User Management Table Scrollbar Fix */
+.user-management-table {
+  overflow: hidden;
+}
+
+.user-management-table::-webkit-scrollbar {
+  display: none;
+}
+
+.user-management-table {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Desktop Table Container */
+.desktop-table-container {
+  overflow: hidden;
+  max-height: calc(100vh - 300px);
+}
+
+/* Mobile Table Container - Keep scrollbars for mobile */
+@media (max-width: 1023px) {
+  .mobile-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Hide scrollbars on desktop but keep functionality */
+@media (min-width: 1024px) {
+  .hide-scrollbar-desktop {
+    overflow: hidden;
+  }
+  
+  .hide-scrollbar-desktop::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar-desktop {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Table responsive fixes */
+.table-responsive {
+  width: 100%;
+  overflow: hidden;
+}
+
+.table-responsive table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Ensure proper column widths */
+.table-responsive th,
+.table-responsive td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-responsive th:nth-child(1),
+.table-responsive td:nth-child(1) {
+  width: 15%;
+}
+
+.table-responsive th:nth-child(2),
+.table-responsive td:nth-child(2) {
+  width: 20%;
+}
+
+.table-responsive th:nth-child(3),
+.table-responsive td:nth-child(3) {
+  width: 20%;
+}
+
+.table-responsive th:nth-child(4),
+.table-responsive td:nth-child(4) {
+  width: 10%;
+}
+
+.table-responsive th:nth-child(5),
+.table-responsive td:nth-child(5) {
+  width: 10%;
+}
+
+.table-responsive th:nth-child(6),
+.table-responsive td:nth-child(6) {
+  width: 10%;
+}
+
+.table-responsive th:nth-child(7),
+.table-responsive td:nth-child(7) {
+  width: 15%;
+}
+
+/* Additional scrollbar fixes for User Management */
+.user-management-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.user-management-container::-webkit-scrollbar {
+  display: none;
+}
+
+.user-management-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Ensure table fits within container */
+.user-management-table-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-management-table-wrapper table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+/* Fix for potential overflow issues */
+.user-management-content {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Desktop specific fixes */
+@media (min-width: 1024px) {
+  .user-management-desktop {
+    overflow: hidden !important;
+  }
+  
+  .user-management-desktop * {
+    overflow: hidden !important;
+  }
+  
+  .user-management-desktop table {
+    overflow: hidden !important;
+  }
+  
+  .user-management-desktop tbody {
+    overflow: hidden !important;
+  }
+}
+
+/* Mobile specific - keep scrollbars */
+@media (max-width: 1023px) {
+  .user-management-mobile {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Global scrollbar hide utility */
+.hide-scrollbar {
+  overflow: hidden;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scrollbar manager styles */
+.scrollbar-manager {
+  width: 100%;
+  height: 100%;
+}
+
+.scrollbar-manager.hide-scrollbar-desktop {
+  overflow: hidden;
+}
+
+.scrollbar-manager.hide-scrollbar-desktop::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-manager.hide-scrollbar-desktop {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Fix for black vertical line in User Management table */
+.user-management-table-fix {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.user-management-table-fix table {
+  border: none !important;
+  border-collapse: collapse !important;
+}
+
+.user-management-table-fix th,
+.user-management-table-fix td {
+  border-right: none !important;
+  border-left: none !important;
+}
+
+.user-management-table-fix th:last-child,
+.user-management-table-fix td:last-child {
+  border-right: none !important;
+}
+
+.user-management-table-fix th:first-child,
+.user-management-table-fix td:first-child {
+  border-left: none !important;
+}
+
+/* Remove any potential border from table container */
+.user-management-container table {
+  border: none !important;
+}
+
+.user-management-container .overflow-hidden {
+  border: 1px solid rgb(75 85 99) !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Desktop specific table fixes */
+@media (min-width: 1024px) {
+  .user-management-desktop table {
+    border: none !important;
+  }
+  
+  .user-management-desktop th,
+  .user-management-desktop td {
+    border-right: none !important;
+    border-left: none !important;
+  }
+  
+  .user-management-desktop th:last-child,
+  .user-management-desktop td:last-child {
+    border-right: none !important;
+    padding-right: 1rem !important;
+  }
+  
+  .user-management-desktop th:first-child,
+  .user-management-desktop td:first-child {
+    border-left: none !important;
+    padding-left: 1rem !important;
+  }
+}
+
+/* Remove any unwanted borders from table rows */
+.user-management-container tbody tr {
+  border-bottom: 1px solid rgb(75 85 99) !important;
+}
+
+.user-management-container tbody tr:last-child {
+  border-bottom: none !important;
+}
+
+/* Ensure proper table layout */
+.user-management-container table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+/* Fix for potential overflow causing black lines */
+.user-management-container {
+  overflow: hidden !important;
+}
+
+.user-management-container > div {
+  overflow: hidden !important;
+}
+
+/* Comprehensive fix for black vertical line in User Management */
+.user-management-robust-fix {
+  position: relative;
+  overflow: hidden;
+}
+
+.user-management-robust-fix::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Remove all potential borders and lines */
+.user-management-robust-fix table {
+  border: none !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.user-management-robust-fix th,
+.user-management-robust-fix td {
+  border: none !important;
+  border-right: none !important;
+  border-left: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid rgb(75 85 99 / 0.3) !important;
+}
+
+.user-management-robust-fix th:last-child,
+.user-management-robust-fix td:last-child {
+  border-right: none !important;
+  padding-right: 1rem !important;
+}
+
+.user-management-robust-fix th:first-child,
+.user-management-robust-fix td:first-child {
+  border-left: none !important;
+  padding-left: 1rem !important;
+}
+
+.user-management-robust-fix tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Ensure no overflow or unwanted elements */
+.user-management-robust-fix * {
+  box-sizing: border-box;
+}
+
+.user-management-robust-fix .overflow-hidden {
+  border: 1px solid rgb(75 85 99 / 0.5) !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden !important;
+}
+
+/* Desktop specific robust fixes */
+@media (min-width: 1024px) {
+  .user-management-robust-fix {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .user-management-robust-fix table {
+    width: 100% !important;
+    table-layout: auto !important;
+  }
+  
+  .user-management-robust-fix th,
+  .user-management-robust-fix td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Specific column widths to prevent overflow */
+  .user-management-robust-fix th:nth-child(1),
+  .user-management-robust-fix td:nth-child(1) {
+    width: 15%;
+    min-width: 120px;
+  }
+  
+  .user-management-robust-fix th:nth-child(2),
+  .user-management-robust-fix td:nth-child(2) {
+    width: 25%;
+    min-width: 200px;
+  }
+  
+  .user-management-robust-fix th:nth-child(3),
+  .user-management-robust-fix td:nth-child(3) {
+    width: 20%;
+    min-width: 150px;
+  }
+  
+  .user-management-robust-fix th:nth-child(4),
+  .user-management-robust-fix td:nth-child(4) {
+    width: 10%;
+    min-width: 80px;
+  }
+  
+  .user-management-robust-fix th:nth-child(5),
+  .user-management-robust-fix td:nth-child(5) {
+    width: 10%;
+    min-width: 80px;
+  }
+  
+  .user-management-robust-fix th:nth-child(6),
+  .user-management-robust-fix td:nth-child(6) {
+    width: 10%;
+    min-width: 100px;
+  }
+  
+  .user-management-robust-fix th:nth-child(7),
+  .user-management-robust-fix td:nth-child(7) {
+    width: 10%;
+    min-width: 120px;
+  }
+}

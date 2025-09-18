@@ -282,7 +282,7 @@ const UserManagement = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6">
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 user-management-robust-fix">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className="animate-pulse">
             <div className="h-6 sm:h-8 bg-gray-700 rounded w-32 sm:w-48"></div>
@@ -295,7 +295,7 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 user-management-robust-fix">
       {/* Enhanced Header with Search and Filters */}
       <div className="flex flex-col space-y-3 sm:space-y-4 mb-4 sm:mb-6">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-3 sm:space-y-4 lg:space-y-0">
@@ -457,9 +457,9 @@ const UserManagement = () => {
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-700/50">
+          <div className="hidden lg:block user-management-robust-fix">
+            <table className="w-full">
+              <thead className="bg-gray-700/30">
                 <tr>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     User
@@ -484,9 +484,9 @@ const UserManagement = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-gray-800/30 divide-y divide-gray-700">
+              <tbody className="bg-gray-800/20">
                 {filteredAndSortedUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-700/30 transition-colors duration-200">
+                  <tr key={user.id} className="hover:bg-gray-700/20 transition-colors duration-200 border-b border-gray-700/30">
                     <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
