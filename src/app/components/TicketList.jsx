@@ -10,32 +10,24 @@ import { createTicketResolutionNotification, createFeedbackRequestNotification, 
 import { getTicketFeedbackStatus } from '../lib/notificationUtils';
 import FeedbackForm from './FeedbackForm';
 
-// Enhanced StatusDropdown Component with better color scheme and centered text
+// Fixed StatusDropdown Component with working absolute positioning
 const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
-  const buttonRef = useRef(null);
   
   const statusOptions = [
     { 
       value: 'open', 
       label: 'Open', 
-      color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-      buttonColor: 'hover:bg-cyan-500/10 hover:text-cyan-300',
       icon: '🔵'
     },
     { 
       value: 'in-progress', 
       label: 'In Progress', 
-      color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-      buttonColor: 'hover:bg-yellow-500/10 hover:text-yellow-300',
       icon: '🟡'
     },
     { 
       value: 'resolved', 
       label: 'Mark Resolved', 
-      color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      buttonColor: 'hover:bg-emerald-500/10 hover:text-emerald-300',
       icon: '✅'
     },
   ];
@@ -64,7 +56,6 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
     const status = statusOptions.find(option => option.value === currentStatus);
     return status ? status.icon : '📋';
   };
-
 
   const getCurrentStatusColors = () => {
     switch (currentStatus) {
@@ -106,17 +97,6 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
     }
   };
 
-  const calculateDropdownPosition = () => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-  };
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -130,9 +110,9 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
   }, [isOpen]);
 
   return (
-    <div className="relative status-dropdown z-[99999] isolate" style={{ zIndex: 99999 }}>
+    <div className="relative status-dropdown">
       <button
-        onClick={() => { calculateDropdownPosition(); setIsOpen(!isOpen); }}
+        onClick={() => setIsOpen(!isOpen)}
         className={`w-full px-3 sm:px-4 py-2 ${getCurrentStatusColors().bg} ${getCurrentStatusColors().hover} ${getCurrentStatusColors().text} rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2 ${getCurrentStatusColors().border} shadow-md hover:shadow-lg`}
       >
         <span className="text-lg">{getCurrentStatusIcon()}</span>
@@ -148,15 +128,15 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
       </button>
 
       {isOpen && (
-        <div className="fixed bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-2xl z-[99999] overflow-hidden isolate transform backdrop-blur-sm" style={{ top: dropdownPosition.top, left: dropdownPosition.left, width: dropdownPosition.width, zIndex: 99999 }}>
+        <div className="absolute top-full left-0 mt-2 w-full bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
           {statusOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => handleStatusSelect(option.value)}
               className={`w-full px-4 py-3 text-center text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                 currentStatus === option.value 
-                  ? 'bg-gray-700/50 cursor-not-allowed opacity-60' 
-                  : `text-white hover:scale-105 ${option.buttonColor}`
+                  ? 'bg-gray-700/50 cursor-not-allowed opacity-60 text-gray-400' 
+                  : 'text-white hover:bg-gray-700/30 hover:scale-105'
               }`}
               disabled={currentStatus === option.value}
             >
@@ -655,8 +635,8 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
 
               {/* Updated Action Buttons Section - StatusDropdown replaces individual buttons */}
               <div className="flex flex-col sm:flex-row gap-2 xl:flex-col xl:min-w-[200px]">
-                {/* Status Dropdown - only show for admin mode or if user wants to see status changes */}
-                {(adminMode || !adminMode) && ticket.status !== 'closed' && (
+                {/* Status Dropdown - only show for admin mode */}
+                {adminMode && ticket.status !== 'closed' && (
                   <StatusDropdown
                     currentStatus={ticket.status}
                     ticketId={ticket.id}
@@ -687,22 +667,22 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
         ))}
       </div>
 
-      {/* Enhanced Ticket Details Modal */}
+      {/* Enhanced Ticket Details Modal - FIXED RESPONSIVENESS */}
       {showTicketDetails && selectedTicketDetails && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[99999] flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 w-full max-w-6xl max-h-[95vh] overflow-hidden shadow-2xl">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border-b border-gray-700/50 p-4 sm:p-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-30 flex items-center justify-center p-1 sm:p-2 md:p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-lg sm:rounded-2xl border border-gray-700/50 w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-[98vh] sm:max-h-[95vh] overflow-hidden shadow-2xl mx-1 sm:mx-2">
+            {/* Modal Header - RESPONSIVE */}
+            <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border-b border-gray-700/50 p-3 sm:p-4 md:p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-500/20 rounded-lg">
-                    <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg flex-shrink-0">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-white">Ticket Details</h2>
-                    <p className="text-sm text-gray-400">#{selectedTicketDetails.id}</p>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white truncate">Ticket Details</h2>
+                    <p className="text-xs sm:text-sm text-gray-400">#{selectedTicketDetails.id}</p>
                   </div>
                 </div>
                 <button
@@ -710,119 +690,120 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                     setShowTicketDetails(false);
                     setSelectedTicketDetails(null);
                   }}
-                  className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800/50 rounded-lg"
+                  className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800/50 rounded-lg flex-shrink-0"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
             
-            {/* Modal Content */}
-            <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
-              <div className="space-y-6">
-                {/* Ticket Header */}
-                <div className="bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
-                  <div className="space-y-4">
-                    <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">{selectedTicketDetails.title}</h3>
+            {/* Modal Content - RESPONSIVE */}
+            <div className="p-3 sm:p-4 md:p-6 overflow-y-auto max-h-[calc(98vh-80px)] sm:max-h-[calc(95vh-120px)]">
+              <div className="space-y-4 sm:space-y-6">
+                {/* Ticket Header - RESPONSIVE */}
+                <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
+                  <div className="space-y-3 sm:space-y-4">
+                    <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white leading-tight break-words">{selectedTicketDetails.title}</h3>
                     
-                    {/* Status and Priority Badges */}
-                    <div className="flex flex-wrap gap-2 sm:gap-3">
-                      <span className={`px-3 py-2 rounded-lg text-sm font-medium border flex items-center gap-2 ${statusColors[selectedTicketDetails.status]}`}>
+                    {/* Status and Priority Badges - RESPONSIVE */}
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-3">
+                      <span className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 ${statusColors[selectedTicketDetails.status]}`}>
                         {getStatusIcon(selectedTicketDetails.status)}
                         <span className="capitalize">{selectedTicketDetails.status}</span>
                       </span>
-                      <span className={`px-3 py-2 rounded-lg text-sm font-medium border flex items-center gap-2 ${priorityColors[selectedTicketDetails.priority]}`}>
+                      <span className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 ${priorityColors[selectedTicketDetails.priority]}`}>
                         {getPriorityIcon(selectedTicketDetails.priority)}
                         <span className="capitalize">{selectedTicketDetails.priority}</span>
                       </span>
                       {adminMode && selectedTicketDetails.assignedInfo && (
-                        <span className="px-3 py-2 rounded-lg text-sm font-medium border flex items-center gap-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          Assigned to: {selectedTicketDetails.assignedInfo.name || selectedTicketDetails.assignedInfo.email}
+                          <span className="hidden sm:inline">Assigned to: </span>
+                          <span className="truncate max-w-[120px] sm:max-w-none">{selectedTicketDetails.assignedInfo.name || selectedTicketDetails.assignedInfo.email}</span>
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                {/* Main Content Grid - RESPONSIVE */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                   {/* Description - Takes 2 columns on large screens */}
-                  <div className="lg:col-span-2 bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
-                    <div className="flex items-center gap-2 mb-4">
-                      <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="lg:col-span-2 bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <h4 className="text-lg font-semibold text-white">Description</h4>
+                      <h4 className="text-base sm:text-lg font-semibold text-white">Description</h4>
                     </div>
-                    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedTicketDetails.description}</p>
+                    <p className="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{selectedTicketDetails.description}</p>
                   </div>
 
                   {/* Ticket Information - Takes 1 column on large screens */}
-                  <div className="bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
-                    <div className="flex items-center gap-2 mb-4">
-                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <h4 className="text-lg font-semibold text-white">Information</h4>
+                      <h4 className="text-base sm:text-lg font-semibold text-white">Information</h4>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5 sm:space-y-3">
                       <div>
-                        <span className="text-gray-400 text-sm block">Ticket ID</span>
-                        <span className="text-white font-mono text-sm bg-gray-700/50 px-2 py-1 rounded">{selectedTicketDetails.id}</span>
+                        <span className="text-gray-400 text-xs sm:text-sm block">Ticket ID</span>
+                        <span className="text-white font-mono text-xs sm:text-sm bg-gray-700/50 px-2 py-1 rounded break-all">{selectedTicketDetails.id}</span>
                       </div>
                       <div>
-                        <span className="text-gray-400 text-sm block">Created</span>
-                        <span className="text-white">{formatDate(selectedTicketDetails.createdAt)}</span>
+                        <span className="text-gray-400 text-xs sm:text-sm block">Created</span>
+                        <span className="text-white text-sm sm:text-base">{formatDate(selectedTicketDetails.createdAt)}</span>
                       </div>
                       {selectedTicketDetails.updatedAt && (
                         <div>
-                          <span className="text-gray-400 text-sm block">Last Updated</span>
-                          <span className="text-white">{formatDate(selectedTicketDetails.updatedAt)}</span>
+                          <span className="text-gray-400 text-xs sm:text-sm block">Last Updated</span>
+                          <span className="text-white text-sm sm:text-base">{formatDate(selectedTicketDetails.updatedAt)}</span>
                         </div>
                       )}
                       {showAllTickets && selectedTicketDetails.creatorInfo && (
                         <div>
-                          <span className="text-gray-400 text-sm block">Created by</span>
-                          <span className="text-white">{selectedTicketDetails.creatorInfo.name || selectedTicketDetails.creatorInfo.email}</span>
+                          <span className="text-gray-400 text-xs sm:text-sm block">Created by</span>
+                          <span className="text-white text-sm sm:text-base break-words">{selectedTicketDetails.creatorInfo.name || selectedTicketDetails.creatorInfo.email}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Additional Information */}
+                {/* Additional Information - RESPONSIVE */}
                 {(selectedTicketDetails.category || selectedTicketDetails.department || selectedTicketDetails.tags) && (
-                  <div className="bg-gray-800/30 rounded-xl p-4 sm:p-6 border border-gray-700/50">
-                    <div className="flex items-center gap-2 mb-4">
-                      <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                       </svg>
-                      <h4 className="text-lg font-semibold text-white">Additional Details</h4>
+                      <h4 className="text-base sm:text-lg font-semibold text-white">Additional Details</h4>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       {selectedTicketDetails.category && (
-                        <div className="bg-gray-700/30 rounded-lg p-3">
-                          <span className="text-gray-400 text-sm block mb-1">Category</span>
-                          <span className="text-white font-medium">{selectedTicketDetails.category}</span>
+                        <div className="bg-gray-700/30 rounded-lg p-2.5 sm:p-3">
+                          <span className="text-gray-400 text-xs sm:text-sm block mb-1">Category</span>
+                          <span className="text-white font-medium text-sm sm:text-base break-words">{selectedTicketDetails.category}</span>
                         </div>
                       )}
                       {selectedTicketDetails.department && (
-                        <div className="bg-gray-700/30 rounded-lg p-3">
-                          <span className="text-gray-400 text-sm block mb-1">Department</span>
-                          <span className="text-white font-medium">{selectedTicketDetails.department}</span>
+                        <div className="bg-gray-700/30 rounded-lg p-2.5 sm:p-3">
+                          <span className="text-gray-400 text-xs sm:text-sm block mb-1">Department</span>
+                          <span className="text-white font-medium text-sm sm:text-base break-words">{selectedTicketDetails.department}</span>
                         </div>
                       )}
                       {selectedTicketDetails.tags && selectedTicketDetails.tags.length > 0 && (
                         <div className="sm:col-span-2 lg:col-span-3">
-                          <span className="text-gray-400 text-sm block mb-2">Tags</span>
-                          <div className="flex flex-wrap gap-2">
+                          <span className="text-gray-400 text-xs sm:text-sm block mb-2">Tags</span>
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
                             {selectedTicketDetails.tags.map((tag, index) => (
-                              <span key={index} className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-sm border border-emerald-500/30">
+                              <span key={index} className="px-2 sm:px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs sm:text-sm border border-emerald-500/30">
                                 {tag}
                               </span>
                             ))}
@@ -833,8 +814,8 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-700/50">
+                {/* Actions - RESPONSIVE */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end pt-3 sm:pt-4 border-t border-gray-700/50">
                   {/* Request Feedback button - only show for non-admin mode when status is resolved */}
                   {!adminMode && selectedTicketDetails.status === 'resolved' && (
                     <button
@@ -843,12 +824,13 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                         setSelectedTicketDetails(null);
                         handleFeedbackRequest(selectedTicketDetails);
                       }}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
-                      Request Feedback
+                      <span className="hidden sm:inline">Request Feedback</span>
+                      <span className="sm:hidden">Feedback</span>
                     </button>
                   )}
                   <button
@@ -856,9 +838,9 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                       setShowTicketDetails(false);
                       setSelectedTicketDetails(null);
                     }}
-                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     Close
