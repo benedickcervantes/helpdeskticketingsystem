@@ -3,7 +3,7 @@
 import { useAuth } from './contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { MainLoadingScreen } from './components/LoadingComponents';
+import { MainLoadingScreen, LogoLoadingScreen } from "./components/LoadingComponents";
 import TechNewsSection from './components/TechNewsSection';
 
 export default function HomePage() {
@@ -56,7 +56,6 @@ export default function HomePage() {
   if (currentUser) {
     return null; // Will redirect
   }
-
   return (
     <>
       {/* Floating particles */}
