@@ -564,3 +564,891 @@ export const RefreshButton = ({
     </button>
   );
 };
+
+// =====================================================================
+// ENHANCED LOADING SYSTEM IMPROVEMENTS - ADDED BY CLAUDE
+// =====================================================================
+
+// New: Intelligent Loading Manager with Context Awareness
+export const IntelligentLoadingManager = ({ 
+  isLoading, 
+  loadingType = 'default',
+  context = 'general',
+  children, 
+  timeout = 30000,
+  retryFunction = null,
+  className = ''
+}) => {
+  const [loadingState, setLoadingState] = React.useState('loading');
+  const [elapsedTime, setElapsedTime] = React.useState(0);
+  const [showRetry, setShowRetry] = React.useState(false);
+
+  // Context-aware loading messages
+  const getContextualMessage = () => {
+    const messages = {
+      authentication: {
+        loading: 'Verifying your credentials...',
+        slow: 'Still authenticating, please wait...',
+        timeout: 'Authentication is taking longer than expected'
+      },
+      tickets: {
+        loading: 'Loading your tickets...',
+        slow: 'Fetching ticket data, please wait...',
+        timeout: 'Having trouble loading tickets'
+      },
+      analytics: {
+        loading: 'Generating analytics...',
+        slow: 'Processing data, this may take a moment...',
+        timeout: 'Analytics generation is taking longer than expected'
+      },
+      saving: {
+        loading: 'Saving your changes...',
+        slow: 'Still saving, please don\'t close this window...',
+        timeout: 'Save operation is taking longer than expected'
+      },
+      default: {
+        loading: 'Loading...',
+        slow: 'This is taking longer than usual...',
+        timeout: 'Operation is taking longer than expected'
+      }
+    };
+
+    const contextMessages = messages[context] || messages.default;
+    
+    if (elapsedTime > 10000) return contextMessages.timeout;
+    if (elapsedTime > 5000) return contextMessages.slow;
+    return contextMessages.loading;
+  };
+
+  React.useEffect(() => {
+    if (!isLoading) {
+      setElapsedTime(0);
+      setLoadingState('loading');
+      setShowRetry(false);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setElapsedTime(prev => prev + 1000);
+    }, 1000);
+
+    const timeoutTimer = setTimeout(() => {
+      setLoadingState('timeout');
+      setShowRetry(true);
+    }, timeout);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeoutTimer);
+    };
+  }, [isLoading, timeout]);
+
+  if (!isLoading) {
+    return (
+      <div className={`transition-all duration-300 ${className}`}>
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-[200px] flex items-center justify-center ${className}`}>
+      <div className="text-center max-w-md mx-auto p-6">
+        {/* Advanced Spinner with Context */}
+        <div className="relative mb-6">
+          {loadingType === 'advanced' ? (
+            <div className="relative">
+              <MorphingSpinner size="xl" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-xs text-emerald-400 font-mono">
+                  {Math.floor(elapsedTime / 1000)}s
+                </div>
+              </div>
+            </div>
+          ) : (
+            <PulseSpinner size="lg" glow={true} />
+          )}
+        </div>
+
+        {/* Context-aware messaging */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-white">
+            {getContextualMessage()}
+          </h3>
+          
+          {elapsedTime > 3000 && (
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-400">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span>Processing... ({Math.floor(elapsedTime / 1000)}s)</span>
+            </div>
+          )}
+
+          {/* Progress estimation */}
+          {elapsedTime > 2000 && (
+            <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-1.5 rounded-full transition-all duration-1000 ease-out relative"
+                style={{ width: `${Math.min((elapsedTime / timeout) * 100, 90)}%` }}
+              >
+                <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Retry option for timeouts */}
+        {showRetry && retryFunction && (
+          <div className="mt-6 space-y-3">
+            <p className="text-yellow-400 text-sm">
+              This is taking longer than expected
+            </p>
+            <button
+              onClick={retryFunction}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// New: Advanced Progress Indicator with Stages
+export const StageProgressIndicator = ({ 
+  stages, 
+  currentStage = 0, 
+  isLoading = true,
+  showPercentage = true 
+}) => {
+  const progress = ((currentStage + 1) / stages.length) * 100;
+
+  return (
+    <div className="w-full max-w-md mx-auto p-4">
+      {/* Stage Progress Bar */}
+      <div className="relative mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-300">
+            {isLoading ? stages[currentStage]?.name || 'Processing...' : 'Complete'}
+          </span>
+          {showPercentage && (
+            <span className="text-sm text-emerald-400 font-mono">
+              {Math.round(progress)}%
+            </span>
+          )}
+        </div>
+        
+        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div 
+            className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out relative"
+            style={{ width: `${progress}%` }}
+          >
+            <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stage Indicators */}
+      <div className="flex justify-between">
+        {stages.map((stage, index) => (
+          <div key={index} className="flex flex-col items-center flex-1">
+            <div 
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
+                index <= currentStage 
+                  ? 'bg-emerald-500 text-white' 
+                  : 'bg-gray-700 text-gray-400'
+              } ${index === currentStage && isLoading ? 'animate-pulse-glow' : ''}`}
+            >
+              {index < currentStage ? '✓' : index + 1}
+            </div>
+            <span className={`text-xs mt-1 text-center ${
+              index <= currentStage ? 'text-emerald-400' : 'text-gray-500'
+            }`}>
+              {stage.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// New: Smart Loading Overlay with Blur Effect
+export const SmartLoadingOverlay = ({ 
+  isVisible, 
+  message = 'Loading...', 
+  allowCancel = false,
+  onCancel = null,
+  blur = true 
+}) => {
+  const [showCancelOption, setShowCancelOption] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isVisible && allowCancel) {
+      const timer = setTimeout(() => setShowCancelOption(true), 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowCancelOption(false);
+    }
+  }, [isVisible, allowCancel]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900/80 ${blur ? 'backdrop-blur-sm' : ''} transition-all duration-300`}>
+      <div className="bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-2xl p-8 max-w-md mx-4 text-center">
+        <div className="mb-6">
+          <MorphingSpinner size="xl" />
+        </div>
+        
+        <h3 className="text-xl font-semibold text-white mb-2">{message}</h3>
+        <p className="text-gray-400 text-sm mb-6">
+          Please wait while we process your request
+        </p>
+
+        <div className="flex justify-center space-x-1 mb-6">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+        </div>
+
+        {showCancelOption && onCancel && (
+          <button
+            onClick={onCancel}
+            className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// New: Performance-Optimized List Loading
+export const OptimizedListLoader = ({ 
+  itemCount = 5, 
+  itemHeight = 60, 
+  showGradient = true,
+  className = '' 
+}) => {
+  return (
+    <div className={`space-y-3 ${className}`}>
+      {Array.from({ length: itemCount }).map((_, index) => (
+        <div
+          key={index}
+          className="relative overflow-hidden bg-gray-800/50 border border-gray-700 rounded-lg"
+          style={{ height: `${itemHeight}px` }}
+        >
+          <div className="animate-pulse p-4 h-full flex items-center space-x-4">
+            <div className="w-10 h-10 bg-gray-600 rounded-full flex-shrink-0"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-600 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-600 rounded w-1/2"></div>
+            </div>
+            <div className="w-20 h-6 bg-gray-600 rounded"></div>
+          </div>
+          
+          {showGradient && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer"></div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// New: Micro Loading States for Buttons and Icons
+export const MicroLoader = ({ 
+  type = 'spinner', 
+  size = 'sm', 
+  color = 'emerald',
+  className = '' 
+}) => {
+  const sizes = {
+    xs: 'w-3 h-3',
+    sm: 'w-4 h-4', 
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6'
+  };
+
+  if (type === 'dots') {
+    return (
+      <div className={`flex space-x-1 ${className}`}>
+        <div className={`w-1 h-1 bg-${color}-500 rounded-full animate-bounce`}></div>
+        <div className={`w-1 h-1 bg-${color}-500 rounded-full animate-bounce`} style={{animationDelay: '0.1s'}}></div>
+        <div className={`w-1 h-1 bg-${color}-500 rounded-full animate-bounce`} style={{animationDelay: '0.2s'}}></div>
+      </div>
+    );
+  }
+
+  if (type === 'pulse') {
+    return (
+      <div className={`${sizes[size]} bg-${color}-500 rounded-full animate-pulse ${className}`}></div>
+    );
+  }
+
+  return (
+    <div className={`${sizes[size]} ${className}`}>
+      <div className={`w-full h-full border-2 border-transparent rounded-full border-t-${color}-500 animate-spin`}></div>
+    </div>
+  );
+};
+
+// New: Enhanced Success/Error State Transitions
+export const StateTransitionLoader = ({ 
+  state = 'loading', // 'loading', 'success', 'error'
+  children,
+  loadingComponent = null,
+  successMessage = 'Success!',
+  errorMessage = 'Something went wrong',
+  autoHideSuccess = 3000,
+  onRetry = null,
+  className = ''
+}) => {
+  const [displayState, setDisplayState] = React.useState(state);
+
+  React.useEffect(() => {
+    if (state === 'success' && autoHideSuccess) {
+      const timer = setTimeout(() => {
+        setDisplayState('idle');
+      }, autoHideSuccess);
+      return () => clearTimeout(timer);
+    }
+    setDisplayState(state);
+  }, [state, autoHideSuccess]);
+
+  if (displayState === 'loading') {
+    return (
+      <div className={`flex items-center justify-center p-8 ${className}`}>
+        {loadingComponent || <ModernSpinner size="lg" color="emerald" />}
+      </div>
+    );
+  }
+
+  if (displayState === 'success') {
+    return (
+      <div className={`flex items-center justify-center p-8 text-center ${className}`}>
+        <div className="animate-scale-bounce">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 mx-auto">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-green-400 font-medium">{successMessage}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (displayState === 'error') {
+    return (
+      <div className={`flex items-center justify-center p-8 text-center ${className}`}>
+        <div className="animate-scale-bounce">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <p className="text-red-400 font-medium mb-4">{errorMessage}</p>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+            >
+              Try Again
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`transition-all duration-300 ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+// New: Accessibility-Enhanced Loading Screen Reader
+export const AccessibleLoader = ({ 
+  isLoading, 
+  children, 
+  loadingMessage = 'Loading content',
+  completedMessage = 'Content loaded',
+  showVisualLoader = true 
+}) => {
+  const [announced, setAnnounced] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      setAnnounced(false);
+    } else if (!announced) {
+      // Announce completion to screen readers
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', 'polite');
+      announcement.setAttribute('aria-atomic', 'true');
+      announcement.className = 'sr-only';
+      announcement.textContent = completedMessage;
+      document.body.appendChild(announcement);
+      
+      setTimeout(() => {
+        document.body.removeChild(announcement);
+      }, 1000);
+      
+      setAnnounced(true);
+    }
+  }, [isLoading, announced, completedMessage]);
+
+  if (isLoading) {
+    return (
+      <div 
+        role="status" 
+        aria-live="polite" 
+        aria-label={loadingMessage}
+        className="min-h-[200px] flex items-center justify-center"
+      >
+        {showVisualLoader && (
+          <div className="text-center">
+            <ModernSpinner size="lg" color="emerald" />
+            <p className="mt-4 text-gray-400 sr-only">{loadingMessage}</p>
+          </div>
+        )}
+        <span className="sr-only">{loadingMessage}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div role="main" aria-label="Main content">
+      {children}
+    </div>
+  );
+};
+
+// =====================================================================
+// NEW MODERN LOADING SCREEN DESIGNS - ADDED BY CLAUDE
+// =====================================================================
+
+// New: Futuristic Loading Screen with Animated Background
+export const FuturisticLoadingScreen = ({ 
+  message = 'Loading...', 
+  showProgress = false, 
+  progress = 0,
+  variant = 'cyber',
+  className = '' 
+}) => {
+  const variants = {
+    cyber: {
+      bg: 'from-blue-900 via-purple-900 to-indigo-900',
+      accent: 'cyan',
+      pattern: 'cyber-grid'
+    },
+    neon: {
+      bg: 'from-green-900 via-emerald-900 to-teal-900',
+      accent: 'emerald',
+      pattern: 'neon-waves'
+    },
+    matrix: {
+      bg: 'from-black via-gray-900 to-green-900',
+      accent: 'green',
+      pattern: 'matrix-rain'
+    },
+    space: {
+      bg: 'from-indigo-900 via-purple-900 to-pink-900',
+      accent: 'purple',
+      pattern: 'stars'
+    }
+  };
+
+  const currentVariant = variants[variant] || variants.cyber;
+
+  return (
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${currentVariant.bg} relative overflow-hidden ${className}`}>
+      {/* Animated Background Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        {currentVariant.pattern === 'cyber-grid' && (
+          <div className="cyber-grid-pattern"></div>
+        )}
+        {currentVariant.pattern === 'neon-waves' && (
+          <div className="neon-waves-pattern"></div>
+        )}
+        {currentVariant.pattern === 'matrix-rain' && (
+          <div className="matrix-rain-pattern"></div>
+        )}
+        {currentVariant.pattern === 'stars' && (
+          <div className="stars-pattern"></div>
+        )}
+      </div>
+
+      {/* Floating Particles */}
+      <div className="absolute inset-0">
+        {Array.from({ length: 50 }).map((_, i) => (
+          <div
+            key={i}
+            className={`absolute w-1 h-1 bg-${currentVariant.accent}-400 rounded-full animate-float-particle`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          ></div>
+        ))}
+      </div>
+
+      <div className="text-center relative z-10 max-w-md mx-auto px-6">
+        {/* Main Loading Animation */}
+        <div className="relative mb-8">
+          <div className={`futuristic-loader-${variant}`}>
+            <div className="loader-core"></div>
+            <div className="loader-ring-1"></div>
+            <div className="loader-ring-2"></div>
+            <div className="loader-ring-3"></div>
+          </div>
+        </div>
+
+        {/* Message */}
+        <h2 className="text-3xl font-bold text-white mb-4 animate-text-glow">
+          {message}
+        </h2>
+        <p className="text-gray-300 mb-8 text-lg">
+          Please wait while we prepare everything for you
+        </p>
+
+        {/* Progress Bar */}
+        {showProgress && (
+          <div className="w-full max-w-sm mx-auto mb-8">
+            <div className="flex justify-between text-sm text-gray-400 mb-3">
+              <span>Loading</span>
+              <span className="font-mono">{Math.round(progress)}%</span>
+            </div>
+            <div className="relative">
+              <div className="w-full bg-gray-800/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                <div 
+                  className={`bg-gradient-to-r from-${currentVariant.accent}-500 to-${currentVariant.accent}-300 h-3 rounded-full transition-all duration-500 ease-out relative`}
+                  style={{ width: `${progress}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
+                </div>
+              </div>
+              <div className={`absolute inset-0 bg-${currentVariant.accent}-500/20 rounded-full animate-pulse`}></div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading Dots */}
+        <div className="flex justify-center space-x-2">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className={`w-3 h-3 bg-${currentVariant.accent}-500 rounded-full animate-bounce`}
+              style={{ animationDelay: `${i * 0.2}s` }}
+            ></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// New: Minimalist Loading Screen with Clean Design
+export const MinimalistLoadingScreen = ({ 
+  message = 'Loading...', 
+  showProgress = false, 
+  progress = 0,
+  theme = 'light',
+  className = '' 
+}) => {
+  const isDark = theme === 'dark';
+  const bgClass = isDark ? 'bg-gray-900' : 'bg-white';
+  const textClass = isDark ? 'text-white' : 'text-gray-900';
+  const subtextClass = isDark ? 'text-gray-400' : 'text-gray-600';
+  const accentClass = isDark ? 'border-emerald-500' : 'border-blue-500';
+
+  return (
+    <div className={`min-h-screen flex items-center justify-center ${bgClass} ${className}`}>
+      <div className="text-center max-w-sm mx-auto px-6">
+        {/* Minimalist Spinner */}
+        <div className="relative mb-8">
+          <div className={`w-16 h-16 border-4 border-gray-200 ${isDark ? 'border-gray-700' : 'border-gray-200'} rounded-full`}>
+            <div className={`w-16 h-16 border-4 border-transparent ${accentClass} rounded-full animate-spin`}></div>
+          </div>
+        </div>
+
+        {/* Message */}
+        <h2 className={`text-2xl font-semibold ${textClass} mb-3`}>
+          {message}
+        </h2>
+        <p className={`${subtextClass} mb-8`}>
+          This will only take a moment
+        </p>
+
+        {/* Progress Bar */}
+        {showProgress && (
+          <div className="w-full mb-8">
+            <div className="flex justify-between text-sm mb-2">
+              <span className={subtextClass}>Progress</span>
+              <span className={`${textClass} font-mono`}>{Math.round(progress)}%</span>
+            </div>
+            <div className={`w-full ${isDark ? 'bg-gray-800' : 'bg-gray-200'} rounded-full h-2 overflow-hidden`}>
+              <div 
+                className={`h-2 rounded-full transition-all duration-500 ease-out ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' 
+                    : 'bg-gradient-to-r from-blue-500 to-blue-400'
+                }`}
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* Simple Loading Indicator */}
+        <div className="flex justify-center space-x-1">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className={`w-2 h-2 rounded-full animate-pulse ${
+                isDark ? 'bg-emerald-500' : 'bg-blue-500'
+              }`}
+              style={{ animationDelay: `${i * 0.3}s` }}
+            ></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// New: Glassmorphism Loading Screen
+export const GlassmorphismLoadingScreen = ({ 
+  message = 'Loading...', 
+  showProgress = false, 
+  progress = 0,
+  className = '' 
+}) => {
+  return (
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 relative overflow-hidden ${className}`}>
+      {/* Background Blobs */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/3 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Glass Card */}
+      <div className="relative z-10 backdrop-blur-lg bg-white/20 dark:bg-white/10 rounded-3xl border border-white/30 dark:border-white/20 shadow-2xl p-12 max-w-md mx-auto">
+        {/* Glass Spinner */}
+        <div className="relative mb-8">
+          <div className="w-20 h-20 mx-auto">
+            <div className="absolute inset-0 border-4 border-white/20 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-white/60 rounded-full animate-spin"></div>
+            <div className="absolute inset-2 border-4 border-transparent border-r-white/40 rounded-full animate-spin-reverse"></div>
+          </div>
+        </div>
+
+        {/* Message */}
+        <h2 className="text-3xl font-bold text-white dark:text-white mb-4 text-center">
+          {message}
+        </h2>
+        <p className="text-white/80 dark:text-white/80 mb-8 text-center text-lg">
+          Please wait while we process your request
+        </p>
+
+        {/* Progress Bar */}
+        {showProgress && (
+          <div className="w-full mb-8">
+            <div className="flex justify-between text-sm text-white/70 mb-3">
+              <span>Loading</span>
+              <span className="font-mono">{Math.round(progress)}%</span>
+            </div>
+            <div className="relative">
+              <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                <div 
+                  className="bg-gradient-to-r from-white/60 to-white/40 h-3 rounded-full transition-all duration-500 ease-out relative"
+                  style={{ width: `${progress}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Glass Dots */}
+        <div className="flex justify-center space-x-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="w-3 h-3 bg-white/60 rounded-full animate-bounce backdrop-blur-sm"
+              style={{ animationDelay: `${i * 0.2}s` }}
+            ></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// New: Animated Logo Loading Screen
+export const LogoLoadingScreen = ({ 
+  message = 'Loading...', 
+  showProgress = false, 
+  progress = 0,
+  logo = 'FCDC',
+  className = '' 
+}) => {
+  return (
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden ${className}`}>
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-cyan-500/10 animate-gradient-shift"></div>
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-emerald-500/30 rounded-full animate-float-up"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          ></div>
+        ))}
+      </div>
+
+      <div className="text-center relative z-10 max-w-md mx-auto px-6">
+        {/* Animated Logo */}
+        <div className="relative mb-8">
+          <div className="logo-container">
+            <div className="logo-text animate-logo-glow">
+              {logo}
+            </div>
+            <div className="logo-ring-1"></div>
+            <div className="logo-ring-2"></div>
+            <div className="logo-ring-3"></div>
+          </div>
+        </div>
+
+        {/* Message */}
+        <h2 className="text-2xl font-bold text-white mb-4 animate-fade-in-up">
+          {message}
+        </h2>
+        <p className="text-gray-400 mb-8 animate-fade-in-up animation-delay-200">
+          Initializing your workspace
+        </p>
+
+        {/* Progress Bar */}
+        {showProgress && (
+          <div className="w-full max-w-sm mx-auto mb-8 animate-fade-in-up animation-delay-400">
+            <div className="flex justify-between text-sm text-gray-400 mb-3">
+              <span>Loading</span>
+              <span className="font-mono">{Math.round(progress)}%</span>
+            </div>
+            <div className="relative">
+              <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+                <div 
+                  className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out relative"
+                  style={{ width: `${progress}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading Animation */}
+        <div className="flex justify-center space-x-2 animate-fade-in-up animation-delay-600">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            ></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// New: Card-Based Loading Screen
+export const CardLoadingScreen = ({ 
+  message = 'Loading...', 
+  showProgress = false, 
+  progress = 0,
+  cards = 3,
+  className = '' 
+}) => {
+  return (
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden ${className}`}>
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="grid-pattern"></div>
+      </div>
+
+      <div className="text-center relative z-10 max-w-4xl mx-auto px-6">
+        {/* Loading Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {Array.from({ length: cards }).map((_, i) => (
+            <div
+              key={i}
+              className="loading-card animate-card-float"
+              style={{ animationDelay: `${i * 0.2}s` }}
+            >
+              <div className="card-content">
+                <div className="card-icon">
+                  <div className="icon-spinner"></div>
+                </div>
+                <div className="card-text">
+                  <div className="text-line-1"></div>
+                  <div className="text-line-2"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Main Message */}
+        <div className="mb-8">
+          <h2 className="text-4xl font-bold text-white mb-4 animate-text-reveal">
+            {message}
+          </h2>
+          <p className="text-gray-400 text-lg animate-text-reveal animation-delay-300">
+            Preparing your dashboard
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        {showProgress && (
+          <div className="w-full max-w-md mx-auto mb-8 animate-fade-in-up animation-delay-600">
+            <div className="flex justify-between text-sm text-gray-400 mb-3">
+              <span>Progress</span>
+              <span className="font-mono">{Math.round(progress)}%</span>
+            </div>
+            <div className="relative">
+              <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out relative"
+                  style={{ width: `${progress}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-shimmer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Status Indicator */}
+        <div className="flex justify-center items-center space-x-4 animate-fade-in-up animation-delay-800">
+          <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+          <span className="text-gray-400 text-sm">Initializing components</span>
+          <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse animation-delay-200"></div>
+        </div>
+      </div>
+    </div>
+  );
+};

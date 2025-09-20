@@ -18,6 +18,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { IntelligentLoadingManager, StageProgressIndicator, SkeletonChart, SkeletonCard } from "./LoadingComponents";
 
 const AnalyticsOverview = ({ tickets, users, dateRange }) => {
   const [chartData, setChartData] = useState({
