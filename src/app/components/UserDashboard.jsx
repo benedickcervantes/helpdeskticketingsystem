@@ -23,6 +23,14 @@ const UserDashboard = () => {
     resolved: 0
   });
 
+
+  // Handle ticket creation and redirect to all tickets
+  const handleTicketCreated = (ticketId) => {
+    // Switch to tickets tab and show all tickets
+    setActiveTab("tickets");
+    setTicketFilter("all");
+    console.log("Ticket created successfully:", ticketId);
+  };
   useEffect(() => {
     if (!currentUser) return;
 
@@ -304,7 +312,7 @@ const UserDashboard = () => {
         <div className="space-y-5 pb-4">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Create New Support Ticket</h2>
-            <TicketForm />
+            <TicketForm onTicketCreated={handleTicketCreated} />
           </div>
         </div>
       )}
