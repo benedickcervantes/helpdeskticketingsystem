@@ -2,14 +2,17 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FcdcLogo } from '@/lib/ui/FcdcLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useShellOptional } from '@/contexts/ShellContext';
+import { getDashboardPath, isOnDashboardPage } from '@/lib/utils/roles';
 import NotificationBell from '@/shell/notifications/NotificationBell';
 import NotificationCenter from '@/shell/notifications/NotificationCenter';
 
 const Header = () => {
   const { currentUser, userProfile, logout } = useAuth();
+  const pathname = usePathname();
   const shell = useShellOptional();
   const [mounted, setMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -32,6 +35,9 @@ const Header = () => {
   if (!mounted) {
     return null;
   }
+
+  const dashboardPath = getDashboardPath(userProfile?.role);
+  const showDashboardButton = !isOnDashboardPage(pathname, userProfile?.role);
 
   const ProfilePhoto = () => {
     const photoURL = userProfile?.photoURL || userProfile?.photo_url;
@@ -106,6 +112,15 @@ const Header = () => {
             {currentUser ? (
               /* Authenticated users */
               <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
+                {showDashboardButton && (
+                  <Link
+                    href={dashboardPath}
+                    className="hidden sm:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+
                 {/* Notification Bell */}
                 <NotificationBell 
                   onClick={handleNotificationBellClick} 
@@ -152,6 +167,18 @@ const Header = () => {
                         </div>
                       </div>
                       <div className="py-1">
+                        {showDashboardButton && (
+                          <Link
+                            href={dashboardPath}
+                            className="flex items-center px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200 sm:hidden"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                            </svg>
+                            Dashboard
+                          </Link>
+                        )}
                         <Link
                           href="/profile"
                           className="flex items-center px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200"

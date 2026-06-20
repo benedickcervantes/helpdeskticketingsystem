@@ -11,9 +11,25 @@ import { getTicketFeedbackStatus } from '@/lib/utils/notifications';
 import FeedbackForm from '@/app/(dashboard)/_components/FeedbackForm';
 
 // Fixed StatusDropdown Component with working absolute positioning
-const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) => {
+const STATUS_CONFIRM_MESSAGES = {
+  'in-progress': {
+    title: 'Move to In Progress?',
+    message: 'This ticket will be marked as in progress. The requester will be notified of the status change.',
+    confirmLabel: 'Move to In Progress',
+    confirmClass: 'bg-yellow-600 hover:bg-yellow-700',
+  },
+  resolved: {
+    title: 'Mark as Resolved?',
+    message: 'This ticket will be marked as resolved. The requester may submit feedback after resolution.',
+    confirmLabel: 'Mark Resolved',
+    confirmClass: 'bg-emerald-600 hover:bg-emerald-700',
+  },
+};
+
+const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, onStatusChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+  const [pendingStatus, setPendingStatus] = useState(null);
+
   const statusOptions = [
     { 
       value: 'open', 
@@ -33,9 +49,21 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
   ];
 
   const handleStatusSelect = (newStatus) => {
-    onStatusChange(ticketId, newStatus);
     setIsOpen(false);
+    if (newStatus !== currentStatus && STATUS_CONFIRM_MESSAGES[newStatus]) {
+      setPendingStatus(newStatus);
+      return;
+    }
+    onStatusChange(ticketId, newStatus);
   };
+
+  const handleConfirmStatusChange = () => {
+    if (!pendingStatus) return;
+    onStatusChange(ticketId, pendingStatus);
+    setPendingStatus(null);
+  };
+
+  const pendingConfirm = pendingStatus ? STATUS_CONFIRM_MESSAGES[pendingStatus] : null;
 
   const getCurrentStatusLabel = () => {
     const status = statusOptions.find(option => option.value === currentStatus);
@@ -110,6 +138,7 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
   }, [isOpen]);
 
   return (
+    <>
     <div className="relative status-dropdown">
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -147,6 +176,39 @@ const StatusDropdown = ({ currentStatus, ticketId, onStatusChange, adminMode }) 
         </div>
       )}
     </div>
+
+    {pendingConfirm && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl border border-gray-700/50 w-full max-w-md shadow-2xl">
+          <div className="p-5 sm:p-6 border-b border-gray-700/50">
+            <h3 className="text-lg font-semibold text-white">{pendingConfirm.title}</h3>
+            {ticketTitle && (
+              <p className="text-sm text-emerald-400 mt-1 truncate">&quot;{ticketTitle}&quot;</p>
+            )}
+          </div>
+          <div className="p-5 sm:p-6">
+            <p className="text-sm text-gray-300 leading-relaxed">{pendingConfirm.message}</p>
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 p-5 sm:p-6 pt-0">
+            <button
+              type="button"
+              onClick={() => setPendingStatus(null)}
+              className="flex-1 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmStatusChange}
+              className={`flex-1 px-4 py-2.5 text-white rounded-lg text-sm font-medium transition-colors ${pendingConfirm.confirmClass}`}
+            >
+              {pendingConfirm.confirmLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, adminMode = false }) => {
@@ -167,6 +229,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
   const [assigningTicketId, setAssigningTicketId] = useState(null);
   const [showTicketDetails, setShowTicketDetails] = useState(false);
   const [selectedTicketDetails, setSelectedTicketDetails] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const statusColors = {
     open: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
@@ -180,6 +243,64 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
     medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     critical: 'bg-red-500/20 text-red-400 border-red-500/30'
+  };
+
+  const renderStars = (rating) =>
+    [1, 2, 3, 4, 5].map((star) => (
+      <span key={star} className={star <= rating ? 'text-yellow-400' : 'text-gray-600'}>
+        ★
+      </span>
+    ));
+
+  const FeedbackRatingBadge = ({ ticket, showSubmitter = false }) => {
+    if (!ticket?.feedback?.rating) return null;
+
+    const submitter = ticket.feedback.submittedBy;
+
+    return (
+      <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+        <span className="flex items-center">{renderStars(ticket.feedback.rating)}</span>
+        <span>{ticket.feedback.rating}/5</span>
+        {showSubmitter && submitter && (
+          <span className="text-yellow-300/80 truncate max-w-[120px]">
+            · {submitter.name || submitter.email}
+          </span>
+        )}
+      </span>
+    );
+  };
+
+  const FeedbackRatingPanel = ({ ticket }) => {
+    if (!ticket?.feedback?.rating) return null;
+
+    const submitter = ticket.feedback.submittedBy;
+
+    return (
+      <div className="bg-yellow-500/10 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-yellow-500/30">
+        <div className="flex items-center gap-2 mb-3">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+          <h4 className="text-base sm:text-lg font-semibold text-white">User Feedback</h4>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 text-lg">
+            {renderStars(ticket.feedback.rating)}
+            <span className="text-white font-semibold">{ticket.feedback.rating}/5</span>
+          </div>
+          {submitter && (
+            <span className="text-sm text-yellow-200/80">
+              Rated by {submitter.name || submitter.email}
+            </span>
+          )}
+          {ticket.feedback.createdAt && (
+            <span className="text-sm text-gray-400">
+              {formatDate(ticket.feedback.createdAt)}
+            </span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const normalizeTicket = (ticket) => ({
@@ -327,8 +448,9 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                            ticket.creatorInfo?.email?.toLowerCase().includes(searchLower);
       const matchesAssigned = ticket.assignedInfo?.name?.toLowerCase().includes(searchLower) || 
                              ticket.assignedInfo?.email?.toLowerCase().includes(searchLower);
+      const matchesTicketNumber = ticket.ticketNumber?.toLowerCase().includes(searchLower);
       
-      if (!matchesTitle && !matchesDescription && !matchesCreator && !matchesAssigned) return false;
+      if (!matchesTitle && !matchesDescription && !matchesCreator && !matchesAssigned && !matchesTicketNumber) return false;
     }
     
     return true;
@@ -452,7 +574,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
           </div>
           <input
             type="text"
-            placeholder={adminMode ? "Search tickets by title, description, creator, or assignee..." : "Search tickets by title, description, or creator..."}
+            placeholder={adminMode ? "Search by ticket number, title, description, creator, or assignee..." : "Search by ticket number, title, description, or creator..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
@@ -603,7 +725,14 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                  <h3 className="text-lg font-semibold text-white truncate">{ticket.title}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0 flex-1">
+                    {ticket.ticketNumber && (
+                      <span className="self-start px-2 py-1 rounded-lg text-xs font-mono font-semibold border bg-cyan-500/10 text-cyan-300 border-cyan-500/30 whitespace-nowrap">
+                        {ticket.ticketNumber}
+                      </span>
+                    )}
+                    <h3 className="text-lg font-semibold text-white truncate">{ticket.title}</h3>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <span className={`px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 ${statusColors[ticket.status]}`}>
                       {getStatusIcon(ticket.status)}
@@ -613,12 +742,26 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                       {getPriorityIcon(ticket.priority)}
                       <span className="capitalize">{ticket.priority}</span>
                     </span>
-                    {adminMode && ticket.assignedInfo && (
+                    {showAllTickets && ticket.assignedInfo && (
                       <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-blue-500/20 text-blue-400 border-blue-500/30">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         {ticket.assignedInfo.name || ticket.assignedInfo.email}
+                      </span>
+                    )}
+                    {(showAllTickets || adminMode) && (
+                      <FeedbackRatingBadge ticket={ticket} showSubmitter={showAllTickets && ticket.createdBy !== currentUser?.uid} />
+                    )}
+                    {!showAllTickets && !adminMode && ticket.feedback?.rating && (
+                      <FeedbackRatingBadge ticket={ticket} />
+                    )}
+                    {ticket.attachments?.length > 0 && (
+                      <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {ticket.attachments.length} photo{ticket.attachments.length > 1 ? 's' : ''}
                       </span>
                     )}
                   </div>
@@ -665,13 +808,13 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                   <StatusDropdown
                     currentStatus={ticket.status}
                     ticketId={ticket.id}
+                    ticketTitle={ticket.title}
                     onStatusChange={handleStatusChange}
-                    adminMode={adminMode}
                   />
                 )}
                 
                 {/* Request Feedback button - only show for non-admin mode when status is resolved */}
-                {!adminMode && ticket.status === 'resolved' && (
+                {!adminMode && ticket.status === 'resolved' && ticket.createdBy === currentUser?.uid && !ticket.feedbackSubmitted && (
                   <button
                     onClick={() => handleFeedbackRequest(ticket)}
                     className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
@@ -707,7 +850,9 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white truncate">Ticket Details</h2>
-                    <p className="text-xs sm:text-sm text-gray-400">#{selectedTicketDetails.id}</p>
+                    <p className="text-xs sm:text-sm text-cyan-300 font-mono font-semibold">
+                      {selectedTicketDetails.ticketNumber || `#${selectedTicketDetails.id}`}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -742,7 +887,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                         {getPriorityIcon(selectedTicketDetails.priority)}
                         <span className="capitalize">{selectedTicketDetails.priority}</span>
                       </span>
-                      {adminMode && selectedTicketDetails.assignedInfo && (
+                      {(adminMode || showAllTickets) && selectedTicketDetails.assignedInfo && (
                         <span className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -766,6 +911,46 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                       <h4 className="text-base sm:text-lg font-semibold text-white">Description</h4>
                     </div>
                     <p className="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{selectedTicketDetails.description}</p>
+
+                    {selectedTicketDetails.attachments?.length > 0 && (
+                      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-700/50">
+                        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <h4 className="text-sm sm:text-base font-semibold text-white">
+                            Attachments ({selectedTicketDetails.attachments.length})
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {selectedTicketDetails.attachments.map((attachment) => (
+                            <button
+                              key={attachment.id}
+                              type="button"
+                              onClick={() => setLightboxImage(attachment)}
+                              className="group relative rounded-lg overflow-hidden border border-gray-600/50 bg-gray-900/50 aspect-square hover:border-purple-500/50 transition-colors"
+                            >
+                              {attachment.url ? (
+                                <img
+                                  src={attachment.url}
+                                  alt={attachment.fileName || 'Ticket attachment'}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs px-2 text-center">
+                                  Image unavailable
+                                </div>
+                              )}
+                              <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
+                                <p className="text-xs text-gray-200 truncate">
+                                  {attachment.fileName || 'Screenshot'}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Ticket Information - Takes 1 column on large screens */}
@@ -778,8 +963,14 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                     </div>
                     <div className="space-y-2.5 sm:space-y-3">
                       <div>
-                        <span className="text-gray-400 text-xs sm:text-sm block">Ticket ID</span>
-                        <span className="text-white font-mono text-xs sm:text-sm bg-gray-700/50 px-2 py-1 rounded break-all">{selectedTicketDetails.id}</span>
+                        <span className="text-gray-400 text-xs sm:text-sm block">Ticket Number</span>
+                        <span className="text-cyan-300 font-mono text-sm sm:text-base font-semibold bg-gray-700/50 px-2 py-1 rounded inline-block">
+                          {selectedTicketDetails.ticketNumber || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 text-xs sm:text-sm block">Internal ID</span>
+                        <span className="text-gray-400 font-mono text-[10px] sm:text-xs bg-gray-700/30 px-2 py-1 rounded break-all">{selectedTicketDetails.id}</span>
                       </div>
                       <div>
                         <span className="text-gray-400 text-xs sm:text-sm block">Created</span>
@@ -871,10 +1062,12 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                   </div>
                 )}
 
+                <FeedbackRatingPanel ticket={selectedTicketDetails} />
+
                 {/* Actions - RESPONSIVE */}
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end pt-3 sm:pt-4 border-t border-gray-700/50">
                   {/* Request Feedback button - only show for non-admin mode when status is resolved */}
-                  {!adminMode && selectedTicketDetails.status === 'resolved' && (
+                  {!adminMode && selectedTicketDetails.status === 'resolved' && selectedTicketDetails.createdBy === currentUser?.uid && !selectedTicketDetails.feedbackSubmitted && (
                     <button
                       onClick={() => {
                         setShowTicketDetails(false);
@@ -905,6 +1098,39 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {lightboxImage?.url && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-gray-800/80 hover:bg-gray-700 text-white transition-colors"
+            aria-label="Close image preview"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div
+            className="max-w-5xl w-full max-h-[90vh] flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.fileName || 'Ticket attachment'}
+              className="max-h-[80vh] w-auto max-w-full object-contain rounded-lg shadow-2xl"
+            />
+            {lightboxImage.fileName && (
+              <p className="mt-3 text-sm text-gray-300 text-center break-all px-4">
+                {lightboxImage.fileName}
+              </p>
+            )}
           </div>
         </div>
       )}
