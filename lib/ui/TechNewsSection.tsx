@@ -23,42 +23,42 @@ const TechNewsSection = () => {
       title: "AI-Powered Development Tools Transform Software Engineering",
       link: "#",
       pubDate: new Date().toISOString(),
-      source: "GMA News Online",
+      source: "Tech News",
       image: null
     },
     {
       title: "Next.js 15 Introduces Revolutionary Server Components",
       link: "#",
       pubDate: new Date().toISOString(),
-      source: "GMA News Online",
+      source: "Tech News",
       image: null
     },
     {
       title: "Quantum Computing Breakthrough Achieves 99.9% Accuracy",
       link: "#",
       pubDate: new Date().toISOString(),
-      source: "GMA News Online",
+      source: "Tech News",
       image: null
     },
     {
       title: "OpenAI Releases GPT-5 with Enhanced Reasoning Capabilities",
       link: "#",
       pubDate: new Date().toISOString(),
-      source: "GMA News Online",
+      source: "Tech News",
       image: null
     },
     {
       title: "Microsoft Copilot Integration Reaches 1 Billion Users",
       link: "#",
       pubDate: new Date().toISOString(),
-      source: "GMA News Online",
+      source: "Tech News",
       image: null
     },
     {
       title: "Edge Computing Revolutionizes IoT Device Performance",
       link: "#",
       pubDate: new Date().toISOString(),
-      source: "GMA News Online",
+      source: "Tech News",
       image: null
     }
   ];
@@ -240,7 +240,7 @@ const TechNewsSection = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-gray-700/50 shadow-2xl">
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-4">
@@ -257,71 +257,70 @@ const TechNewsSection = () => {
   }
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4">
-      {/* Header */}
-      <div className="text-center mb-4 md:mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 backdrop-blur-sm border border-emerald-500/20 mb-2 md:mb-3">
-          <div className="relative">
-            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <div className="absolute inset-0 w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
+    <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-1 pb-3 sm:pt-2 sm:pb-4">
+      {/* Hero header + controls */}
+      <div className="text-center space-y-2 sm:space-y-2.5 mb-2 sm:mb-3">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 backdrop-blur-sm border border-emerald-500/20">
+          <div className="relative shrink-0">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
           </div>
-          <span className="text-emerald-400 font-medium text-xs md:text-sm">IT Support Updates</span>
+          <span className="text-emerald-400 font-medium text-[11px] sm:text-xs">Tech Pulse</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-emerald-200 to-cyan-300 bg-clip-text text-transparent mb-1 md:mb-2">
-          IT Support & Technology News
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight bg-gradient-to-r from-white via-emerald-200 to-cyan-300 bg-clip-text text-transparent px-1 sm:px-4 break-words">
+          Technology Trends & Innovation
         </h2>
-        <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-3xl mx-auto px-4">
-          Stay updated with the latest IT support trends and technology news from GMA Network
+        <p className="text-sm sm:text-base text-gray-400 leading-snug max-w-2xl mx-auto px-1 sm:px-4">
+          Explore what&apos;s shaping the digital world — from AI and cloud breakthroughs to the tools and trends driving the industry forward
         </p>
-      </div>
 
-      {/* Controls */}
-      <div className="flex justify-center mb-3 md:mb-4">
-        <div className="flex items-center gap-2 md:gap-4">
-          <button
-            onClick={toggleAutoScroll}
-            className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
-              isAutoScrolling 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:border-emerald-500/30'
-            }`}
-            aria-label={isAutoScrolling ? 'Pause auto-scroll' : 'Play auto-scroll'}
-          >
-            <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isAutoScrolling ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`}></div>
-            <span className="text-xs md:text-sm font-medium">
-              {isAutoScrolling ? 'Auto' : 'Paused'}
-            </span>
-          </button>
+        <div className="flex justify-center pt-0.5">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleAutoScroll}
+              className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
+                isAutoScrolling
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:border-emerald-500/30'
+              }`}
+              aria-label={isAutoScrolling ? 'Pause auto-scroll' : 'Play auto-scroll'}
+            >
+              <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isAutoScrolling ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
+              <span className="text-xs md:text-sm font-medium">
+                {isAutoScrolling ? 'Auto' : 'Paused'}
+              </span>
+            </button>
 
-          <div className="flex items-center gap-1 md:gap-2">
-            <button
-              onClick={handlePrev}
-              className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
-              aria-label="Previous news"
-            >
-              <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
-            <button
-              onClick={handleNext}
-              className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
-              aria-label="Next news"
-            >
-              <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1 md:gap-2">
+              <button
+                onClick={handlePrev}
+                className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
+                aria-label="Previous news"
+              >
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              <button
+                onClick={handleNext}
+                className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
+                aria-label="Next news"
+              >
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* News Carousel */}
-      <div className="relative">
+      <div className="relative -mx-1 sm:mx-0">
         <div 
           ref={scrollContainerRef}
-          className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 gap-2 md:gap-4 2xl:gap-8"
+          className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 gap-3 sm:gap-4"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -334,7 +333,7 @@ const TechNewsSection = () => {
           {news.map((item, index) => (
             <div 
               key={index}
-              className="flex-shrink-0 snap-start w-[calc(100vw-3rem)] sm:w-[calc(100vw-4rem)] md:w-[calc(50vw-2rem)] lg:w-[calc(33.333vw-2rem)] xl:w-[calc(25vw-2rem)] px-1"
+              className="flex-shrink-0 snap-start w-[88%] sm:w-[70%] md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)] max-w-full"
             >
               <article 
                 className="group bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700/50 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1 cursor-pointer h-full"
@@ -362,15 +361,15 @@ const TechNewsSection = () => {
                   </div>
                   
                   {/* Source Badge */}
-                  <div className="absolute top-2 left-2 md:top-3 md:left-3">
-                    <span className="px-2 py-0.5 md:px-3 md:py-1 bg-emerald-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-full shadow-lg">
-                      {item.source || 'GMA News'}
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 max-w-[45%]">
+                    <span className="inline-block max-w-full truncate px-2 py-0.5 sm:px-3 sm:py-1 bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] sm:text-xs font-medium rounded-full shadow-lg">
+                      {item.source || 'Tech News'}
                     </span>
                   </div>
                   
                   {/* Time Badge */}
-                  <div className="absolute top-2 right-2 md:top-3 md:right-3">
-                    <span className="px-2 py-0.5 md:px-3 md:py-1 bg-black/50 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                  <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                    <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-black/50 backdrop-blur-sm text-white text-[10px] sm:text-xs font-medium rounded-full whitespace-nowrap">
                       {formatDate(item.pubDate)}
                     </span>
                   </div>
@@ -392,8 +391,8 @@ const TechNewsSection = () => {
                 </div>
 
                 {/* Content */}
-                <div className="p-3 md:p-4 lg:p-5">
-                  <h3 className="text-white font-semibold text-sm sm:text-base md:text-lg leading-tight mb-2 md:mb-3 line-clamp-3 group-hover:text-emerald-300 transition-colors">
+                <div className="p-3 sm:p-4 lg:p-5">
+                  <h3 className="text-white font-semibold text-sm sm:text-base md:text-lg leading-snug sm:leading-tight mb-2 md:mb-3 line-clamp-3 group-hover:text-emerald-300 transition-colors break-words">
                     {item.title}
                   </h3>
                   

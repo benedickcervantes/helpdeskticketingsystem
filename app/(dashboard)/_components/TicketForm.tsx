@@ -1,22 +1,31 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { SmartButton } from '@/lib/ui/LoadingComponents';
 import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api/client';
+import { api, apiFetch } from '@/lib/api/client';
+
+const MAX_ATTACHMENTS = 3;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const TicketForm = ({ onTicketCreated }) => {
   const { currentUser, userProfile, loading: authLoading } = useAuth();
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium',
     category: 'software'
   });
+  const [attachmentFiles, setAttachmentFiles] = useState([]);
+  const [attachmentPreviews, setAttachmentPreviews] = useState([]);
+  const [attachmentError, setAttachmentError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [createdTicketNumber, setCreatedTicketNumber] = useState('');
+  const [uploadWarning, setUploadWarning] = useState('');
 
   const categories = [
     { value: 'hardware', label: 'Hardware', icon: '🖥️', description: 'Computer, printer, or other physical equipment' },
@@ -65,6 +74,93 @@ const TicketForm = ({ onTicketCreated }) => {
     });
     setError('');
     setSuccess(false);
+    setUploadWarning('');
+  };
+
+  const resetAttachments = () => {
+    attachmentPreviews.forEach((preview) => {
+      if (preview?.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    });
+    setAttachmentFiles([]);
+    setAttachmentPreviews([]);
+    setAttachmentError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAttachmentChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles.length) return;
+
+    setAttachmentError('');
+    setError('');
+    setUploadWarning('');
+
+    const availableSlots = MAX_ATTACHMENTS - attachmentFiles.length;
+    if (availableSlots <= 0) {
+      setAttachmentError(`You can attach up to ${MAX_ATTACHMENTS} images only.`);
+      return;
+    }
+
+    const filesToAdd = selectedFiles.slice(0, availableSlots);
+    const validFiles = [];
+    const validPreviews = [];
+
+    for (const file of filesToAdd) {
+      if (!file.type.startsWith('image/')) {
+        setAttachmentError('Please select valid image files only (PNG, JPG, WEBP, GIF).');
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        setAttachmentError('Each image must be less than 5MB.');
+        continue;
+      }
+      validFiles.push(file);
+      validPreviews.push(URL.createObjectURL(file));
+    }
+
+    if (selectedFiles.length > availableSlots) {
+      setAttachmentError(`Only ${MAX_ATTACHMENTS} images are allowed per ticket.`);
+    }
+
+    if (validFiles.length) {
+      setAttachmentFiles((prev) => [...prev, ...validFiles]);
+      setAttachmentPreviews((prev) => [...prev, ...validPreviews]);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index) => {
+    setAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
+    setAttachmentPreviews((prev) => {
+      const next = [...prev];
+      const removed = next.splice(index, 1)[0];
+      if (removed?.startsWith('blob:')) {
+        URL.revokeObjectURL(removed);
+      }
+      return next;
+    });
+    setAttachmentError('');
+  };
+
+  const uploadAttachments = async (ticketId) => {
+    if (!attachmentFiles.length) return;
+
+    const form = new FormData();
+    attachmentFiles.forEach((file) => {
+      form.append('files', file);
+    });
+
+    await apiFetch(`/api/v1/tickets/${ticketId}/attachments`, {
+      method: 'POST',
+      body: form,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -102,7 +198,19 @@ const TicketForm = ({ onTicketCreated }) => {
         category: formData.category,
       });
 
+      if (attachmentFiles.length && result?.id) {
+        try {
+          await uploadAttachments(result.id);
+        } catch (uploadError) {
+          console.error('Error uploading attachments:', uploadError);
+          setUploadWarning(
+            'Ticket was created, but some screenshots failed to upload. You can try again from ticket details later.',
+          );
+        }
+      }
+
       setSuccess(true);
+      setCreatedTicketNumber(result?.ticketNumber || '');
 
       setTimeout(() => {
         setFormData({
@@ -111,11 +219,14 @@ const TicketForm = ({ onTicketCreated }) => {
           priority: 'medium',
           category: 'software',
         });
+        resetAttachments();
         setSuccess(false);
+        setCreatedTicketNumber('');
+        setUploadWarning('');
       }, 2000);
 
       if (onTicketCreated && result?.id) {
-        onTicketCreated(result.id);
+        onTicketCreated(result);
       }
 
     } catch (error) {
@@ -188,6 +299,89 @@ const TicketForm = ({ onTicketCreated }) => {
                 placeholder="Please provide detailed information about your issue, including:&#10;• What you were trying to do&#10;• What happened instead&#10;• Steps to reproduce the issue&#10;• Any error messages you received"
               />
               <p className="text-xs text-gray-500">{formData.description.length}/1000 characters</p>
+            </div>
+
+            {/* Attachment Section */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <label className="block text-sm font-semibold text-gray-300">
+                  Attach Screenshot (Optional)
+                </label>
+                <span className="text-xs text-emerald-400/80">
+                  Helps IT identify your issue faster
+                </span>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleAttachmentChange}
+                className="hidden"
+              />
+
+              {attachmentFiles.length < MAX_ATTACHMENTS && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full rounded-xl border-2 border-dashed border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-400/60 transition-all duration-300 p-5 sm:p-6 group"
+                >
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 group-hover:scale-105 transition-transform">
+                      <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm sm:text-base font-medium text-white">
+                        Tap to add photo or screenshot
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-400 mt-1">
+                        PNG, JPG, WEBP, GIF · up to {MAX_ATTACHMENTS} images · 5MB each
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              )}
+
+              {attachmentPreviews.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {attachmentPreviews.map((preview, index) => (
+                    <div key={`${preview}-${index}`} className="relative group rounded-xl overflow-hidden border border-gray-600/50 bg-gray-800/50 aspect-square">
+                      <img
+                        src={preview}
+                        alt={`Attachment preview ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(index)}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-red-600/90 hover:bg-red-500 text-white shadow-lg transition-colors"
+                        aria-label="Remove attachment"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <div className="absolute bottom-0 inset-x-0 bg-black/60 px-2 py-1">
+                        <p className="text-xs text-gray-200 truncate">
+                          {attachmentFiles[index]?.name || `Image ${index + 1}`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {attachmentError && (
+                <p className="text-sm text-red-400 flex items-center gap-2">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {attachmentError}
+                </p>
+              )}
             </div>
 
             {/* Priority and Category Grid */}
@@ -314,8 +508,23 @@ const TicketForm = ({ onTicketCreated }) => {
                   </svg>
                   <div>
                     <div className="font-medium">Ticket Created Successfully!</div>
-                    <div className="text-sm mt-1">Your support ticket has been submitted and will be reviewed by our IT team.</div>
+                    <div className="text-sm mt-1">
+                      {createdTicketNumber
+                        ? <>Your ticket <span className="font-semibold text-emerald-300">{createdTicketNumber}</span> has been submitted and will be reviewed by our IT team.</>
+                        : 'Your support ticket has been submitted and will be reviewed by our IT team.'}
+                    </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {uploadWarning && (
+              <div className="bg-yellow-900/30 border border-yellow-700/50 text-yellow-400 px-4 py-4 rounded-xl">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div className="text-sm">{uploadWarning}</div>
                 </div>
               </div>
             )}

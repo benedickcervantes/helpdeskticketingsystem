@@ -6,9 +6,11 @@ import {
   NOTIFICATION_NEW_EVENT,
   TICKET_CREATED_EVENT,
   TICKET_UPDATED_EVENT,
+  USER_PROFILE_UPDATED_EVENT,
 } from '@/lib/realtime/events';
 import type { Notification } from '@/types/notification';
 import type { Ticket } from '@/types/ticket';
+import type { UserProfile } from '@/types/user';
 
 let socket: Socket | null = null;
 
@@ -72,4 +74,15 @@ export function subscribeNotificationEvents(
     onNew?.(payload?.notification);
   s.on(NOTIFICATION_NEW_EVENT, handler);
   return () => s.off(NOTIFICATION_NEW_EVENT, handler);
+}
+
+export function subscribeUserProfileEvents(
+  onUpdated?: (user: UserProfile | undefined) => void,
+): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+
+  const handler = (payload: { user?: UserProfile }) => onUpdated?.(payload?.user);
+  s.on(USER_PROFILE_UPDATED_EVENT, handler);
+  return () => s.off(USER_PROFILE_UPDATED_EVENT, handler);
 }

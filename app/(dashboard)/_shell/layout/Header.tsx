@@ -2,14 +2,17 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FcdcLogo } from '@/lib/ui/FcdcLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useShellOptional } from '@/contexts/ShellContext';
+import { getDashboardPath, isOnDashboardPage } from '@/lib/utils/roles';
 import NotificationBell from '@/shell/notifications/NotificationBell';
 import NotificationCenter from '@/shell/notifications/NotificationCenter';
 
 const Header = () => {
   const { currentUser, userProfile, logout } = useAuth();
+  const pathname = usePathname();
   const shell = useShellOptional();
   const [mounted, setMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -32,6 +35,9 @@ const Header = () => {
   if (!mounted) {
     return null;
   }
+
+  const dashboardPath = getDashboardPath(userProfile?.role);
+  const showDashboardButton = !isOnDashboardPage(pathname, userProfile?.role);
 
   const ProfilePhoto = () => {
     const photoURL = userProfile?.photoURL || userProfile?.photo_url;
@@ -57,7 +63,7 @@ const Header = () => {
     <>
       <header className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center justify-between h-12 sm:h-14">
             {/* Left side - Menu toggle + Logo */}
             <div className="flex items-center flex-1 min-w-0">
               {shell?.showSidebarToggle && (
@@ -91,11 +97,11 @@ const Header = () => {
                   className="group-hover:scale-105 transition-transform duration-200"
                   priority
                 />
-                <div className="block">
-                  <h1 className="text-sm sm:text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+                <div className="block min-w-0">
+                  <h1 className="text-sm sm:text-base md:text-lg font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
                     FCDC
                   </h1>
-                  <p className="hidden sm:block text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-200">
+                  <p className="hidden lg:block text-[10px] leading-tight text-gray-400 group-hover:text-gray-300 transition-colors duration-200 truncate">
                     Helpdesk Enterprise IT Support
                   </p>
                 </div>
@@ -106,6 +112,15 @@ const Header = () => {
             {currentUser ? (
               /* Authenticated users */
               <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
+                {showDashboardButton && (
+                  <Link
+                    href={dashboardPath}
+                    className="hidden sm:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+
                 {/* Notification Bell */}
                 <NotificationBell 
                   onClick={handleNotificationBellClick} 
@@ -116,15 +131,12 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 p-1 sm:p-1.5 lg:p-2 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
+                    className="flex items-center space-x-1.5 sm:space-x-2 p-1 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
                   >
                     <ProfilePhoto />
-                    <div className="block text-left min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-16 sm:max-w-20 lg:max-w-24">
+                    <div className="hidden sm:block text-left min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-20 lg:max-w-28 leading-tight">
                         {userProfile?.name || 'User'}
-                      </p>
-                      <p className="text-xs text-emerald-400 truncate max-w-16 sm:max-w-20 lg:max-w-24">
-                        {userProfile?.department || 'Department'}
                       </p>
                     </div>
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,6 +164,18 @@ const Header = () => {
                         </div>
                       </div>
                       <div className="py-1">
+                        {showDashboardButton && (
+                          <Link
+                            href={dashboardPath}
+                            className="flex items-center px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200 sm:hidden"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                            </svg>
+                            Dashboard
+                          </Link>
+                        )}
                         <Link
                           href="/profile"
                           className="flex items-center px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200"

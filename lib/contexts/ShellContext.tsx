@@ -34,7 +34,7 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const showSidebarToggle =
     !!currentUser && (pathname === '/admin' || pathname === '/management');
 
-  const showPopupToggle = !!currentUser && pathname === '/';
+  const showPopupToggle = false;
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
