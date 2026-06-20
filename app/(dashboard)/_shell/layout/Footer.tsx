@@ -56,23 +56,9 @@ const Footer = () => {
     alert("Twitter account is coming soon! Follow us for the latest updates from Federal Pioneer Development Corp.");
   };
 
-  // Hide footer for authenticated users
-  if (!mounted || currentUser) return null;
-
-  if (!mounted) {
-    return (
-      <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-white border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <div className="animate-pulse">
-              <div className="h-4 bg-gray-700 rounded w-1/4 mx-auto mb-4"></div>
-              <div className="h-3 bg-gray-700 rounded w-1/2 mx-auto"></div>
-            </div>
-          </div>
-        </div>
-      </footer>
-    );
-  }
+  // Hide footer on dashboard pages; keep it on the landing page
+  if (!mounted) return null;
+  if (currentUser && pathname !== '/') return null;
 
   // Modal component for legal policies
   const LegalModal = ({ title, content, isOpen, onClose }) => {

@@ -2,23 +2,24 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MainLoadingScreen } from '@/lib/ui/LoadingComponents';
 import TechNewsSection from '@/lib/ui/TechNewsSection';
 import AppShell from '@/shell/layout/AppShell';
 import Footer from '@/shell/layout/Footer';
+import Link from 'next/link';
+import { getDashboardPath } from '@/lib/utils/roles';
 
 export default function HomePage() {
   const { currentUser, userProfile, loading } = useAuth();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
     setMounted(true);
-    
-    // Simulate loading progress
+
+    if (!loading) return;
+
     const progressInterval = setInterval(() => {
       setLoadingProgress(prev => {
         if (prev >= 100) {
@@ -29,20 +30,8 @@ export default function HomePage() {
       });
     }, 200);
 
-    if (!loading && currentUser) {
-      clearInterval(progressInterval);
-      setLoadingProgress(100);
-      setTimeout(() => {
-        if (userProfile?.role === 'admin') {
-          router.push('/admin');
-        } else {
-          router.push('/user');
-        }
-      }, 500);
-    }
-
     return () => clearInterval(progressInterval);
-  }, [currentUser, userProfile, loading, router]);
+  }, [loading]);
 
   if (!mounted) return null;
 
@@ -56,9 +45,8 @@ export default function HomePage() {
     );
   }
 
-  if (currentUser) {
-    return null; // Will redirect
-  }
+  const dashboardPath = currentUser ? getDashboardPath(userProfile?.role) : '/auth';
+
   return (
     <>
       <AppShell>
@@ -80,12 +68,9 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Hero Section - Tech News with proper spacing */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Tech News Section */}
-          <TechNewsSection />
-        </div>
+      {/* Hero Section - Tech News */}
+      <div className="relative overflow-x-hidden">
+        <TechNewsSection />
       </div>
 
       {/* Basic Tutorial Section - Now First */}
@@ -128,9 +113,9 @@ export default function HomePage() {
               </svg>
             </a>
             
-            {/* Get Started Now Button - Professional */}
-            <a 
-              href="/auth" 
+            {/* Get Started / Dashboard Button */}
+            <Link
+              href={dashboardPath}
               className="group relative bg-transparent border-2 border-gray-600 hover:border-emerald-500 hover:bg-emerald-500/10 text-white px-6 sm:px-8 py-4 rounded-lg font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3 w-full sm:w-auto sm:min-w-[280px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-900"
             >
               <div className="w-6 h-6 flex items-center justify-center">
@@ -138,11 +123,11 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span>Get Started Now</span>
+              <span>{currentUser ? 'Go to Dashboard' : 'Get Started Now'}</span>
               <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </a>
+            </Link>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 2xl:gap-8 text-left">

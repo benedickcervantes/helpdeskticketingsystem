@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardPath } from '@/lib/utils/roles';
 
 const PopupMenu = ({ isOpen, onClose }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -73,6 +74,8 @@ const PopupMenu = ({ isOpen, onClose }) => {
 
   if (!mounted || !isOpen || !currentUser) return null;
 
+  const dashboardPath = getDashboardPath(userProfile?.role);
+
   return (
     <>
       {/* Backdrop */}
@@ -117,7 +120,7 @@ const PopupMenu = ({ isOpen, onClose }) => {
           {/* Navigation Menu */}
           <div className="space-y-2">
             <Link
-              href="/user"
+              href={dashboardPath}
               className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-cyan-500/10 hover:text-white transition-all duration-200 group"
               onClick={onClose}
             >

@@ -25,11 +25,10 @@ const UserDashboard = () => {
 
 
   // Handle ticket creation and redirect to all tickets
-  const handleTicketCreated = (ticketId) => {
-    // Switch to tickets tab and show all tickets
+  const handleTicketCreated = (ticket) => {
     setActiveTab("tickets");
     setTicketFilter("all");
-    console.log("Ticket created successfully:", ticketId);
+    console.log("Ticket created successfully:", ticket?.ticketNumber || ticket?.id);
   };
   const loadStats = useCallback(async () => {
     if (!currentUser) return;
@@ -264,7 +263,7 @@ const UserDashboard = () => {
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div>
               <h2 className="text-lg sm:text-xl font-semibold text-white mb-2">Support Tickets</h2>
-              <p className="text-sm text-gray-400">View and manage all support tickets in the system</p>
+              <p className="text-sm text-gray-400">View all support tickets in the system (read-only for other users&apos; tickets)</p>
             </div>
             
             <div className="flex gap-2">

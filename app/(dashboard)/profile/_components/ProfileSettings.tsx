@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, apiFetch } from '@/lib/api/client';
+import { getDashboardPath } from '@/lib/utils/roles';
 
 const ProfileSettings = () => {
   const { currentUser, userProfile, setUserProfile } = useAuth();
@@ -161,15 +162,6 @@ const ProfileSettings = () => {
     setErrors({ photo: 'Photo removal is not supported yet.' });
   };
 
-  const getDashboardLink = () => {
-    if (userProfile?.role === 'admin') {
-      return '/admin';
-    } else if (userProfile?.role === 'manager') {
-      return '/management';
-    }
-    return '/user';
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-4 sm:py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -191,7 +183,7 @@ const ProfileSettings = () => {
               
               {/* Back Button */}
               <Link
-                href={getDashboardLink()}
+                href={getDashboardPath(userProfile?.role)}
                 className="flex items-center justify-center sm:justify-start space-x-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-white rounded-lg transition-all duration-200 border border-gray-600/50 text-sm sm:text-base"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

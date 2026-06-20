@@ -21,26 +21,27 @@ function AppShellContent({ children }) {
     showPopupToggle,
   } = useShell();
 
-  const shouldShowSidebar = () => {
-    if (!currentUser) return false;
-    return pathname === '/admin' || pathname === '/management';
-  };
+  const isLandingPage = pathname === '/';
+  const shouldShowSidebar =
+    !!currentUser &&
+    !isLandingPage &&
+    (pathname === '/admin' || pathname === '/management');
 
-  if (!currentUser) {
+  if (!currentUser || isLandingPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-x-hidden">
         <Header />
-        <main className="pt-16 pb-6">{children}</main>
+        <main className="pt-14 sm:pt-16 pb-6">{children}</main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-x-hidden">
       <Header />
 
       <div className="flex">
-        {shouldShowSidebar() && (
+        {shouldShowSidebar && (
           <Sidebar
             isMobileOpen={isSidebarOpen}
             onMobileClose={closeSidebar}
@@ -48,15 +49,15 @@ function AppShellContent({ children }) {
         )}
 
         <main
-          className={`flex-1 transition-all duration-300 ease-in-out pt-14 sm:pt-16 pb-6 ${
-            shouldShowSidebar() ? 'lg:ml-64 ml-0' : 'ml-0'
+          className={`flex-1 min-w-0 transition-all duration-300 ease-in-out pt-14 sm:pt-16 pb-6 ${
+            shouldShowSidebar ? 'lg:ml-64 ml-0' : 'ml-0'
           }`}
         >
           {children}
         </main>
       </div>
 
-      {shouldShowSidebar() && isSidebarOpen && (
+      {shouldShowSidebar && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={closeSidebar}
