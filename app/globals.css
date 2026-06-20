@@ -474,6 +474,43 @@ summary,
   display: none;
 }
 
+/* Uniform app select — matches emerald dark theme */
+.app-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: rgb(31 41 55);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2310b981'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1.1rem;
+  border: 1px solid rgb(75 85 99);
+  color: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.app-select:hover {
+  border-color: rgba(16, 185, 129, 0.45);
+  background-color: rgb(55 65 81);
+}
+
+.app-select:focus {
+  outline: none;
+  border-color: rgb(16 185 129);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+
+.app-select option {
+  background-color: rgb(31 41 55);
+  color: #fff;
+}
+
+.app-select-toolbar {
+  background-color: rgb(31 41 55);
+  border: 1px solid rgb(75 85 99);
+}
+
 /* Focus styles for accessibility */
 .focus-ring {
   outline: 2px solid transparent;

@@ -31,7 +31,7 @@ function AppShellContent({ children }) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-x-hidden">
         <Header />
-        <main className="pt-14 sm:pt-16 pb-6">{children}</main>
+        <main className="pt-12 sm:pt-14 pb-6">{children}</main>
       </div>
     );
   }
@@ -49,7 +49,7 @@ function AppShellContent({ children }) {
         )}
 
         <main
-          className={`flex-1 min-w-0 transition-all duration-300 ease-in-out pt-14 sm:pt-16 pb-6 ${
+          className={`flex-1 min-w-0 transition-all duration-300 ease-in-out pt-12 sm:pt-14 pb-6 ${
             shouldShowSidebar ? 'lg:ml-64 ml-0' : 'ml-0'
           }`}
         >

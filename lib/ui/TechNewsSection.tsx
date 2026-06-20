@@ -257,62 +257,61 @@ const TechNewsSection = () => {
   }
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
-      {/* Header */}
-      <div className="text-center mb-4 sm:mb-5 md:mb-6">
-        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 backdrop-blur-sm border border-emerald-500/20 mb-2 sm:mb-3">
+    <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-1 pb-3 sm:pt-2 sm:pb-4">
+      {/* Hero header + controls */}
+      <div className="text-center space-y-2 sm:space-y-2.5 mb-2 sm:mb-3">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 backdrop-blur-sm border border-emerald-500/20">
           <div className="relative shrink-0">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <div className="absolute inset-0 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
           </div>
-          <span className="text-emerald-400 font-medium text-[11px] sm:text-xs md:text-sm">Tech Pulse</span>
+          <span className="text-emerald-400 font-medium text-[11px] sm:text-xs">Tech Pulse</span>
         </div>
-        <h2 className="heading-responsive font-bold bg-gradient-to-r from-white via-emerald-200 to-cyan-300 bg-clip-text text-transparent mb-2 sm:mb-3 px-1 sm:px-4 break-words">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight bg-gradient-to-r from-white via-emerald-200 to-cyan-300 bg-clip-text text-transparent px-1 sm:px-4 break-words">
           Technology Trends & Innovation
         </h2>
-        <p className="text-responsive text-gray-400 max-w-3xl mx-auto px-1 sm:px-4 md:px-6">
+        <p className="text-sm sm:text-base text-gray-400 leading-snug max-w-2xl mx-auto px-1 sm:px-4">
           Explore what&apos;s shaping the digital world — from AI and cloud breakthroughs to the tools and trends driving the industry forward
         </p>
-      </div>
 
-      {/* Controls */}
-      <div className="flex justify-center mb-3 md:mb-4">
-        <div className="flex items-center gap-2 md:gap-4">
-          <button
-            onClick={toggleAutoScroll}
-            className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
-              isAutoScrolling 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:border-emerald-500/30'
-            }`}
-            aria-label={isAutoScrolling ? 'Pause auto-scroll' : 'Play auto-scroll'}
-          >
-            <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isAutoScrolling ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`}></div>
-            <span className="text-xs md:text-sm font-medium">
-              {isAutoScrolling ? 'Auto' : 'Paused'}
-            </span>
-          </button>
+        <div className="flex justify-center pt-0.5">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleAutoScroll}
+              className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
+                isAutoScrolling
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:border-emerald-500/30'
+              }`}
+              aria-label={isAutoScrolling ? 'Pause auto-scroll' : 'Play auto-scroll'}
+            >
+              <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isAutoScrolling ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
+              <span className="text-xs md:text-sm font-medium">
+                {isAutoScrolling ? 'Auto' : 'Paused'}
+              </span>
+            </button>
 
-          <div className="flex items-center gap-1 md:gap-2">
-            <button
-              onClick={handlePrev}
-              className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
-              aria-label="Previous news"
-            >
-              <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
-            <button
-              onClick={handleNext}
-              className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
-              aria-label="Next news"
-            >
-              <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1 md:gap-2">
+              <button
+                onClick={handlePrev}
+                className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
+                aria-label="Previous news"
+              >
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              <button
+                onClick={handleNext}
+                className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
+                aria-label="Next news"
+              >
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
