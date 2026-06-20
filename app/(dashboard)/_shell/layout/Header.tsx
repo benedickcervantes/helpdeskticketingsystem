@@ -63,7 +63,7 @@ const Header = () => {
     <>
       <header className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center justify-between h-12 sm:h-14">
             {/* Left side - Menu toggle + Logo */}
             <div className="flex items-center flex-1 min-w-0">
               {shell?.showSidebarToggle && (
@@ -97,11 +97,11 @@ const Header = () => {
                   className="group-hover:scale-105 transition-transform duration-200"
                   priority
                 />
-                <div className="block">
-                  <h1 className="text-sm sm:text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+                <div className="block min-w-0">
+                  <h1 className="text-sm sm:text-base md:text-lg font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
                     FCDC
                   </h1>
-                  <p className="hidden sm:block text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-200">
+                  <p className="hidden lg:block text-[10px] leading-tight text-gray-400 group-hover:text-gray-300 transition-colors duration-200 truncate">
                     Helpdesk Enterprise IT Support
                   </p>
                 </div>
@@ -131,15 +131,12 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 p-1 sm:p-1.5 lg:p-2 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
+                    className="flex items-center space-x-1.5 sm:space-x-2 p-1 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
                   >
                     <ProfilePhoto />
-                    <div className="block text-left min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-16 sm:max-w-20 lg:max-w-24">
+                    <div className="hidden sm:block text-left min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-20 lg:max-w-28 leading-tight">
                         {userProfile?.name || 'User'}
-                      </p>
-                      <p className="text-xs text-emerald-400 truncate max-w-16 sm:max-w-20 lg:max-w-24">
-                        {userProfile?.department || 'Department'}
                       </p>
                     </div>
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
