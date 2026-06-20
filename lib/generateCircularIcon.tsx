@@ -10,8 +10,6 @@ async function getLogoDataUrl(): Promise<string> {
 
 export async function generateCircularIcon(size: number) {
   const logoSrc = await getLogoDataUrl();
-  const padding = Math.max(2, Math.round(size * 0.1));
-  const imageSize = size - padding * 2;
 
   return new ImageResponse(
     (
@@ -23,15 +21,12 @@ export async function generateCircularIcon(size: number) {
           alignItems: 'center',
           justifyContent: 'center',
           background: '#ffffff',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          padding,
         }}
       >
         <img
           src={logoSrc}
-          width={imageSize}
-          height={imageSize}
+          width={size}
+          height={size}
           style={{ objectFit: 'contain' }}
         />
       </div>
