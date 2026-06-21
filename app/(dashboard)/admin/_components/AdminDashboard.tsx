@@ -47,7 +47,10 @@ const AdminDashboard = () => {
       setNotifications(notificationsData);
       setUnreadNotifications(notificationsData.filter((n) => !n.read && n.adminNotification).length);
     } catch (err) {
-      console.error('Failed to load admin dashboard', err);
+      const message = err instanceof Error ? err.message : '';
+      if (!message.toLowerCase().includes('session expired')) {
+        console.error('Failed to load admin dashboard', err);
+      }
     }
   }, [currentUser]);
 

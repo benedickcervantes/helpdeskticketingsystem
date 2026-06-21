@@ -58,6 +58,7 @@ const AuthForm = () => {
     "Disbursement Group",
     "RSD (Real Estate Services Department)",
     "Engineering Department",
+    "IT Group",
     "Sales and Marketing Group",
     "Leasing Group"
   ];

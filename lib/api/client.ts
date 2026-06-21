@@ -4,6 +4,9 @@ export const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 
 const TOKEN_KEY = 'helpdesk_access_token';
 const REFRESH_KEY = 'helpdesk_refresh_token';
+export const SESSION_EXPIRED_EVENT = 'helpdesk:session-expired';
+
+let refreshInFlight: Promise<string | null> | null = null;
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -27,30 +30,54 @@ export function clearTokens(): void {
   localStorage.removeItem(REFRESH_KEY);
 }
 
+function notifySessionExpired(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+}
+
+function isAuthFailureStatus(status: number): boolean {
+  return status === 401 || status === 403;
+}
+
 async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
+  if (refreshInFlight) return refreshInFlight;
 
-  const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
+  refreshInFlight = (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return null;
 
-  if (!res.ok) {
-    clearTokens();
-    return null;
-  }
+    try {
+      const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
 
-  const data = (await res.json()) as {
-    access_token: string;
-    refresh_token: string;
-  };
-  setTokens(data.access_token, data.refresh_token);
-  return data.access_token;
+      if (!res.ok) {
+        clearTokens();
+        notifySessionExpired();
+        return null;
+      }
+
+      const data = (await res.json()) as {
+        access_token: string;
+        refresh_token: string;
+      };
+      setTokens(data.access_token, data.refresh_token);
+      return data.access_token;
+    } catch {
+      clearTokens();
+      notifySessionExpired();
+      return null;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
 }
 
 export type ApiFetchOptions = RequestInit & {
@@ -78,7 +105,7 @@ export async function apiFetch<T = any>(
 
   let res = await fetch(url, { ...options, headers });
 
-  if (res.status === 401 && getRefreshToken()) {
+  if (isAuthFailureStatus(res.status) && getRefreshToken()) {
     const newToken = await refreshAccessToken();
     if (newToken) {
       headers.Authorization = `Bearer ${newToken}`;
@@ -96,6 +123,15 @@ export async function apiFetch<T = any>(
     } catch {
       /* ignore */
     }
+
+    if (
+      isAuthFailureStatus(res.status) &&
+      message.toLowerCase().includes('session expired')
+    ) {
+      clearTokens();
+      notifySessionExpired();
+    }
+
     throw new Error(message);
   }
 
