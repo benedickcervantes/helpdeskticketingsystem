@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-export const FCDC_LOGO_SRC = '/FCDC LOGO.png';
+export const FCDC_LOGO_SRC = '/fcdc-logo.png';
 
 const sizeClasses = {
   sm: 'w-8 h-8',
