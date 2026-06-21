@@ -19,8 +19,7 @@
     "react-dom": "19.1.0",
     "recharts": "^3.1.2",
     "rss-parser": "^3.13.0",
-    "socket.io-client": "^4.8.3",
-    "xlsx": "^0.18.5"
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -34,6 +33,9 @@
     "typescript": "^5"
   },
   "overrides": {
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }
