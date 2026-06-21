@@ -9,7 +9,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { api, clearTokens, setTokens } from '@/lib/api/client';
+import { useRouter } from 'next/navigation';
+import { api, clearTokens, SESSION_EXPIRED_EVENT, setTokens } from '@/lib/api/client';
 import { disconnectSocket, getSocket } from '@/lib/realtime/socketClient';
 import type { AuthSessionUser } from '@/types/auth';
 import type { UserProfile } from '@/types/user';
@@ -44,6 +45,7 @@ export const useAuth = (): AuthContextValue => {
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<AuthSessionUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -131,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       disconnectSocket();
       setCurrentUser(null);
       setUserProfile(null);
+      router.replace('/');
     } finally {
       setAuthLoading(false);
     }
@@ -140,6 +143,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMounted(true);
     void loadSession();
   }, [loadSession]);
+
+  useEffect(() => {
+    const onSessionExpired = () => {
+      setCurrentUser(null);
+      setUserProfile(null);
+      disconnectSocket();
+      router.replace('/auth');
+    };
+
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+  }, [router]);
 
   const value: AuthContextValue = {
     currentUser,

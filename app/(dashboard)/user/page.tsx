@@ -19,7 +19,7 @@ export default function UserPage() {
   useEffect(() => {
     if (!loading && !authLoading && mounted) {
       if (!currentUser) {
-        router.push('/auth');
+        router.push('/');
       } else if (userProfile?.role === 'admin') {
         router.push('/admin');
       } else if (userProfile?.role === 'manager') {

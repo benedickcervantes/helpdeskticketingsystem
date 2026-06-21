@@ -44,6 +44,7 @@ const UserManagement = () => {
     "Disbursement Group", 
     "RSD (Real Estate Services Department)", 
     "Engineering Department", 
+    "IT Group",
     "Sales and Marketing Group", 
     "Leasing Group"
   ];
@@ -130,6 +131,7 @@ const UserManagement = () => {
     try {
       await api.patch(`/api/v1/users/admin/${selectedUser.id}`, {
         name: editFormData.name,
+        email: editFormData.email,
         department: editFormData.department,
         role: editFormData.role,
         isActive: editFormData.isActive,
