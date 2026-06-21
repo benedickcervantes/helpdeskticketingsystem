@@ -13,6 +13,8 @@ const ExecutiveSummary = ({
   metrics = {},
   healthStatus,
   dateRange = '30',
+  onDateRangeChange,
+  onNavigateToTab,
 }) => {
   const safeTickets = Array.isArray(tickets) ? tickets : [];
   const safeUsers = Array.isArray(users) ? users : [];
@@ -136,65 +138,79 @@ const ExecutiveSummary = ({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Executive Summary Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">Executive Summary</h2>
-        <p className="text-gray-400">Comprehensive overview of IT support performance</p>
+    <div className="space-y-4 sm:space-y-8 min-w-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="text-center sm:text-left px-1 min-w-0">
+          <h2 className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">Executive Summary</h2>
+          <p className="text-xs sm:text-sm text-gray-400">Comprehensive overview of IT support performance</p>
+        </div>
+        {onDateRangeChange ? (
+          <select
+            value={dateRange}
+            onChange={(e) => onDateRangeChange(e.target.value)}
+            className="w-full sm:w-auto shrink-0 px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            aria-label="Date range"
+          >
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Last year</option>
+          </select>
+        ) : null}
       </div>
 
       {/* Key Performance Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Total Requests</p>
-              <p className="text-2xl font-bold text-white mt-1">{safeMetrics.totalTickets || 0}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-400">Total Requests</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{safeMetrics.totalTickets || 0}</p>
             </div>
-            <div className="p-3 rounded-lg bg-blue-500/20 text-blue-400">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 sm:p-3 rounded-lg bg-blue-500/20 text-blue-400 flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Resolution Rate</p>
-              <p className="text-2xl font-bold text-white mt-1">{safeMetrics.resolutionRate || 0}%</p>
+        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-400">Resolution Rate</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{safeMetrics.resolutionRate || 0}%</p>
             </div>
-            <div className="p-3 rounded-lg bg-emerald-500/20 text-emerald-400">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 sm:p-3 rounded-lg bg-emerald-500/20 text-emerald-400 flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Avg Resolution Time</p>
-              <p className="text-2xl font-bold text-white mt-1">{safeMetrics.avgResolutionTime || 0}h</p>
+        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-400">Avg Resolution Time</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{safeMetrics.avgResolutionTime || 0}h</p>
             </div>
-            <div className="p-3 rounded-lg bg-yellow-500/20 text-yellow-400">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 sm:p-3 rounded-lg bg-yellow-500/20 text-yellow-400 flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-400">Customer Satisfaction</p>
-              <p className="text-2xl font-bold text-white mt-1">{safeMetrics.customerSatisfaction || 0}%</p>
+        <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-400">Customer Satisfaction</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{safeMetrics.customerSatisfaction || 0}%</p>
             </div>
-            <div className="p-3 rounded-lg bg-purple-500/20 text-purple-400">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 sm:p-3 rounded-lg bg-purple-500/20 text-purple-400 flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
@@ -203,14 +219,14 @@ const ExecutiveSummary = ({
       </div>
 
       {/* Support Health Status */}
-      <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Support Health Status</h3>
-            <p className="text-gray-400">Overall system performance indicator</p>
+      <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">Support Health Status</h3>
+            <p className="text-xs sm:text-sm text-gray-400">Overall system performance indicator</p>
           </div>
-          <div className="text-right">
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+          <div className="sm:text-right flex-shrink-0">
+            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
               safeHealthStatus.status === 'Excellent' ? 'bg-emerald-500/20 text-emerald-400' :
               safeHealthStatus.status === 'Good' ? 'bg-blue-500/20 text-blue-400' :
               safeHealthStatus.status === 'Fair' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -256,12 +272,16 @@ const ExecutiveSummary = ({
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button className="p-4 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-colors text-left">
+      <div className="bg-gray-700/30 rounded-xl border border-gray-600 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => onNavigateToTab?.('reports')}
+            className="p-3 sm:p-4 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-colors text-left"
+          >
             <div className="flex items-center space-x-3">
-              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               <div>
@@ -271,7 +291,11 @@ const ExecutiveSummary = ({
             </div>
           </button>
 
-          <button className="p-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg transition-colors text-left">
+          <button
+            type="button"
+            onClick={() => onNavigateToTab?.('analytics')}
+            className="p-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg transition-colors text-left"
+          >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
@@ -283,7 +307,11 @@ const ExecutiveSummary = ({
             </div>
           </button>
 
-          <button className="p-4 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-lg transition-colors text-left">
+          <button
+            type="button"
+            onClick={() => onNavigateToTab?.('feedback')}
+            className="p-4 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-lg transition-colors text-left"
+          >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
