@@ -3,12 +3,21 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { MainLoadingScreen } from '@/lib/ui/LoadingComponents';
-import TechNewsSection from '@/lib/ui/TechNewsSection';
+import { TechNewsSkeleton } from '@/lib/ui/DashboardSkeletons';
 import AppShell from '@/shell/layout/AppShell';
 import Footer from '@/shell/layout/Footer';
 import Link from 'next/link';
 import { getDashboardPath } from '@/lib/utils/roles';
+
+const TechNewsSection = dynamic(() => import('@/lib/ui/TechNewsSection'), {
+  loading: () => (
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+      <TechNewsSkeleton count={3} />
+    </div>
+  ),
+});
 
 export default function HomePage() {
   const { currentUser, userProfile, loading } = useAuth();
