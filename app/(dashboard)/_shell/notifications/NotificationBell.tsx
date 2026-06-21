@@ -36,10 +36,8 @@ const NotificationBell = ({ onClick, isActive = false }) => {
     if (!currentUser) return;
     refreshCount();
     const unsub = subscribeNotifications(() => refreshCount());
-    const interval = setInterval(refreshCount, 60000);
     return () => {
       unsub();
-      clearInterval(interval);
     };
   }, [currentUser, refreshCount]);
 

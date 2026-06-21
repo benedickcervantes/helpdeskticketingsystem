@@ -2,6 +2,19 @@ import { api } from '@/lib/api/client';
 import { subscribeNotificationEvents } from '@/lib/realtime/socketClient';
 import type { Notification } from '@/types/notification';
 
+const localChangeListeners = new Set<() => void>();
+
+function notifyLocalNotificationChange(): void {
+  localChangeListeners.forEach((listener) => listener());
+}
+
+export function subscribeNotificationChanges(listener: () => void): () => void {
+  localChangeListeners.add(listener);
+  return () => {
+    localChangeListeners.delete(listener);
+  };
+}
+
 export async function fetchNotifications(): Promise<Notification[]> {
   return (await api.get<Notification[]>('/api/v1/notifications')) ?? [];
 }
@@ -10,10 +23,12 @@ export async function markNotificationAsRead(
   notificationId: string,
 ): Promise<void> {
   await api.patch(`/api/v1/notifications/${notificationId}/read`, {});
+  notifyLocalNotificationChange();
 }
 
 export async function markAllNotificationsAsRead(): Promise<void> {
   await api.post('/api/v1/notifications/read-all', {});
+  notifyLocalNotificationChange();
 }
 
 export async function getUnreadUserNotificationCount(
@@ -40,7 +55,17 @@ export async function getUnreadAdminNotificationCount(): Promise<number> {
 export function subscribeNotifications(
   callback: (notification: Notification | undefined) => void,
 ): () => void {
-  return subscribeNotificationEvents(callback);
+  const refresh = () => callback(undefined);
+  const unsubSocket = subscribeNotificationEvents(
+    (notification) => callback(notification),
+    refresh,
+    refresh,
+  );
+  const unsubLocal = subscribeNotificationChanges(refresh);
+  return () => {
+    unsubSocket();
+    unsubLocal();
+  };
 }
 
 export function getAdminNotifications(

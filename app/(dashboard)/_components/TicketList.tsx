@@ -112,9 +112,10 @@ const STATUS_CONFIRM_MESSAGES = {
   },
 };
 
-const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, onStatusChange }) => {
+const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, assignedTo, onStatusChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
+  const hasAssignee = !!assignedTo;
 
   const statusOptions = [
     { 
@@ -134,7 +135,30 @@ const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, onStatusChange }
     },
   ];
 
+  const getOptionDisabledReason = (optionValue) => {
+    if (currentStatus === optionValue) return null;
+
+    if (optionValue === 'in-progress' && currentStatus === 'open' && !hasAssignee) {
+      return 'Assign a staff member before moving to In Progress';
+    }
+
+    if (optionValue === 'resolved') {
+      if (currentStatus === 'open') {
+        return 'Move the ticket to In Progress before marking as Resolved';
+      }
+      if (!hasAssignee) {
+        return 'Assign a staff member before marking as Resolved';
+      }
+    }
+
+    return null;
+  };
+
+  const isOptionDisabled = (optionValue) =>
+    currentStatus === optionValue || !!getOptionDisabledReason(optionValue);
+
   const handleStatusSelect = (newStatus) => {
+    if (isOptionDisabled(newStatus)) return;
     setIsOpen(false);
     if (newStatus !== currentStatus && STATUS_CONFIRM_MESSAGES[newStatus]) {
       setPendingStatus(newStatus);
@@ -152,11 +176,6 @@ const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, onStatusChange }
   const pendingConfirm = pendingStatus ? STATUS_CONFIRM_MESSAGES[pendingStatus] : null;
 
   const getCurrentStatusLabel = () => {
-    const status = statusOptions.find(option => option.value === currentStatus);
-    if (status) {
-      return status.label;
-    }
-    // Handle the display for current status
     switch (currentStatus) {
       case 'open': return 'Open';
       case 'in-progress': return 'In Progress';
@@ -167,8 +186,13 @@ const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, onStatusChange }
   };
 
   const getCurrentStatusIcon = () => {
-    const status = statusOptions.find(option => option.value === currentStatus);
-    return status ? status.icon : '📋';
+    switch (currentStatus) {
+      case 'open': return '🔵';
+      case 'in-progress': return '🟡';
+      case 'resolved': return '✅';
+      case 'closed': return '📋';
+      default: return '📋';
+    }
   };
 
   const getCurrentStatusColors = () => {
@@ -243,22 +267,36 @@ const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, onStatusChange }
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-full bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
-          {statusOptions.map((option) => (
+        <div className="absolute top-full left-0 mt-2 w-full min-w-[220px] bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
+          {statusOptions.map((option) => {
+            const disabledReason = getOptionDisabledReason(option.value);
+            const disabled = isOptionDisabled(option.value);
+
+            return (
             <button
               key={option.value}
+              type="button"
               onClick={() => handleStatusSelect(option.value)}
-              className={`w-full px-4 py-3 text-center text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                currentStatus === option.value 
-                  ? 'bg-gray-700/50 cursor-not-allowed opacity-60 text-gray-400' 
+              title={disabledReason || undefined}
+              className={`w-full px-4 py-3 text-center text-xs sm:text-sm font-medium transition-all duration-200 flex flex-col items-center justify-center gap-1 ${
+                disabled
+                  ? 'bg-gray-700/50 cursor-not-allowed opacity-60 text-gray-400'
                   : 'text-white hover:bg-gray-700/30 hover:scale-105'
               }`}
-              disabled={currentStatus === option.value}
+              disabled={disabled}
             >
-              <span className="text-lg">{option.icon}</span>
-              <span className="text-center font-semibold">{option.label}</span>
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-lg">{option.icon}</span>
+                <span className="text-center font-semibold">{option.label}</span>
+              </span>
+              {disabledReason && (
+                <span className="text-[10px] sm:text-xs text-gray-500 leading-tight px-1">
+                  {disabledReason}
+                </span>
+              )}
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -569,6 +607,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
       await api.patch(`/api/v1/tickets/${ticketId}/status`, { status: newStatus });
     } catch (error) {
       console.error('Error updating ticket status:', error);
+      alert(error?.message || 'Failed to update ticket status');
     }
   };
 
@@ -669,14 +708,27 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
         </select>
       )}
 
-      {adminMode && ticket.status !== 'closed' && (
+      {adminMode && ticket.status !== 'closed' && ticket.status !== 'resolved' && (
         <div className={layout === 'compact-table' ? 'w-full' : layout === 'desktop-table' ? 'w-full min-w-[160px]' : 'w-full lg:w-auto'}>
           <StatusDropdown
             currentStatus={ticket.status}
             ticketId={ticket.id}
             ticketTitle={ticket.title}
+            assignedTo={ticket.assignedTo}
             onStatusChange={handleStatusChange}
           />
+        </div>
+      )}
+
+      {adminMode && ticket.status === 'resolved' && (
+        <div
+          className={`px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap flex items-center justify-center gap-2 border border-emerald-500 shadow-md ${
+            layout === 'compact-table' ? 'w-full' : layout === 'desktop-table' ? 'w-full min-w-[160px]' : 'w-full lg:w-auto'
+          }`}
+          title="Resolved tickets cannot be changed back to Open or In Progress"
+        >
+          <span className="text-lg">✅</span>
+          <span>Resolved</span>
         </div>
       )}
 
