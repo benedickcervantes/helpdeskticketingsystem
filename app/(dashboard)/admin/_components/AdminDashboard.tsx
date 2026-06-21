@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { subscribeTicketEvents, subscribeNotificationEvents } from '@/lib/realtime/socketClient';
 import TicketList from '@/app/(dashboard)/_components/TicketList';
@@ -11,6 +12,8 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     total: 0,
@@ -24,6 +27,15 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    const validTabs = ['overview', 'tickets', 'users', 'feedback'];
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam);
+    } else if (!tabParam) {
+      setActiveTab('overview');
+    }
+  }, [tabParam]);
 
   const loadDashboardData = useCallback(async () => {
     if (!currentUser) return;
@@ -64,36 +76,17 @@ const AdminDashboard = () => {
     };
   }, [loadDashboardData]);
 
-  const StatCard = ({
-    title,
-    value,
-    color,
-    icon,
-    trend,
-    trendValue,
-  }: {
-    title: string;
-    value: number;
-    color: string;
-    icon: React.ReactNode;
-    trend?: string;
-    trendValue?: string;
-  }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
+  const StatCard = ({ title, value, color, icon, description }) => (
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300 transform hover:-translate-y-1">
       <div className="flex items-center justify-between">
-        <div className="flex-1">
+        <div>
           <p className="text-sm font-medium text-gray-400">{title}</p>
           <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{value}</p>
-          {trend && (
-            <div className={`flex items-center mt-2 text-xs ${trend === 'up' ? 'text-emerald-400' : 'text-red-400'}`}>
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={trend === 'up' ? 'M7 17l9.2-9.2M17 17V7H7' : 'M17 7l-9.2 9.2M7 7v10h10'} />
-              </svg>
-              {trendValue}
-            </div>
+          {description && (
+            <p className="text-xs text-gray-500 mt-1">{description}</p>
           )}
         </div>
-        <div className={`p-3 rounded-xl ${color} backdrop-blur-sm`}>
+        <div className={`p-3 rounded-xl ${color} backdrop-blur-sm flex-shrink-0`}>
           {icon}
         </div>
       </div>
@@ -190,17 +183,18 @@ const AdminDashboard = () => {
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
-        <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
-          {/* Enhanced Statistics Cards - Mobile Responsive */}
+        <div className="space-y-5 pb-4">
+          {/* Ticket Overview — matches User Dashboard layout */}
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">System Statistics</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3 sm:gap-4 lg:gap-6 2xl:gap-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Ticket Overview</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <StatCard
                 title="Total Tickets"
                 value={stats.total}
                 color="bg-blue-500/20"
+                description="All system tickets"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 }
@@ -209,8 +203,9 @@ const AdminDashboard = () => {
                 title="Open Tickets"
                 value={stats.open}
                 color="bg-red-500/20"
+                description="Awaiting response"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 }
@@ -219,8 +214,9 @@ const AdminDashboard = () => {
                 title="In Progress"
                 value={stats.inProgress}
                 color="bg-yellow-500/20"
+                description="Being worked on"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 }
@@ -229,18 +225,27 @@ const AdminDashboard = () => {
                 title="Resolved"
                 value={stats.resolved}
                 color="bg-green-500/20"
+                description="Completed tickets"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 }
               />
+            </div>
+          </div>
+
+          {/* Admin-specific metrics */}
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">System Metrics</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <StatCard
                 title="Critical"
                 value={stats.critical}
                 color="bg-purple-500/20"
+                description="High-priority tickets"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 }
@@ -249,8 +254,9 @@ const AdminDashboard = () => {
                 title="Total Users"
                 value={stats.users}
                 color="bg-cyan-500/20"
+                description="Registered accounts"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                   </svg>
                 }
@@ -259,8 +265,9 @@ const AdminDashboard = () => {
                 title="Feedback"
                 value={stats.feedback}
                 color="bg-indigo-500/20"
+                description="User feedback received"
                 icon={
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 }
@@ -268,57 +275,57 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Enhanced Quick Actions - Mobile Responsive */}
+          {/* Quick Actions */}
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 2xl:gap-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Quick Actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <button
                 onClick={() => setActiveTab('tickets')}
-                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white p-4 sm:p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
+                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
               >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors duration-300">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
                   <div className="text-left">
-                    <h3 className="font-semibold text-sm sm:text-lg">Manage Tickets</h3>
-                    <p className="text-xs sm:text-sm text-emerald-100">View and manage all tickets</p>
+                    <h3 className="font-semibold text-lg">Manage Tickets</h3>
+                    <p className="text-sm text-emerald-100">View and manage all tickets</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={() => setActiveTab('users')}
-                className="bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-emerald-500/30 text-white p-4 sm:p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
+                className="bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-emerald-500/30 text-white p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
               >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-emerald-500/20 rounded-lg group-hover:bg-emerald-500/30 transition-colors duration-300">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                     </svg>
                   </div>
                   <div className="text-left">
-                    <h3 className="font-semibold text-sm sm:text-lg">User Management</h3>
-                    <p className="text-xs sm:text-sm text-gray-400">Manage user accounts and roles</p>
+                    <h3 className="font-semibold text-lg">User Management</h3>
+                    <p className="text-sm text-gray-400">Manage user accounts and roles</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={() => setActiveTab('feedback')}
-                className="bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white p-4 sm:p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
+                className="bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
               >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors duration-300">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <div className="text-left">
-                    <h3 className="font-semibold text-sm sm:text-lg text-white">Feedback Analytics</h3>
-                    <p className="text-xs sm:text-sm text-indigo-100">View feedback insights</p>
+                    <h3 className="font-semibold text-lg text-white">Feedback Analytics</h3>
+                    <p className="text-sm text-indigo-100">View feedback insights</p>
                   </div>
                 </div>
               </button>

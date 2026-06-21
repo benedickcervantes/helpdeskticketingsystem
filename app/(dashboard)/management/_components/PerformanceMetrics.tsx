@@ -128,7 +128,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
   };
 
   const MetricCard = ({ title, value, target, status, icon, color, subtitle }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 hover:border-emerald-500/30 transition-all duration-300 transform hover:-translate-y-1">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-xl ${color} backdrop-blur-sm`}>
           {icon}
@@ -179,15 +179,15 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8 min-w-0">
       {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">Performance Metrics</h2>
-        <p className="text-gray-400">Real-time performance indicators and KPIs</p>
+      <div className="text-center px-1">
+        <h2 className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">Performance Metrics</h2>
+        <p className="text-xs sm:text-sm text-gray-400">Real-time performance indicators and KPIs</p>
       </div>
 
       {/* Key Performance Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <MetricCard
           title="SLA Compliance"
           value={`${performanceData.slaCompliance}%`}
@@ -253,9 +253,9 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
 
       {/* Feedback Analysis Section */}
       {feedbackMetrics.totalFeedback > 0 && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Customer Feedback Analysis</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Customer Feedback Analysis</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-emerald-400 mb-2">{feedbackMetrics.satisfactionRate}%</div>
               <div className="text-sm text-gray-400">Satisfaction Rate</div>
@@ -276,9 +276,9 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
       )}
 
       {/* Ticket Status Distribution */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Ticket Status Distribution</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Ticket Status Distribution</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div className="text-center">
             <div className="text-3xl font-bold text-cyan-400 mb-2">{openTickets}</div>
             <div className="text-sm text-gray-400">Open Tickets</div>
@@ -304,10 +304,10 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
       </div>
 
       {/* Performance Trends */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Performance Summary</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Performance Summary</h3>
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-emerald-500/20 rounded-lg">
                 <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +324,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-500/20 rounded-lg">
                 <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,7 +342,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
           </div>
 
           {feedbackMetrics.totalFeedback > 0 && (
-            <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-purple-500/20 rounded-lg">
                   <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,7 +361,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           )}
 
-          <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-cyan-500/20 rounded-lg">
                 <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,7 +378,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-orange-500/20 rounded-lg">
                 <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,7 +395,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-yellow-500/20 rounded-lg">
                 <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
