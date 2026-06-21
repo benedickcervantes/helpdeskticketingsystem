@@ -7,13 +7,11 @@ import {
   computeExecutiveMetrics,
   computeHealthStatus,
 } from '@/lib/utils/analytics';
-import { filterFeedbackByDateRange } from '@/lib/utils/feedbackReport';
+import { filterFeedbackByDateRange } from '@/lib/utils/feedbackReportUtils';
 import {
   buildFeedbackSummary,
-  exportManagementReportPdf,
-  exportManagementReportPptx,
   getReportPeriodLabel,
-} from '@/lib/utils/managementReportExport';
+} from '@/lib/utils/managementReportUtils';
 
 const ReportGenerator = ({
   tickets = [],
@@ -343,9 +341,11 @@ const ReportGenerator = ({
 
       if (selectedFormat === 'pdf') {
         setGenerationProgress(60);
+        const { exportManagementReportPdf } = await import('@/lib/utils/managementReportExport');
         await exportManagementReportPdf(report);
       } else if (selectedFormat === 'powerpoint') {
         setGenerationProgress(60);
+        const { exportManagementReportPptx } = await import('@/lib/utils/managementReportExport');
         await exportManagementReportPptx(report);
       }
 

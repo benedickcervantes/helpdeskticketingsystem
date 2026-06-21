@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, apiFetch } from '@/lib/api/client';
 import { getDashboardPath } from '@/lib/utils/roles';
+import { ProfileFormSkeleton } from '@/lib/ui/DashboardSkeletons';
 
 const ProfileSettings = () => {
   const { currentUser, userProfile, setUserProfile } = useAuth();
@@ -161,6 +162,14 @@ const ProfileSettings = () => {
   const removePhoto = async () => {
     setErrors({ photo: 'Photo removal is not supported yet.' });
   };
+
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+        <ProfileFormSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-4 sm:py-8">

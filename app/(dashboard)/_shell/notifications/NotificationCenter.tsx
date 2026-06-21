@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getAdminNotifications, getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/lib/utils/notifications';
 import { isStaffRole } from '@/lib/utils/roles';
 import FeedbackForm from '@/app/(dashboard)/_components/FeedbackForm';
+import { NotificationListSkeleton } from '@/lib/ui/DashboardSkeletons';
 
 function notificationTime(value: unknown): number {
   if (!value) return 0;
@@ -278,9 +279,7 @@ const NotificationCenter = ({ isOpen, onClose }) => {
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-8 sm:py-12">
-                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-emerald-500"></div>
-              </div>
+              <NotificationListSkeleton count={5} />
             ) : filteredNotifications.length === 0 ? (
               <div className="text-center py-8 sm:py-12 px-4">
                 <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">

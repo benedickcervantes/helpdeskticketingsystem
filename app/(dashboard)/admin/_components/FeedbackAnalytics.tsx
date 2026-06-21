@@ -4,6 +4,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { compareTimestampsAsc, compareTimestampsDesc } from '@/lib/utils/dates';
+import {
+  StatsGridSkeleton,
+  TicketListSkeleton,
+  TitleBarSkeleton,
+} from '@/lib/ui/DashboardSkeletons';
 
 const FeedbackAnalytics = () => {
   const [feedback, setFeedback] = useState([]);
@@ -98,46 +103,11 @@ const FeedbackAnalytics = () => {
     }
   };
 
-  // Enhanced Loading Component
   const LoadingSkeleton = () => (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header Skeleton */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="animate-pulse">
-          <div className="h-6 sm:h-8 bg-gray-700 rounded w-48 sm:w-64"></div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <div className="animate-pulse h-10 bg-gray-700 rounded w-full sm:w-48"></div>
-          <div className="animate-pulse h-10 bg-gray-700 rounded w-full sm:w-32"></div>
-        </div>
-      </div>
-      
-      {/* Stats Skeleton */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="animate-pulse bg-gray-700/30 rounded-lg p-3 sm:p-4">
-            <div className="h-4 bg-gray-600 rounded w-16 mb-2"></div>
-            <div className="h-6 bg-gray-600 rounded w-12"></div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Cards Skeleton */}
-      <div className="space-y-3 sm:space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="animate-pulse bg-gray-700/30 rounded-lg p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <div className="h-4 bg-gray-600 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-600 rounded w-1/2"></div>
-              </div>
-              <div className="h-6 bg-gray-600 rounded w-16"></div>
-            </div>
-            <div className="h-3 bg-gray-600 rounded w-full mb-2"></div>
-            <div className="h-3 bg-gray-600 rounded w-2/3"></div>
-          </div>
-        ))}
-      </div>
+      <TitleBarSkeleton />
+      <StatsGridSkeleton count={4} />
+      <TicketListSkeleton />
     </div>
   );
 

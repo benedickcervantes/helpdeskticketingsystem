@@ -1,13 +1,75 @@
 // @ts-nocheck
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FcdcLogo } from '@/lib/ui/FcdcLogo';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useShell } from '@/contexts/ShellContext';
 import NotificationCenter from '@/shell/notifications/NotificationCenter';
+import { NavSkeletonStrip } from '@/lib/ui/DashboardSkeletons';
+
+const SidebarNavLinks = ({ filteredNavigation, pathname, showCollapsed, onMobileClose }) => {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'overview';
+
+  const isNavItemActive = (item) => {
+    const basePath = item.href.split('?')[0];
+
+    if (item.tab) {
+      return pathname === basePath && currentTab === item.tab;
+    }
+
+    return pathname === item.href || (item.href !== '/' && pathname.startsWith(basePath));
+  };
+
+  return (
+    <>
+      {filteredNavigation.map((item) => {
+        const isActive = isNavItemActive(item);
+
+        return (
+          <Link
+            key={item.name}
+            href={item.href}
+            onClick={onMobileClose}
+            className={`
+              flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative
+              ${showCollapsed ? 'justify-center' : ''}
+              ${isActive
+                ? 'bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 text-emerald-400 border border-emerald-500/30'
+                : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+              }
+            `}
+            title={showCollapsed ? item.name : ''}
+          >
+            <div className={`
+              flex items-center justify-center w-5 h-5 flex-shrink-0 transition-colors duration-200
+              ${isActive ? 'text-emerald-400' : 'text-gray-400 group-hover:text-white'}
+            `}>
+              {item.icon}
+            </div>
+
+            {!showCollapsed && (
+              <span className="ml-3 truncate">
+                {item.name}
+              </span>
+            )}
+
+            {isActive && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-emerald-400 to-cyan-400 rounded-r-full" />
+            )}
+
+            {!isActive && (
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            )}
+          </Link>
+        );
+      })}
+    </>
+  );
+};
 
 const Sidebar = ({ isMobileOpen, onMobileClose }) => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -15,17 +77,13 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
   const [mounted, setMounted] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'overview';
 
-  // On desktop only: collapsed = icon-only rail. On mobile drawer: always full width.
   const showCollapsed = isSidebarCollapsed && !isMobileOpen;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     if (onMobileClose) {
       onMobileClose();
@@ -40,11 +98,9 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
     }
   };
 
-  // Navigation items based on user role
   const getNavigationItems = () => {
     const items = [];
 
-    // Add role-specific dashboard
     if (userProfile?.role === 'admin') {
       items.push(
         {
@@ -133,18 +189,8 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
     return items;
   };
 
-  const isNavItemActive = (item) => {
-    const basePath = item.href.split('?')[0];
-
-    if (item.tab) {
-      return pathname === basePath && currentTab === item.tab;
-    }
-
-    return pathname === item.href || (item.href !== '/' && pathname.startsWith(basePath));
-  };
-
   const navigationItems = getNavigationItems();
-  const filteredNavigation = navigationItems.filter(item => 
+  const filteredNavigation = navigationItems.filter(item =>
     !currentUser || item.roles.includes(userProfile?.role || 'user')
   );
 
@@ -164,7 +210,6 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
         `}
         aria-label="Main navigation"
       >
-        {/* Header */}
         <div className={`flex items-center border-b border-gray-700/50 flex-shrink-0 ${showCollapsed ? 'justify-center p-3' : 'justify-between p-4'}`}>
           {!showCollapsed && (
             <Link href="/" className="flex items-center space-x-3 group min-w-0" onClick={onMobileClose}>
@@ -179,7 +224,6 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
             </Link>
           )}
 
-          {/* Mobile close button */}
           <button
             onClick={onMobileClose}
             className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -190,7 +234,6 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
             </svg>
           </button>
 
-          {/* Desktop collapse toggle */}
           <button
             onClick={toggleSidebarCollapsed}
             className={`hidden lg:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors duration-200 ${showCollapsed ? '' : 'ml-auto'}`}
@@ -202,57 +245,19 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 min-h-0 px-3 py-4 space-y-2 overflow-y-auto sidebar-scroll">
-          {filteredNavigation.map((item) => {
-            const isActive = isNavItemActive(item);
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={onMobileClose}
-                className={`
-                  flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative
-                  ${showCollapsed ? 'justify-center' : ''}
-                  ${isActive 
-                    ? 'bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 text-emerald-400 border border-emerald-500/30' 
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                  }
-                `}
-                title={showCollapsed ? item.name : ''}
-              >
-                <div className={`
-                  flex items-center justify-center w-5 h-5 flex-shrink-0 transition-colors duration-200
-                  ${isActive ? 'text-emerald-400' : 'text-gray-400 group-hover:text-white'}
-                `}>
-                  {item.icon}
-                </div>
-                
-                {!showCollapsed && (
-                  <span className="ml-3 truncate">
-                    {item.name}
-                  </span>
-                )}
-
-                {/* Active indicator */}
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-emerald-400 to-cyan-400 rounded-r-full" />
-                )}
-
-                {/* Hover effect */}
-                {!isActive && (
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                )}
-              </Link>
-            );
-          })}
+          <Suspense fallback={<NavSkeletonStrip />}>
+            <SidebarNavLinks
+              filteredNavigation={filteredNavigation}
+              pathname={pathname}
+              showCollapsed={showCollapsed}
+              onMobileClose={onMobileClose}
+            />
+          </Suspense>
         </nav>
 
-        {/* User Profile Section */}
         {currentUser && (
           <div className="p-3 border-t border-gray-700/50 flex-shrink-0">
-            {/* Profile Settings Link */}
             <Link
               href="/profile"
               onClick={onMobileClose}
@@ -269,7 +274,6 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
               {!showCollapsed && <span className="truncate">Profile Settings</span>}
             </Link>
 
-            {/* Sign Out Button */}
             <button
               onClick={handleLogout}
               className={`
@@ -288,10 +292,9 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
         )}
       </aside>
 
-      {/* Notification Center */}
-      <NotificationCenter 
-        isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
       />
     </>
   );
