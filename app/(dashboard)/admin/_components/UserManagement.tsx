@@ -4,7 +4,119 @@
 
 import { SkeletonTable, LoadingDots } from '@/lib/ui/LoadingComponents';
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api/client';
+import { subscribeUserProfileEvents } from '@/lib/realtime/socketClient';
+
+const UserAvatar = ({ user, size = 'md' }) => {
+  const photoURL = user?.photoURL || user?.photo_url;
+  const displayName = user?.name || user?.email || 'User';
+  const sizeClasses = {
+    sm: 'h-8 w-8 sm:h-10 sm:w-10 text-sm',
+    md: 'h-10 w-10 sm:h-12 sm:w-12 text-sm sm:text-lg',
+  };
+  const sizeClass = sizeClasses[size] || sizeClasses.md;
+
+  if (photoURL) {
+    return (
+      <img
+        src={photoURL}
+        alt={displayName}
+        className={`inline-flex ${sizeClass} rounded-full object-cover border border-gray-600/50 flex-shrink-0`}
+      />
+    );
+  }
+
+  return (
+    <span className={`inline-flex items-center justify-center ${sizeClass} rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 text-white font-semibold flex-shrink-0`}>
+      {displayName.charAt(0).toUpperCase()}
+    </span>
+  );
+};
+
+const UserFormModal = ({ open, title, onClose, onSubmit, children, submitLabel }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [open, onClose]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"
+        aria-label="Close modal"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-form-modal-title"
+        className="relative z-10 flex w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[min(90dvh,720px)] flex-col bg-gray-800 border border-gray-700 rounded-t-2xl sm:rounded-xl shadow-2xl"
+      >
+        <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-gray-700/50 px-4 py-3 sm:px-6 sm:py-4">
+          <h3 id="user-form-modal-title" className="text-base sm:text-xl font-bold text-white pr-2">
+            {title}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-shrink-0 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+            aria-label="Close"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
+            <div className="space-y-3 sm:space-y-4">{children}</div>
+          </div>
+
+          <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-gray-700/50 bg-gray-800 px-4 py-3 sm:flex-row sm:justify-end sm:gap-3 sm:px-6 sm:py-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2.5 border border-gray-600 rounded-xl text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl text-sm font-medium hover:from-emerald-700 hover:to-cyan-700 transition-all duration-300"
+            >
+              {submitLabel}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body,
+  );
+};
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -25,6 +137,7 @@ const UserManagement = () => {
     department: '',
     role: 'user',
     isActive: true,
+    password: '',
   });
   const [addFormData, setAddFormData] = useState({
     name: '',
@@ -67,6 +180,24 @@ const UserManagement = () => {
     loadUsers();
   }, [loadUsers]);
 
+  useEffect(() => {
+    const unsubscribe = subscribeUserProfileEvents((updatedUser) => {
+      if (!updatedUser?.id) return;
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === updatedUser.id
+            ? {
+                ...u,
+                ...updatedUser,
+                photoURL: updatedUser.photoURL || updatedUser.photo_url || u.photoURL,
+              }
+            : u,
+        ),
+      );
+    });
+    return unsubscribe;
+  }, []);
+
   // Filter and sort users
   const filteredAndSortedUsers = users
     .filter(user => {
@@ -106,6 +237,7 @@ const UserManagement = () => {
       department: user.department || '',
       role: user.role,
       isActive: user.isActive,
+      password: '',
     });
     setShowEditModal(true);
   };
@@ -129,13 +261,17 @@ const UserManagement = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.patch(`/api/v1/users/admin/${selectedUser.id}`, {
+      const payload = {
         name: editFormData.name,
         email: editFormData.email,
         department: editFormData.department,
         role: editFormData.role,
         isActive: editFormData.isActive,
-      });
+      };
+      if (editFormData.password.trim()) {
+        payload.password = editFormData.password.trim();
+      }
+      await api.patch(`/api/v1/users/admin/${selectedUser.id}`, payload);
       setShowEditModal(false);
       setSelectedUser(null);
       loadUsers();
@@ -211,11 +347,7 @@ const UserManagement = () => {
     <div className="bg-gray-700/50 backdrop-blur-sm rounded-xl border border-gray-600 p-3 sm:p-4 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg">
       <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-          <div className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12">
-            <span className="inline-flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 text-white font-semibold text-sm sm:text-lg">
-              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-            </span>
-          </div>
+          <UserAvatar user={user} size="md" />
           <div className="min-w-0 flex-1">
             <h3 className="text-sm sm:text-lg font-semibold text-white truncate">
               {user.name}
@@ -490,11 +622,7 @@ const UserManagement = () => {
                   <tr key={user.id} className="hover:bg-gray-700/20 transition-colors duration-200 border-b border-gray-700/30">
                     <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                          <span className="inline-flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 text-white font-medium text-sm">
-                            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                          </span>
-                        </div>
+                        <UserAvatar user={user} size="sm" />
                         <div className="ml-3 sm:ml-4">
                           <div className="text-sm font-medium text-white">{user.name}</div>
                         </div>
@@ -578,197 +706,183 @@ const UserManagement = () => {
         </>
       )}
 
-      {/* Enhanced Edit User Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-gray-800 border border-gray-700 p-4 sm:p-6 md:p-8 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Edit User</h3>
-            <form onSubmit={handleEditSubmit} className="space-y-3 sm:space-y-4">
-              <div>
-                <label htmlFor="edit-name" className="block text-xs sm:text-sm font-medium text-gray-300">Name</label>
-                <input
-                  type="text"
-                  id="edit-name"
-                  name="name"
-                  value={editFormData.name}
-                  onChange={handleEditChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="edit-email" className="block text-xs sm:text-sm font-medium text-gray-300">Email</label>
-                <input
-                  type="email"
-                  id="edit-email"
-                  name="email"
-                  value={editFormData.email}
-                  onChange={handleEditChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="edit-department" className="block text-xs sm:text-sm font-medium text-gray-300">Department</label>
-                <select
-                  id="edit-department"
-                  name="department"
-                  value={editFormData.department}
-                  onChange={handleEditChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                >
-                  <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept} value={dept} className="bg-gray-800">{dept}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="edit-role" className="block text-xs sm:text-sm font-medium text-gray-300">Role</label>
-                <select
-                  id="edit-role"
-                  name="role"
-                  value={editFormData.role}
-                  onChange={handleEditChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                >
-                  {roles.map(role => (
-                    <option key={role} value={role} className="bg-gray-800">{role.charAt(0).toUpperCase() + role.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="edit-isActive"
-                  name="isActive"
-                  checked={editFormData.isActive}
-                  onChange={handleEditChange}
-                  className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-600 rounded bg-gray-700"
-                />
-                <label htmlFor="edit-isActive" className="ml-2 block text-xs sm:text-sm text-gray-300">Active</label>
-              </div>
-              <div className="flex justify-end space-x-2 sm:space-x-3 mt-4 sm:mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="px-3 sm:px-4 py-2 border border-gray-600 rounded-xl text-xs sm:text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl text-xs sm:text-sm font-medium hover:from-emerald-700 hover:to-cyan-700 transition-all duration-300"
-                >
-                  Update User
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* Edit User Modal */}
+      <UserFormModal
+        open={showEditModal}
+        title="Edit User"
+        submitLabel="Update User"
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+      >
+        <div>
+          <label htmlFor="edit-name" className="block text-xs sm:text-sm font-medium text-gray-300">Name</label>
+          <input
+            type="text"
+            id="edit-name"
+            name="name"
+            value={editFormData.name}
+            onChange={handleEditChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+            required
+          />
         </div>
-      )}
+        <div>
+          <label htmlFor="edit-email" className="block text-xs sm:text-sm font-medium text-gray-300">Email</label>
+          <input
+            type="email"
+            id="edit-email"
+            name="email"
+            value={editFormData.email}
+            onChange={handleEditChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="edit-department" className="block text-xs sm:text-sm font-medium text-gray-300">Department</label>
+          <select
+            id="edit-department"
+            name="department"
+            value={editFormData.department}
+            onChange={handleEditChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+          >
+            <option value="">Select Department</option>
+            {departments.map(dept => (
+              <option key={dept} value={dept} className="bg-gray-800">{dept}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="edit-role" className="block text-xs sm:text-sm font-medium text-gray-300">Role</label>
+          <select
+            id="edit-role"
+            name="role"
+            value={editFormData.role}
+            onChange={handleEditChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+          >
+            {roles.map(role => (
+              <option key={role} value={role} className="bg-gray-800">{role.charAt(0).toUpperCase() + role.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="edit-password" className="block text-xs sm:text-sm font-medium text-gray-300">
+            New Password
+          </label>
+          <input
+            type="password"
+            id="edit-password"
+            name="password"
+            value={editFormData.password}
+            onChange={handleEditChange}
+            placeholder="Leave blank to keep current password"
+            minLength={6}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm placeholder-gray-500"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Set a new password if the user forgot theirs (min. 6 characters).
+          </p>
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="edit-isActive"
+            name="isActive"
+            checked={editFormData.isActive}
+            onChange={handleEditChange}
+            className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-600 rounded bg-gray-700"
+          />
+          <label htmlFor="edit-isActive" className="ml-2 block text-xs sm:text-sm text-gray-300">Active</label>
+        </div>
+      </UserFormModal>
 
-      {/* Enhanced Add User Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-gray-800 border border-gray-700 p-4 sm:p-6 md:p-8 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Add New User</h3>
-            <form onSubmit={handleAddSubmit} className="space-y-3 sm:space-y-4">
-              <div>
-                <label htmlFor="add-name" className="block text-xs sm:text-sm font-medium text-gray-300">Name</label>
-                <input
-                  type="text"
-                  id="add-name"
-                  name="name"
-                  value={addFormData.name}
-                  onChange={handleAddChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="add-email" className="block text-xs sm:text-sm font-medium text-gray-300">Email</label>
-                <input
-                  type="email"
-                  id="add-email"
-                  name="email"
-                  value={addFormData.email}
-                  onChange={handleAddChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="add-password" className="block text-xs sm:text-sm font-medium text-gray-300">Password</label>
-                <input
-                  type="password"
-                  id="add-password"
-                  name="password"
-                  value={addFormData.password}
-                  onChange={handleAddChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="add-department" className="block text-xs sm:text-sm font-medium text-gray-300">Department</label>
-                <select
-                  id="add-department"
-                  name="department"
-                  value={addFormData.department}
-                  onChange={handleAddChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                >
-                  <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept} value={dept} className="bg-gray-800">{dept}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="add-role" className="block text-xs sm:text-sm font-medium text-gray-300">Role</label>
-                <select
-                  id="add-role"
-                  name="role"
-                  value={addFormData.role}
-                  onChange={handleAddChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
-                >
-                  {roles.map(role => (
-                    <option key={role} value={role} className="bg-gray-800">{role.charAt(0).toUpperCase() + role.slice(1)}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="add-isActive"
-                  name="isActive"
-                  checked={addFormData.isActive}
-                  onChange={handleAddChange}
-                  className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-600 rounded bg-gray-700"
-                />
-                <label htmlFor="add-isActive" className="ml-2 block text-xs sm:text-sm text-gray-300">Active</label>
-              </div>
-              <div className="flex justify-end space-x-2 sm:space-x-3 mt-4 sm:mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-3 sm:px-4 py-2 border border-gray-600 rounded-xl text-xs sm:text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl text-xs sm:text-sm font-medium hover:from-emerald-700 hover:to-cyan-700 transition-all duration-300"
-                >
-                  Add User
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* Add User Modal */}
+      <UserFormModal
+        open={showAddModal}
+        title="Add New User"
+        submitLabel="Add User"
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddSubmit}
+      >
+        <div>
+          <label htmlFor="add-name" className="block text-xs sm:text-sm font-medium text-gray-300">Name</label>
+          <input
+            type="text"
+            id="add-name"
+            name="name"
+            value={addFormData.name}
+            onChange={handleAddChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+            required
+          />
         </div>
-      )}
+        <div>
+          <label htmlFor="add-email" className="block text-xs sm:text-sm font-medium text-gray-300">Email</label>
+          <input
+            type="email"
+            id="add-email"
+            name="email"
+            value={addFormData.email}
+            onChange={handleAddChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="add-password" className="block text-xs sm:text-sm font-medium text-gray-300">Password</label>
+          <input
+            type="password"
+            id="add-password"
+            name="password"
+            value={addFormData.password}
+            onChange={handleAddChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="add-department" className="block text-xs sm:text-sm font-medium text-gray-300">Department</label>
+          <select
+            id="add-department"
+            name="department"
+            value={addFormData.department}
+            onChange={handleAddChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+          >
+            <option value="">Select Department</option>
+            {departments.map(dept => (
+              <option key={dept} value={dept} className="bg-gray-800">{dept}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="add-role" className="block text-xs sm:text-sm font-medium text-gray-300">Role</label>
+          <select
+            id="add-role"
+            name="role"
+            value={addFormData.role}
+            onChange={handleAddChange}
+            className="mt-1 block w-full border border-gray-600 rounded-xl shadow-sm py-2.5 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 bg-gray-700 text-white text-sm"
+          >
+            {roles.map(role => (
+              <option key={role} value={role} className="bg-gray-800">{role.charAt(0).toUpperCase() + role.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="add-isActive"
+            name="isActive"
+            checked={addFormData.isActive}
+            onChange={handleAddChange}
+            className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-600 rounded bg-gray-700"
+          />
+          <label htmlFor="add-isActive" className="ml-2 block text-xs sm:text-sm text-gray-300">Active</label>
+        </div>
+      </UserFormModal>
     </div>
   );
 };

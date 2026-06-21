@@ -7,9 +7,15 @@ import { FcdcLogo } from '@/lib/ui/FcdcLogo';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api/client';
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [resetToken, setResetToken] = useState('');
+  const [verifiedEmail, setVerifiedEmail] = useState('');
+  const [verifiedName, setVerifiedName] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -94,6 +100,80 @@ const AuthForm = () => {
     return 'An error occurred. Please try again.';
   };
 
+  const resetForgotFlow = () => {
+    setIsForgotPassword(false);
+    setForgotStep(1);
+    setResetToken('');
+    setVerifiedEmail('');
+    setVerifiedName('');
+    setFormData(prev => ({
+      ...prev,
+      password: '',
+      confirmPassword: '',
+    }));
+    setError('');
+    setSuccessMessage('');
+  };
+
+  const handleVerifyEmail = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+
+    try {
+      const result = await api.post('/api/v1/auth/forgot-password/verify', {
+        email: formData.email.trim(),
+      });
+      setResetToken(result.resetToken);
+      setVerifiedEmail(result.email);
+      setVerifiedName(result.name);
+      setForgotStep(2);
+      setSuccessMessage(`Email verified. Hello, ${result.name}! Set your new password below.`);
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError('Password should be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post('/api/v1/auth/forgot-password/reset', {
+        resetToken,
+        password: formData.password,
+      });
+      setSuccessMessage('Password updated successfully! You can now sign in with your new password.');
+      setFormData(prev => ({
+        ...prev,
+        password: '',
+        confirmPassword: '',
+      }));
+      setTimeout(() => {
+        resetForgotFlow();
+        setIsLogin(true);
+      }, 2500);
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -160,17 +240,38 @@ const AuthForm = () => {
         <div className="text-center">
           <FcdcLogo size="xl" className="mx-auto shadow-2xl" priority />
           <h2 className="mt-4 text-2xl sm:text-3xl font-bold text-white">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isForgotPassword
+              ? forgotStep === 1
+                ? 'Forgot Password'
+                : 'Set New Password'
+              : isLogin
+                ? 'Welcome Back'
+                : 'Create Account'}
           </h2>
           <p className="mt-1 text-sm text-gray-400">
-            {isLogin ? 'Sign in to your FCDC account' : 'Join thousands of IT professionals'}
+            {isForgotPassword
+              ? forgotStep === 1
+                ? 'Enter your registered email to verify your account'
+                : `Create a new password for ${verifiedEmail}`
+              : isLogin
+                ? 'Sign in to your FCDC account'
+                : 'Join thousands of IT professionals'}
           </p>
         </div>
 
         {/* Form */}
-        <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+        <form
+          className="mt-6 space-y-6"
+          onSubmit={
+            isForgotPassword
+              ? forgotStep === 1
+                ? handleVerifyEmail
+                : handleResetPassword
+              : handleSubmit
+          }
+        >
           <div className="space-y-4">
-            {!isLogin && (
+            {!isLogin && !isForgotPassword && (
               <>
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold text-gray-300 mb-2">
@@ -240,18 +341,26 @@ const AuthForm = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                  readOnly={isForgotPassword && forgotStep === 2}
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field ${isForgotPassword && forgotStep === 2 ? 'opacity-70 cursor-not-allowed' : ''}`}
                   placeholder="Enter email address"
-                  value={formData.email}
+                  value={isForgotPassword && forgotStep === 2 ? verifiedEmail : formData.email}
                   onChange={handleChange}
-                  disabled={loading || authLoading}
+                  disabled={loading || authLoading || (isForgotPassword && forgotStep === 2)}
                 />
               </div>
             </div>
+
+            {isForgotPassword && forgotStep === 2 && verifiedName && (
+              <div className="bg-emerald-900/20 border border-emerald-700/40 text-emerald-300 px-4 py-3 rounded-xl text-sm">
+                Account verified: <span className="font-semibold text-white">{verifiedName}</span>
+              </div>
+            )}
             
+            {(!isForgotPassword || forgotStep === 2) && (
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-300 mb-2">
-                Password
+                {isForgotPassword ? 'New Password' : 'Password'}
               </label>
               <div className="relative input-icon-container">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
@@ -266,10 +375,10 @@ const AuthForm = () => {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
+                  autoComplete={isForgotPassword ? 'new-password' : 'current-password'}
+                  required={!isForgotPassword || forgotStep === 2}
                   className="w-full pl-10 pr-14 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
-                  placeholder="Enter password"
+                  placeholder={isForgotPassword ? 'Enter new password' : 'Enter password'}
                   value={formData.password}
                   onChange={handleChange}
                   disabled={loading || authLoading}
@@ -296,8 +405,9 @@ const AuthForm = () => {
                 </button>
               </div>
             </div>
+            )}
             
-            {!isLogin && (
+            {(!isLogin && !isForgotPassword) || (isForgotPassword && forgotStep === 2) ? (
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-300 mb-2">
                   Confirm Password
@@ -317,7 +427,7 @@ const AuthForm = () => {
                     name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     autoComplete="new-password"
-                    required={!isLogin}
+                    required={!isLogin || (isForgotPassword && forgotStep === 2)}
                     className="w-full pl-10 pr-14 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
                     placeholder="Confirm password"
                     value={formData.confirmPassword}
@@ -345,6 +455,24 @@ const AuthForm = () => {
                     </div>
                   </button>
                 </div>
+              </div>
+            ) : null}
+
+            {isLogin && !isForgotPassword && (
+              <div className="text-right -mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setForgotStep(1);
+                    setError('');
+                    setSuccessMessage('');
+                  }}
+                  className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                  disabled={loading || authLoading}
+                >
+                  Forgot Password?
+                </button>
               </div>
             )}
 
@@ -377,15 +505,33 @@ const AuthForm = () => {
                 <div className="flex items-center">
                   <ModernSpinner size="sm" color="white" />
                   <span className="ml-2">
-                    {isLogin ? 'Signing In...' : 'Creating Account...'}
+                    {isForgotPassword
+                      ? forgotStep === 1
+                        ? 'Verifying...'
+                        : 'Updating Password...'
+                      : isLogin
+                        ? 'Signing In...'
+                        : 'Creating Account...'}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center">
                   <span className="mr-2">
-                    {isLogin ? '🔑' : '👨‍💼'}
+                    {isForgotPassword
+                      ? forgotStep === 1
+                        ? '✉️'
+                        : '🔒'
+                      : isLogin
+                        ? '🔑'
+                        : '👨‍💼'}
                   </span>
-                  {isLogin ? 'Sign In' : 'Create Account'}
+                  {isForgotPassword
+                    ? forgotStep === 1
+                      ? 'Verify Email'
+                      : 'Update Password'
+                    : isLogin
+                      ? 'Sign In'
+                      : 'Create Account'}
                 </div>
               )}
             </button>
@@ -394,20 +540,39 @@ const AuthForm = () => {
           {/* Toggle between login and signup */}
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-400">
-              {isLogin ? "Don't have an account?" : 'Already have an account?'}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError('');
-                  setSuccessMessage('');
-                  const next = !isLogin;
-                  router.replace(next ? '/auth' : '/auth?register=true');
-                }}
-                className="ml-2 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
-              >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
+              {isForgotPassword ? (
+                <>
+                  Remember your password?
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetForgotFlow();
+                      setIsLogin(true);
+                      router.replace('/auth');
+                    }}
+                    className="ml-2 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                  >
+                    Back to Sign in
+                  </button>
+                </>
+              ) : (
+                <>
+                  {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setError('');
+                      setSuccessMessage('');
+                      const next = !isLogin;
+                      router.replace(next ? '/auth' : '/auth?register=true');
+                    }}
+                    className="ml-2 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                  >
+                    {isLogin ? 'Sign up' : 'Sign in'}
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </form>
