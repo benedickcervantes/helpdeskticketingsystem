@@ -61,7 +61,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 sticky top-0 z-40">
+      <header className="fixed top-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-12 sm:h-14">
             {/* Left side - Menu toggle + Logo */}
@@ -70,12 +70,18 @@ const Header = () => {
                 <button
                   onClick={shell.toggleSidebar}
                   className="lg:hidden flex items-center justify-center p-2 mr-1 sm:mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-200 min-h-[44px] min-w-[44px]"
-                  aria-label="Open navigation menu"
+                  aria-label={shell.isSidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
                   aria-expanded={shell.isSidebarOpen}
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                  {shell.isSidebarOpen ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  )}
                 </button>
               )}
               {shell?.showPopupToggle && (

@@ -1,26 +1,58 @@
 // @ts-nocheck
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import PptxGenJS from 'pptxgenjs';
+import { useMemo, useState } from 'react';
+import {
+  buildManagementReportCharts,
+  computeExecutiveMetrics,
+  computeHealthStatus,
+} from '@/lib/utils/analytics';
+import { filterFeedbackByDateRange } from '@/lib/utils/feedbackReport';
+import {
+  buildFeedbackSummary,
+  exportManagementReportPdf,
+  exportManagementReportPptx,
+  getReportPeriodLabel,
+} from '@/lib/utils/managementReportExport';
 
-const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerformance }) => {
-  const [selectedReportType, setSelectedReportType] = useState('executive');
+const ReportGenerator = ({
+  tickets = [],
+  users = [],
+  feedback = [],
+  dateRange = '30',
+  onDateRangeChange,
+}) => {
+  const metrics = useMemo(
+    () => computeExecutiveMetrics(tickets, feedback, dateRange),
+    [tickets, feedback, dateRange],
+  );
+  const healthStatus = useMemo(() => computeHealthStatus(metrics), [metrics]);
+  const filteredFeedback = useMemo(
+    () => filterFeedbackByDateRange(feedback, dateRange),
+    [feedback, dateRange],
+  );
+  const feedbackSummary = useMemo(
+    () => buildFeedbackSummary(filteredFeedback),
+    [filteredFeedback],
+  );
+  const reportPeriod = useMemo(() => getReportPeriodLabel(dateRange), [dateRange]);
+  const chartData = useMemo(
+    () => buildManagementReportCharts(tickets, users, dateRange),
+    [tickets, users, dateRange],
+  );
+  const [selectedReportType, setSelectedReportType] = useState('dashboard');
   const [selectedFormat, setSelectedFormat] = useState('pdf');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
-  const [chartsVisible, setChartsVisible] = useState(false);
-  
-  const chartRefs = {
-    volumeChart: useRef(null),
-    statusChart: useRef(null),
-    priorityChart: useRef(null),
-    departmentChart: useRef(null)
-  };
 
   const reportTypes = [
+    {
+      id: 'dashboard',
+      name: 'Management Dashboard Overview',
+      description: 'Complete overview across all dashboard sections',
+      icon: '📋',
+      gradient: 'from-emerald-600 to-cyan-600'
+    },
     {
       id: 'executive',
       name: 'Executive Summary',
@@ -70,672 +102,209 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
     { id: 'powerpoint', name: 'PowerPoint Presentation', icon: '📊', description: 'Executive presentation with visualizations', color: 'bg-orange-500' }
   ];
 
-  const generateChartData = () => {
-    // Ensure we have valid data
-    const safeTickets = tickets || [];
-    const safeUsers = users || [];
-    const safeMetrics = metrics || {
-      totalTickets: 0,
-      resolutionRate: 0,
-      avgResolutionTime: 0,
-      customerSatisfaction: 0,
-      criticalTickets: 0
-    };
+  const generateChartData = () => chartData;
 
-    const totalTickets = safeTickets.length;
-    const openTickets = safeTickets.filter(t => t && t.status === 'open').length;
-    const inProgressTickets = safeTickets.filter(t => t && t.status === 'in-progress').length;
-    const resolvedTickets = safeTickets.filter(t => t && t.status === 'resolved').length;
-    const criticalTickets = safeTickets.filter(t => t && t.priority === 'critical').length;
-    const highPriorityTickets = safeTickets.filter(t => t && t.priority === 'high').length;
-    const mediumPriorityTickets = safeTickets.filter(t => t && t.priority === 'medium').length;
-    const lowPriorityTickets = safeTickets.filter(t => t && t.priority === 'low').length;
-
-    // Department analytics
-    const departmentStats = {};
-    safeTickets.forEach(ticket => {
-      if (ticket && ticket.createdBy) {
-        const user = safeUsers.find(u => u && u.uid === ticket.createdBy);
-        if (user && user.department) {
-          if (!departmentStats[user.department]) {
-            departmentStats[user.department] = { total: 0, resolved: 0, open: 0, inProgress: 0 };
-          }
-          departmentStats[user.department].total++;
-          if (ticket.status === 'resolved') departmentStats[user.department].resolved++;
-          if (ticket.status === 'open') departmentStats[user.department].open++;
-          if (ticket.status === 'in-progress') departmentStats[user.department].inProgress++;
-        }
-      }
-    });
-
-    return {
-      ticketVolume: [
-        { name: 'Total', value: totalTickets || 0 },
-        { name: 'Open', value: openTickets || 0 },
-        { name: 'In Progress', value: inProgressTickets || 0 },
-        { name: 'Resolved', value: resolvedTickets || 0 }
-      ],
-      statusDistribution: [
-        { name: 'Open', value: openTickets || 0 },
-        { name: 'In Progress', value: inProgressTickets || 0 },
-        { name: 'Resolved', value: resolvedTickets || 0 }
-      ],
-      priorityDistribution: [
-        { name: 'Critical', value: criticalTickets || 0 },
-        { name: 'High', value: highPriorityTickets || 0 },
-        { name: 'Medium', value: mediumPriorityTickets || 0 },
-        { name: 'Low', value: lowPriorityTickets || 0 }
-      ],
-      departmentPerformance: Object.entries(departmentStats).map(([dept, stats]) => ({
-        department: dept || 'Unknown',
-        total: stats.total || 0,
-        resolved: stats.resolved || 0,
-        open: stats.open || 0,
-        inProgress: stats.inProgress || 0,
-        resolutionRate: stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 0
-      })).sort((a, b) => (b.total || 0) - (a.total || 0))
-    };
-  };
-
-  const createSimpleChart = (data, type, title, colors) => {
-    // Validate and sanitize data
-    const safeData = (data || []).map(item => ({
-      name: item?.name || 'Unknown',
-      value: Number(item?.value) || 0
-    })).filter(item => item.value >= 0);
-
-    if (safeData.length === 0) {
-      // Create a placeholder chart if no data
-      const canvas = document.createElement('canvas');
-      canvas.width = 800;
-      canvas.height = 400;
-      const ctx = canvas.getContext('2d');
-      
-      ctx.fillStyle = '#1a1a1a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 18px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(title, canvas.width / 2, 30);
-      
-      ctx.fillStyle = '#a0a0a0';
-      ctx.font = '14px Arial';
-      ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
-      
-      return canvas.toDataURL('image/png');
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 400;
-    const ctx = canvas.getContext('2d');
-    
-    // Clear canvas with dark background
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Add title
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(title, canvas.width / 2, 30);
-    
-    if (type === 'bar') {
-      // Create bar chart
-      const barWidth = 60;
-      const barSpacing = 100;
-      const maxValue = Math.max(...safeData.map(d => d.value));
-      const chartHeight = 250;
-      const startY = 80;
-      const startX = 100;
-      
-      safeData.forEach((item, index) => {
-        const barHeight = maxValue > 0 ? (item.value / maxValue) * chartHeight : 0;
-        const x = startX + (index * barSpacing);
-        const y = startY + chartHeight - barHeight;
-        
-        // Draw bar
-        ctx.fillStyle = colors[index] || '#10B981';
-        ctx.fillRect(x, y, barWidth, barHeight);
-        
-        // Draw value
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(item.value.toString(), x + barWidth / 2, y - 5);
-        
-        // Draw label
-        ctx.fillText(item.name, x + barWidth / 2, startY + chartHeight + 20);
-      });
-    } else if (type === 'pie') {
-      // Create pie chart
-      const centerX = canvas.width / 2;
-      const centerY = 200;
-      const radius = 80;
-      let currentAngle = 0;
-      const total = safeData.reduce((sum, item) => sum + item.value, 0);
-      
-      if (total > 0) {
-        safeData.forEach((item, index) => {
-          const sliceAngle = (item.value / total) * 2 * Math.PI;
-          
-          // Draw slice
-          ctx.beginPath();
-          ctx.moveTo(centerX, centerY);
-          ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
-          ctx.closePath();
-          ctx.fillStyle = colors[index] || '#10B981';
-          ctx.fill();
-          
-          // Draw label
-          const labelAngle = currentAngle + sliceAngle / 2;
-          const labelX = centerX + Math.cos(labelAngle) * (radius + 30);
-          const labelY = centerY + Math.sin(labelAngle) * (radius + 30);
-          
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '12px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText(`${item.name}: ${item.value}`, labelX, labelY);
-          
-          currentAngle += sliceAngle;
-        });
-      } else {
-        // No data message
-        ctx.fillStyle = '#a0a0a0';
-        ctx.font = '14px Arial';
-        ctx.fillText('No data available', centerX, centerY);
-      }
-    }
-    
-    return canvas.toDataURL('image/png');
-  };
-
-  const generatePDFReport = async (report) => {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    let yPosition = 20;
-
-    const addText = (text, x, y, maxWidth, fontSize = 12, fontStyle = 'normal') => {
-      pdf.setFontSize(fontSize);
-      pdf.setFont('helvetica', fontStyle);
-      const lines = pdf.splitTextToSize(text, maxWidth);
-      pdf.text(lines, x, y);
-      return y + (lines.length * fontSize * 0.4);
-    };
-
-    const checkNewPage = (requiredSpace) => {
-      if (yPosition + requiredSpace > pageHeight - 20) {
-        pdf.addPage();
-        yPosition = 20;
-        return true;
-      }
-      return false;
-    };
-
-    const addImage = async (imageData, x, y, width, height, title) => {
-      if (imageData) {
-        // Add chart title
-        pdf.setTextColor(16, 185, 129);
-        yPosition = addText(title, x, y, width, 14, 'bold');
-        yPosition += 5;
-        
-        // Add chart image
-        pdf.addImage(imageData, 'PNG', x, yPosition, width, height);
-        return yPosition + height + 15;
-      }
-      return y;
-    };
-
-    // Title Page
-    pdf.setFillColor(16, 185, 129);
-    pdf.rect(0, 0, pageWidth, 30, 'F');
-    
-    pdf.setTextColor(255, 255, 255);
-    yPosition = addText(report.title, 20, 20, pageWidth - 40, 20, 'bold');
-    
-    pdf.setTextColor(0, 0, 0);
-    yPosition += 10;
-    yPosition = addText(`Generated on: ${report.date}`, 20, yPosition, pageWidth - 40, 12);
-    yPosition = addText(`Report Period: ${report.period}`, 20, yPosition, pageWidth - 40, 12);
-
-    // Executive Summary
-    pdf.addPage();
-    yPosition = 20;
-    pdf.setTextColor(16, 185, 129);
-    yPosition = addText('EXECUTIVE SUMMARY', 20, yPosition, pageWidth - 40, 16, 'bold');
-    
-    pdf.setTextColor(0, 0, 0);
-    yPosition += 10;
-    
-    if (report.summary) {
-      const summaryData = [
-        `Total Support Requests: ${report.summary.totalRequests || 0}`,
-        `Resolution Rate: ${report.summary.resolutionRate || 0}%`,
-        `Average Resolution Time: ${report.summary.avgResolutionTime || 0} hours`,
-        `Customer Satisfaction: ${report.summary.customerSatisfaction || 0}%`,
-        `Critical Issues: ${report.summary.criticalIssues || 0}`
-      ];
-      
-      summaryData.forEach(item => {
-        checkNewPage(15);
-        yPosition = addText(`• ${item}`, 30, yPosition, pageWidth - 60, 12);
-        yPosition += 5;
-      });
-    }
-
-    // Charts Section
-    if (report.charts) {
-      yPosition += 15;
-      checkNewPage(80);
-      pdf.setTextColor(16, 185, 129);
-      yPosition = addText('DATA VISUALIZATIONS', 20, yPosition, pageWidth - 40, 16, 'bold');
-      
-      pdf.setTextColor(0, 0, 0);
-      yPosition += 10;
-
-      // Create simple charts with safe data
-      const chartImages = [
-        createSimpleChart(report.charts.ticketVolume, 'bar', 'Ticket Volume Distribution', ['#3B82F6', '#EF4444', '#F59E0B', '#10B981']),
-        createSimpleChart(report.charts.statusDistribution, 'pie', 'Status Distribution', ['#EF4444', '#F59E0B', '#10B981']),
-        createSimpleChart(report.charts.priorityDistribution, 'pie', 'Priority Distribution', ['#EF4444', '#F59E0B', '#3B82F6', '#10B981']),
-        createSimpleChart(report.charts.departmentPerformance, 'bar', 'Department Performance', ['#3B82F6', '#10B981'])
-      ];
-
-      const chartTitles = [
-        'Ticket Volume Distribution',
-        'Status Distribution',
-        'Priority Distribution',
-        'Department Performance'
-      ];
-
-      // Add charts to PDF
-      for (let i = 0; i < chartImages.length; i++) {
-        if (chartImages[i]) {
-          checkNewPage(80);
-          yPosition = await addImage(chartImages[i], 20, yPosition, pageWidth - 40, 60, chartTitles[i]);
-        }
-      }
-    }
-
-    // Health Status
-    if (report.healthStatus) {
-      yPosition += 15;
-      checkNewPage(20);
-      pdf.setTextColor(16, 185, 129);
-      yPosition = addText('SUPPORT HEALTH STATUS', 20, yPosition, pageWidth - 40, 14, 'bold');
-      
-      pdf.setTextColor(0, 0, 0);
-      yPosition += 5;
-      yPosition = addText(`Status: ${report.healthStatus}`, 30, yPosition, pageWidth - 60, 12);
-    }
-
-    // Key Findings
-    if (report.keyFindings) {
-      yPosition += 15;
-      checkNewPage(30);
-      pdf.setTextColor(16, 185, 129);
-      yPosition = addText('KEY FINDINGS', 20, yPosition, pageWidth - 40, 14, 'bold');
-      
-      pdf.setTextColor(0, 0, 0);
-      yPosition += 5;
-      report.keyFindings.forEach((finding, index) => {
-        checkNewPage(15);
-        yPosition = addText(`${index + 1}. ${finding}`, 30, yPosition, pageWidth - 60, 11);
-        yPosition += 5;
-      });
-    }
-
-    // Recommendations
-    if (report.recommendations) {
-      yPosition += 15;
-      checkNewPage(30);
-      pdf.setTextColor(16, 185, 129);
-      yPosition = addText('RECOMMENDATIONS', 20, yPosition, pageWidth - 40, 14, 'bold');
-      
-      pdf.setTextColor(0, 0, 0);
-      yPosition += 5;
-      report.recommendations.forEach((rec, index) => {
-        checkNewPage(15);
-        yPosition = addText(`${index + 1}. ${rec}`, 30, yPosition, pageWidth - 60, 11);
-        yPosition += 5;
-      });
-    }
-
-    // Footer
-    const totalPages = pdf.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      pdf.setPage(i);
-      pdf.setFontSize(8);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
-      pdf.text('Generated by FCDC Executive Dashboard', 20, pageHeight - 10);
-    }
-
-    return pdf;
-  };
-
-  const generatePowerPointReport = async (report) => {
-    const pptx = new PptxGenJS();
-    
-    pptx.author = 'FCDC';
-    pptx.company = 'IT Support Team';
-    pptx.title = report.title;
-    pptx.subject = 'IT Support Performance Report';
-
-    // Title Slide
-    const titleSlide = pptx.addSlide();
-    titleSlide.background = { fill: 'F1F5F9' };
-    
-    titleSlide.addText(report.title, {
-      x: 1, y: 2, w: 8, h: 1.5,
-      fontSize: 28,
-      bold: true,
-      color: '10B981',
-      align: 'center'
-    });
-    
-    titleSlide.addText(`Generated on: ${report.date}`, {
-      x: 1, y: 3.5, w: 8, h: 0.5,
-      fontSize: 16,
-      color: '64748B',
-      align: 'center'
-    });
-
-    // Executive Summary Slide
-    const summarySlide = pptx.addSlide();
-    summarySlide.addText('Executive Summary', {
-      x: 0.5, y: 0.5, w: 9, h: 0.8,
-      fontSize: 24,
-      bold: true,
-      color: '10B981'
-    });
-
-    if (report.summary) {
-      const summaryItems = [
-        `Total Support Requests: ${report.summary.totalRequests || 0}`,
-        `Resolution Rate: ${report.summary.resolutionRate || 0}%`,
-        `Average Resolution Time: ${report.summary.avgResolutionTime || 0} hours`,
-        `Customer Satisfaction: ${report.summary.customerSatisfaction || 0}%`,
-        `Critical Issues: ${report.summary.criticalIssues || 0}`
-      ];
-
-      summaryItems.forEach((item, index) => {
-        summarySlide.addText(`• ${item}`, {
-          x: 0.5, y: 1.5 + (index * 0.4), w: 9, h: 0.3,
-          fontSize: 14,
-          color: '374151'
-        });
-      });
-    }
-
-    // Charts Slides
-    if (report.charts) {
-      // Create simple charts with safe data
-      const chartImages = [
-        createSimpleChart(report.charts.ticketVolume, 'bar', 'Ticket Volume Distribution', ['#3B82F6', '#EF4444', '#F59E0B', '#10B981']),
-        createSimpleChart(report.charts.statusDistribution, 'pie', 'Status Distribution', ['#EF4444', '#F59E0B', '#10B981']),
-        createSimpleChart(report.charts.priorityDistribution, 'pie', 'Priority Distribution', ['#EF4444', '#F59E0B', '#3B82F6', '#10B981']),
-        createSimpleChart(report.charts.departmentPerformance, 'bar', 'Department Performance', ['#3B82F6', '#10B981'])
-      ];
-
-      const chartTitles = [
-        'Ticket Volume Analysis',
-        'Status Distribution',
-        'Priority Distribution',
-        'Department Performance'
-      ];
-
-      // Create slides for each chart
-      for (let i = 0; i < chartImages.length; i++) {
-        if (chartImages[i]) {
-          const chartSlide = pptx.addSlide();
-          chartSlide.addText(chartTitles[i], {
-            x: 0.5, y: 0.5, w: 9, h: 0.8,
-            fontSize: 24,
-            bold: true,
-            color: '10B981'
-          });
-          chartSlide.addImage({ 
-            data: chartImages[i], 
-            x: 1, 
-            y: 1.5, 
-            w: 8, 
-            h: 4.5 
-          });
-        }
-      }
-    }
-
-    // Key Findings Slide
-    if (report.keyFindings) {
-      const findingsSlide = pptx.addSlide();
-      findingsSlide.addText('Key Findings', {
-        x: 0.5, y: 0.5, w: 9, h: 0.8,
-        fontSize: 24,
-        bold: true,
-        color: '10B981'
-      });
-
-      report.keyFindings.forEach((finding, index) => {
-        findingsSlide.addText(`${index + 1}. ${finding}`, {
-          x: 0.5, y: 1.5 + (index * 0.5), w: 9, h: 0.4,
-          fontSize: 12,
-          color: '374151'
-        });
-      });
-    }
-
-    // Recommendations Slide
-    if (report.recommendations) {
-      const recommendationsSlide = pptx.addSlide();
-      recommendationsSlide.addText('Strategic Recommendations', {
-        x: 0.5, y: 0.5, w: 9, h: 0.8,
-        fontSize: 24,
-        bold: true,
-        color: '10B981'
-      });
-
-      report.recommendations.forEach((rec, index) => {
-        recommendationsSlide.addText(`${index + 1}. ${rec}`, {
-          x: 0.5, y: 1.5 + (index * 0.5), w: 9, h: 0.4,
-          fontSize: 12,
-          color: '374151'
-        });
-      });
-    }
-
-    return pptx;
-  };
-
-  const generateExecutiveReport = () => {
+  const buildReportBase = (overrides = {}) => {
     const charts = generateChartData();
     return {
-      title: 'IT Support Executive Summary Report',
-      date: new Date().toLocaleDateString(),
-      period: 'Last 30 Days',
+      date: new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      period: reportPeriod,
       summary: {
         totalRequests: metrics?.totalTickets || 0,
         resolutionRate: metrics?.resolutionRate || 0,
         avgResolutionTime: metrics?.avgResolutionTime || 0,
         customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0
+        criticalIssues: metrics?.criticalTickets || 0,
       },
+      feedbackSummary,
       healthStatus: healthStatus?.status || 'Unknown',
-      charts: charts,
+      healthScore: healthStatus?.score || 0,
+      charts,
+      ...overrides,
+    };
+  };
+
+  const generateDashboardOverviewReport = () => {
+    const charts = generateChartData();
+    const deptCount = charts.departmentPerformance?.length || 0;
+    const topDept = charts.departmentPerformance?.[0];
+
+    return buildReportBase({
+      title: 'Management Dashboard Overview Report',
+      subtitle: 'Comprehensive IT Helpdesk Performance Summary',
+      reportType: 'dashboard',
+      keyFindings: [
+        `Dashboard overview for ${reportPeriod}: ${metrics?.totalTickets || 0} total support requests`,
+        `Resolution rate ${metrics?.resolutionRate || 0}% with average resolution time of ${metrics?.avgResolutionTime || 0} hours`,
+        `Support health: ${healthStatus?.status || 'Unknown'} (score ${healthStatus?.score || 0}/100)`,
+        `${metrics?.criticalTickets || 0} critical issues requiring attention`,
+        `Customer satisfaction at ${metrics?.customerSatisfaction || 0}% from ${feedbackSummary?.totalFeedback || 0} feedback responses`,
+        `Department coverage: ${deptCount} departments — top performer: ${topDept?.department || 'N/A'} (${topDept?.resolutionRate || 0}% resolution rate)`,
+      ],
+      recommendations: [
+        (metrics?.resolutionRate || 0) < 80
+          ? 'Prioritize backlog reduction and resolution rate improvements'
+          : 'Maintain strong resolution performance across all teams',
+        (metrics?.avgResolutionTime || 0) > 48
+          ? 'Review workflows to reduce average resolution time'
+          : 'Resolution times are within acceptable targets',
+        (metrics?.criticalTickets || 0) > 0
+          ? 'Address critical issues immediately to minimize business impact'
+          : 'Continue monitoring for emerging critical issues',
+        (feedbackSummary?.totalFeedback || 0) > 0
+          ? 'Review executive feedback reports for service improvement opportunities'
+          : 'Encourage user feedback to strengthen satisfaction metrics',
+        'Share department best practices and monitor SLA compliance regularly',
+      ],
+    });
+  };
+
+  const generateExecutiveReport = () =>
+    buildReportBase({
+      title: 'IT Support Executive Summary Report',
+      subtitle: 'Executive-level performance snapshot',
+      reportType: 'executive',
       keyFindings: [
         `Support team handled ${metrics?.totalTickets || 0} requests with ${metrics?.resolutionRate || 0}% resolution rate`,
         `Average resolution time of ${metrics?.avgResolutionTime || 0} hours`,
         `${metrics?.criticalTickets || 0} critical issues requiring immediate attention`,
-        `Customer satisfaction at ${metrics?.customerSatisfaction || 0}%`
+        `Customer satisfaction at ${metrics?.customerSatisfaction || 0}%`,
       ],
       recommendations: [
-        (metrics?.resolutionRate || 0) < 80 ? 'Improve resolution rate through additional training' : 'Maintain excellent resolution performance',
-        (metrics?.avgResolutionTime || 0) > 48 ? 'Implement process improvements to reduce resolution time' : 'Resolution times are within acceptable range',
-        (metrics?.criticalTickets || 0) > 0 ? 'Address critical issues immediately to prevent business disruption' : 'No critical issues requiring immediate attention'
-      ]
-    };
-  };
+        (metrics?.resolutionRate || 0) < 80
+          ? 'Improve resolution rate through additional training'
+          : 'Maintain excellent resolution performance',
+        (metrics?.avgResolutionTime || 0) > 48
+          ? 'Implement process improvements to reduce resolution time'
+          : 'Resolution times are within acceptable range',
+        (metrics?.criticalTickets || 0) > 0
+          ? 'Address critical issues immediately to prevent business disruption'
+          : 'No critical issues requiring immediate attention',
+      ],
+    });
 
   const generateAnalyticsReport = () => {
     const charts = generateChartData();
-    return {
+    return buildReportBase({
       title: 'IT Support Analytics Overview Report',
-      date: new Date().toLocaleDateString(),
-      period: 'Last 30 Days',
-      summary: {
-        totalRequests: metrics?.totalTickets || 0,
-        resolutionRate: metrics?.resolutionRate || 0,
-        avgResolutionTime: metrics?.avgResolutionTime || 0,
-        customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0
-      },
-      healthStatus: healthStatus?.status || 'Unknown',
-      charts: charts,
+      subtitle: 'Charts and distribution analysis',
+      reportType: 'analytics',
       keyFindings: [
         `Total ticket volume: ${metrics?.totalTickets || 0} requests processed`,
-        `Status distribution: ${Math.round(((charts.ticketVolume[3]?.value || 0)/(metrics?.totalTickets || 1))*100)}% resolved, ${Math.round(((charts.ticketVolume[1]?.value || 0)/(metrics?.totalTickets || 1))*100)}% open`,
+        `Status distribution: ${Math.round(((charts.ticketVolume[3]?.value || 0) / (metrics?.totalTickets || 1)) * 100)}% resolved, ${Math.round(((charts.ticketVolume[1]?.value || 0) / (metrics?.totalTickets || 1)) * 100)}% open`,
         `Priority breakdown: ${charts.priorityDistribution[0]?.value || 0} critical, ${charts.priorityDistribution[1]?.value || 0} high priority`,
         `Department analysis covers ${charts.departmentPerformance?.length || 0} departments`,
-        `Top performing department: ${charts.departmentPerformance[0]?.department || 'N/A'}`
+        `Top performing department: ${charts.departmentPerformance[0]?.department || 'N/A'}`,
       ],
       recommendations: [
         'Monitor daily ticket volume trends for capacity planning',
         'Focus on reducing open ticket backlog',
         'Implement priority-based routing for critical issues',
         'Share best practices from top-performing departments',
-        'Analyze resolution time patterns for process improvements'
-      ]
-    };
+        'Analyze resolution time patterns for process improvements',
+      ],
+    });
   };
 
   const generatePerformanceReport = () => {
     const charts = generateChartData();
-    return {
+    const rates = charts.departmentPerformance?.map((d) => d.resolutionRate) || [0];
+    return buildReportBase({
       title: 'IT Support Performance Metrics Report',
-      date: new Date().toLocaleDateString(),
-      period: 'Last 30 Days',
-      summary: {
-        totalRequests: metrics?.totalTickets || 0,
-        resolutionRate: metrics?.resolutionRate || 0,
-        avgResolutionTime: metrics?.avgResolutionTime || 0,
-        customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0
-      },
-      healthStatus: healthStatus?.status || 'Unknown',
-      charts: charts,
+      subtitle: 'Operational KPIs and efficiency metrics',
+      reportType: 'operational',
       keyFindings: [
         `Performance metrics show ${metrics?.totalTickets || 0} total requests processed`,
         `Resolution rate of ${metrics?.resolutionRate || 0}% indicates operational efficiency`,
         `Average resolution time of ${metrics?.avgResolutionTime || 0} hours`,
         `Critical issues count: ${metrics?.criticalTickets || 0}`,
-        `Department performance varies from ${Math.min(...(charts.departmentPerformance?.map(d => d.resolutionRate) || [0]))}% to ${Math.max(...(charts.departmentPerformance?.map(d => d.resolutionRate) || [0]))}%`
+        `Department performance varies from ${Math.min(...rates)}% to ${Math.max(...rates)}%`,
       ],
       recommendations: [
         'Monitor daily ticket volume trends for capacity planning',
         'Implement automated routing for improved efficiency',
         'Regular training sessions for support team members',
         'Focus on departments with lower resolution rates',
-        'Implement SLA monitoring and alerting'
-      ]
-    };
+        'Implement SLA monitoring and alerting',
+      ],
+    });
   };
 
   const generateDepartmentalReport = () => {
     const charts = generateChartData();
-    return {
+    const sortedByVolume = [...(charts.departmentPerformance || [])].sort(
+      (a, b) => (b.total || 0) - (a.total || 0),
+    );
+    const rates = charts.departmentPerformance?.map((d) => d.resolutionRate) || [0];
+    return buildReportBase({
       title: 'Department Performance Analysis Report',
-      date: new Date().toLocaleDateString(),
-      period: 'Last 30 Days',
-      summary: {
-        totalRequests: metrics?.totalTickets || 0,
-        resolutionRate: metrics?.resolutionRate || 0,
-        avgResolutionTime: metrics?.avgResolutionTime || 0,
-        customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0
-      },
-      healthStatus: healthStatus?.status || 'Unknown',
-      charts: charts,
+      subtitle: 'Department-wise breakdown and comparisons',
+      reportType: 'departmental',
       keyFindings: [
         `Department analysis covers ${charts.departmentPerformance?.length || 0} departments`,
         `Top performing department: ${charts.departmentPerformance[0]?.department || 'N/A'} with ${charts.departmentPerformance[0]?.resolutionRate || 0}% resolution rate`,
         `Average department resolution rate: ${Math.round((charts.departmentPerformance?.reduce((sum, d) => sum + (d.resolutionRate || 0), 0) || 0) / (charts.departmentPerformance?.length || 1))}%`,
-        `Department with highest volume: ${charts.departmentPerformance?.sort((a,b) => (b.total || 0) - (a.total || 0))[0]?.department || 'N/A'}`,
-        `Performance gap: ${Math.max(...(charts.departmentPerformance?.map(d => d.resolutionRate) || [0])) - Math.min(...(charts.departmentPerformance?.map(d => d.resolutionRate) || [0]))}% between best and worst performing departments`
+        `Department with highest volume: ${sortedByVolume[0]?.department || 'N/A'}`,
+        `Performance gap: ${Math.max(...rates) - Math.min(...rates)}% between best and worst performing departments`,
       ],
       recommendations: [
         'Share best practices from top-performing departments',
         'Provide additional support to underperforming departments',
         'Implement department-specific training programs',
         'Create department performance dashboards',
-        'Regular department performance reviews'
-      ]
-    };
+        'Regular department performance reviews',
+      ],
+    });
   };
 
   const generateTrendsReport = () => {
     const charts = generateChartData();
-    return {
+    return buildReportBase({
       title: 'IT Support Trend Analysis Report',
-      date: new Date().toLocaleDateString(),
-      period: 'Last 30 Days',
-      summary: {
-        totalRequests: metrics?.totalTickets || 0,
-        resolutionRate: metrics?.resolutionRate || 0,
-        avgResolutionTime: metrics?.avgResolutionTime || 0,
-        customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0
-      },
-      healthStatus: healthStatus?.status || 'Unknown',
-      charts: charts,
+      subtitle: 'Performance trends and forecasting insights',
+      reportType: 'trends',
       keyFindings: [
-        `Trend analysis based on ${metrics?.totalTickets || 0} requests over the reporting period`,
+        `Trend analysis based on ${metrics?.totalTickets || 0} requests over ${reportPeriod}`,
         `Current resolution rate of ${metrics?.resolutionRate || 0}% shows ${(metrics?.resolutionRate || 0) >= 90 ? 'excellent' : (metrics?.resolutionRate || 0) >= 80 ? 'good' : 'room for improvement'} performance`,
         `Average resolution time of ${metrics?.avgResolutionTime || 0} hours is ${(metrics?.avgResolutionTime || 0) <= 24 ? 'excellent' : (metrics?.avgResolutionTime || 0) <= 48 ? 'acceptable' : 'needs improvement'}`,
-        `Critical issues represent ${Math.round(((charts.priorityDistribution[0]?.value || 0)/(metrics?.totalTickets || 1))*100)}% of total volume`,
-        `Department performance trends show ${charts.departmentPerformance?.length || 0} departments with varying performance levels`
+        `Critical issues represent ${Math.round(((charts.priorityDistribution[0]?.value || 0) / (metrics?.totalTickets || 1)) * 100)}% of total volume`,
+        `Department performance trends show ${charts.departmentPerformance?.length || 0} departments with varying performance levels`,
       ],
       recommendations: [
         'Implement trend monitoring dashboards',
         'Set up automated alerts for performance degradation',
         'Conduct regular trend analysis reviews',
         'Develop predictive models for capacity planning',
-        'Create trend-based performance improvement plans'
-      ]
-    };
+        'Create trend-based performance improvement plans',
+      ],
+    });
   };
 
   const generateComplianceReport = () => {
     const charts = generateChartData();
-    return {
+    return buildReportBase({
       title: 'SLA Compliance & Audit Report',
-      date: new Date().toLocaleDateString(),
-      period: 'Last 30 Days',
-      summary: {
-        totalRequests: metrics?.totalTickets || 0,
-        resolutionRate: metrics?.resolutionRate || 0,
-        avgResolutionTime: metrics?.avgResolutionTime || 0,
-        customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0
-      },
-      healthStatus: healthStatus?.status || 'Unknown',
-      charts: charts,
+      subtitle: 'Compliance status and audit findings',
+      reportType: 'compliance',
       keyFindings: [
         `SLA compliance analysis for ${metrics?.totalTickets || 0} requests`,
         `Resolution rate compliance: ${(metrics?.resolutionRate || 0) >= 90 ? 'Compliant' : 'Non-compliant'} (${metrics?.resolutionRate || 0}% vs 90% target)`,
         `Response time compliance: ${(metrics?.avgResolutionTime || 0) <= 48 ? 'Compliant' : 'Non-compliant'} (${metrics?.avgResolutionTime || 0}h vs 48h target)`,
         `Critical issues compliance: ${(charts.priorityDistribution[0]?.value || 0) <= 5 ? 'Compliant' : 'Non-compliant'} (${charts.priorityDistribution[0]?.value || 0} critical issues)`,
-        `Department compliance varies across ${charts.departmentPerformance?.length || 0} departments`
+        `Department compliance varies across ${charts.departmentPerformance?.length || 0} departments`,
       ],
       recommendations: [
         'Implement automated SLA monitoring',
         'Regular compliance reviews and reporting',
         'Process improvements for non-compliant areas',
         'Department-specific SLA targets',
-        'Compliance training for support teams'
-      ]
-    };
+        'Compliance training for support teams',
+      ],
+    });
   };
 
   const generateReport = async () => {
@@ -745,6 +314,9 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
     try {
       let report;
       switch (selectedReportType) {
+        case 'dashboard':
+          report = generateDashboardOverviewReport();
+          break;
         case 'executive':
           report = generateExecutiveReport();
           break;
@@ -764,23 +336,22 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
           report = generateComplianceReport();
           break;
         default:
-          report = generateExecutiveReport();
+          report = generateDashboardOverviewReport();
       }
-      
+
       setGenerationProgress(30);
-      
+
       if (selectedFormat === 'pdf') {
-        const pdf = await generatePDFReport(report);
-        setGenerationProgress(80);
-        pdf.save(`${report.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+        setGenerationProgress(60);
+        await exportManagementReportPdf(report);
       } else if (selectedFormat === 'powerpoint') {
-        const pptx = await generatePowerPointReport(report);
-        setGenerationProgress(80);
-        await pptx.writeFile({ fileName: `${report.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pptx` });
+        setGenerationProgress(60);
+        await exportManagementReportPptx(report);
       }
-      
+
+      setGenerationProgress(90);
       setGenerationProgress(100);
-      
+
       setTimeout(() => {
         setIsGenerating(false);
         setGenerationProgress(0);
@@ -794,16 +365,34 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white px-3 py-4 sm:p-6 lg:px-8">
-      <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8">
+    <div className="min-w-0 space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400 mb-2">
+        <div className="text-center mb-4 sm:mb-6 lg:mb-8 px-1">
+          <h1 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400 mb-1 sm:mb-2">
             Executive Report Generator
           </h1>
-          <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto px-2">
+          <p className="text-xs sm:text-sm lg:text-base text-gray-400 max-w-2xl mx-auto">
             Create professional reports with comprehensive charts and visualizations designed for executive presentations.
           </p>
+          {onDateRangeChange ? (
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+              <label htmlFor="report-date-range" className="text-xs sm:text-sm text-gray-400">
+                Report period
+              </label>
+              <select
+                id="report-date-range"
+                value={dateRange}
+                onChange={(e) => onDateRangeChange(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last year</option>
+              </select>
+            </div>
+          ) : null}
         </div>
 
         {/* Report Type Selection */}
@@ -858,6 +447,9 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
           </h3>
           
           <div className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-gray-700/50">
+            <p className="text-xs sm:text-sm text-gray-400 mb-4">
+              Report period: <span className="text-gray-200">{reportPeriod}</span>
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h4 className="font-semibold text-white mb-3 flex items-center">
@@ -877,6 +469,16 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
                     <span className="text-gray-400">Avg Resolution Time:</span>
                     <span className="font-semibold text-white">{metrics?.avgResolutionTime || 0}h</span>
                   </div>
+                  <div className="flex justify-between text-sm bg-gray-800/30 p-3 rounded-lg">
+                    <span className="text-gray-400">Health Status:</span>
+                    <span className="font-semibold text-cyan-400">
+                      {healthStatus?.status || 'Unknown'} ({healthStatus?.score || 0}/100)
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm bg-gray-800/30 p-3 rounded-lg">
+                    <span className="text-gray-400">Feedback Responses:</span>
+                    <span className="font-semibold text-white">{feedbackSummary?.totalFeedback || 0}</span>
+                  </div>
                 </div>
               </div>
               <div>
@@ -885,10 +487,11 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
                   Charts Included
                 </h4>
                 <div className="space-y-2">
+                  <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Daily Ticket Trends</div>
                   <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Ticket Volume Distribution</div>
-                  <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Status Distribution</div>
+                  <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Status Distribution ({chartData.statusDistribution?.map((s) => `${s.name}: ${s.value}`).join(', ') || '—'})</div>
                   <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Priority Breakdown</div>
-                  <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Department Performance</div>
+                  <div className="text-sm text-gray-300 bg-gray-800/30 p-3 rounded-lg">• Department Performance ({chartData.departmentPerformance?.length || 0} depts)</div>
                 </div>
               </div>
             </div>
@@ -896,11 +499,11 @@ const ReportGenerator = ({ tickets, users, metrics, healthStatus, departmentPerf
         </div>
 
         {/* Generate Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-center px-1">
           <button
             onClick={generateReport}
             disabled={isGenerating}
-            className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden group"
+            className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl font-semibold text-sm sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
           >
             <span className="relative z-10">
               {isGenerating ? (

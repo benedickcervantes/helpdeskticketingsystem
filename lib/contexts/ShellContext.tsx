@@ -16,6 +16,8 @@ interface ShellContextValue {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   closeSidebar: () => void;
+  isSidebarCollapsed: boolean;
+  toggleSidebarCollapsed: () => void;
   showSidebarToggle: boolean;
   isPopupMenuOpen: boolean;
   togglePopupMenu: () => void;
@@ -29,6 +31,7 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isPopupMenuOpen, setIsPopupMenuOpen] = useState(false);
 
   const showSidebarToggle =
@@ -44,6 +47,10 @@ export function ShellProvider({ children }: { children: ReactNode }) {
     setIsSidebarOpen(false);
   }, []);
 
+  const toggleSidebarCollapsed = useCallback(() => {
+    setIsSidebarCollapsed((prev) => !prev);
+  }, []);
+
   const togglePopupMenu = useCallback(() => {
     setIsPopupMenuOpen((prev) => !prev);
   }, []);
@@ -57,6 +64,8 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       isSidebarOpen,
       toggleSidebar,
       closeSidebar,
+      isSidebarCollapsed,
+      toggleSidebarCollapsed,
       showSidebarToggle,
       isPopupMenuOpen,
       togglePopupMenu,
@@ -67,6 +76,8 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       isSidebarOpen,
       toggleSidebar,
       closeSidebar,
+      isSidebarCollapsed,
+      toggleSidebarCollapsed,
       showSidebarToggle,
       isPopupMenuOpen,
       togglePopupMenu,

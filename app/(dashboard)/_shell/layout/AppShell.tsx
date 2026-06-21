@@ -15,6 +15,7 @@ function AppShellContent({ children }) {
   const {
     isSidebarOpen,
     closeSidebar,
+    isSidebarCollapsed,
     showSidebarToggle,
     isPopupMenuOpen,
     closePopupMenu,
@@ -27,20 +28,47 @@ function AppShellContent({ children }) {
     !isLandingPage &&
     (pathname === '/admin' || pathname === '/management');
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        closeSidebar();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [closeSidebar]);
+
+  const sidebarMainOffset = shouldShowSidebar
+    ? isSidebarCollapsed
+      ? 'lg:ml-16'
+      : 'lg:ml-64'
+    : 'ml-0';
+
   if (!currentUser || isLandingPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-x-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <Header />
-        <main className="pt-12 sm:pt-14 pb-6">{children}</main>
+        <main className="pt-12 sm:pt-14 pb-6 overflow-x-hidden">{children}</main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Header />
 
-      <div className="flex">
+      <div className="flex pt-12 sm:pt-14 min-h-[calc(100vh-3rem)] sm:min-h-[calc(100vh-3.5rem)]">
         {shouldShowSidebar && (
           <Sidebar
             isMobileOpen={isSidebarOpen}
@@ -49,9 +77,7 @@ function AppShellContent({ children }) {
         )}
 
         <main
-          className={`flex-1 min-w-0 transition-all duration-300 ease-in-out pt-12 sm:pt-14 pb-6 ${
-            shouldShowSidebar ? 'lg:ml-64 ml-0' : 'ml-0'
-          }`}
+          className={`flex-1 min-w-0 pb-6 overflow-x-hidden transition-all duration-300 ease-in-out ${sidebarMainOffset}`}
         >
           {children}
         </main>
@@ -59,7 +85,7 @@ function AppShellContent({ children }) {
 
       {shouldShowSidebar && isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 top-12 sm:top-14 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
           onClick={closeSidebar}
           aria-hidden="true"
         />
