@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { TechNewsSkeleton } from '@/lib/ui/DashboardSkeletons';
 
 const TechNewsSection = () => {
   const [news, setNews] = useState([]);
@@ -242,15 +243,7 @@ const TechNewsSection = () => {
     return (
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-gray-700/50 shadow-2xl">
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-12 w-12 border-2 border-transparent border-t-emerald-400 border-r-cyan-400"></div>
-                <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-emerald-400/20"></div>
-              </div>
-              <p className="text-gray-400 text-sm">Loading latest tech news...</p>
-            </div>
-          </div>
+          <TechNewsSkeleton count={3} />
         </div>
       </div>
     );

@@ -3,12 +3,29 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { api } from '@/lib/api/client';
 import { subscribeTicketEvents, subscribeNotificationEvents } from '@/lib/realtime/socketClient';
-import TicketList from '@/app/(dashboard)/_components/TicketList';
-import UserManagement from '@/app/(dashboard)/admin/_components/UserManagement';
-import FeedbackAnalytics from '@/app/(dashboard)/admin/_components/FeedbackAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  StatsGridSkeleton,
+  TicketListSkeleton,
+  TablePanelSkeleton,
+  ChartGridSkeleton,
+} from '@/lib/ui/DashboardSkeletons';
+
+const TicketList = dynamic(
+  () => import('@/app/(dashboard)/_components/TicketList'),
+  { loading: () => <TicketListSkeleton /> },
+);
+const UserManagement = dynamic(
+  () => import('@/app/(dashboard)/admin/_components/UserManagement'),
+  { loading: () => <TablePanelSkeleton rows={6} /> },
+);
+const FeedbackAnalytics = dynamic(
+  () => import('@/app/(dashboard)/admin/_components/FeedbackAnalytics'),
+  { loading: () => <ChartGridSkeleton /> },
+);
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();
@@ -27,6 +44,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const validTabs = ['overview', 'tickets', 'users', 'feedback'];
@@ -63,6 +81,8 @@ const AdminDashboard = () => {
       if (!message.toLowerCase().includes('session expired')) {
         console.error('Failed to load admin dashboard', err);
       }
+    } finally {
+      setLoading(false);
     }
   }, [currentUser]);
 
@@ -184,6 +204,13 @@ const AdminDashboard = () => {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-5 pb-4">
+          {loading ? (
+            <div className="space-y-6">
+              <StatsGridSkeleton count={4} />
+              <StatsGridSkeleton count={3} />
+            </div>
+          ) : (
+            <>
           {/* Ticket Overview — matches User Dashboard layout */}
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Ticket Overview</h2>
@@ -331,6 +358,8 @@ const AdminDashboard = () => {
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
 

@@ -2,11 +2,24 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/contexts/AuthContext';
-import TicketForm from '@/app/(dashboard)/_components/TicketForm';
-import TicketList from '@/app/(dashboard)/_components/TicketList';
 import { api } from '@/lib/api/client';
 import { subscribeTicketEvents } from '@/lib/realtime/socketClient';
+import {
+  StatsGridSkeleton,
+  TicketListSkeleton,
+  CompactFormSkeleton,
+} from '@/lib/ui/DashboardSkeletons';
+
+const TicketForm = dynamic(
+  () => import('@/app/(dashboard)/_components/TicketForm'),
+  { loading: () => <CompactFormSkeleton /> },
+);
+const TicketList = dynamic(
+  () => import('@/app/(dashboard)/_components/TicketList'),
+  { loading: () => <TicketListSkeleton /> },
+);
 
 const UserDashboard = () => {
   const { currentUser } = useAuth();
@@ -22,6 +35,7 @@ const UserDashboard = () => {
     total: 0,
     resolved: 0
   });
+  const [statsLoading, setStatsLoading] = useState(true);
 
 
   // Handle ticket creation and redirect to all tickets
@@ -48,6 +62,8 @@ const UserDashboard = () => {
       });
     } catch (err) {
       console.error('Failed to load user dashboard stats', err);
+    } finally {
+      setStatsLoading(false);
     }
   }, [currentUser]);
 
@@ -121,6 +137,13 @@ const UserDashboard = () => {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-5 pb-4">
+          {statsLoading ? (
+            <div className="space-y-6">
+              <StatsGridSkeleton count={4} />
+              <StatsGridSkeleton count={2} />
+            </div>
+          ) : (
+            <>
           {/* System Statistics */}
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">System Overview</h2>
@@ -254,6 +277,8 @@ const UserDashboard = () => {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
 

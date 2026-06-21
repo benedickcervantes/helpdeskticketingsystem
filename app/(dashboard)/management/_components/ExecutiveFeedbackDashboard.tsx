@@ -3,12 +3,10 @@
 
 import { useMemo, useState } from 'react';
 import {
-  downloadFeedbackExcel,
-  downloadFeedbackPdf,
   filterFeedbackByDateRange,
   formatFeedbackDateTime,
   getFeedbackUserLabel,
-} from '@/lib/utils/feedbackReport';
+} from '@/lib/utils/feedbackReportUtils';
 
 const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRangeChange }) => {
   const [exportLoading, setExportLoading] = useState(null);
@@ -76,8 +74,10 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
       };
 
       if (format === 'excel') {
+        const { downloadFeedbackExcel } = await import('@/lib/utils/feedbackReport');
         await downloadFeedbackExcel(filteredFeedback, meta);
       } else if (format === 'pdf') {
+        const { downloadFeedbackPdf } = await import('@/lib/utils/feedbackReport');
         downloadFeedbackPdf(filteredFeedback, meta);
       }
     } catch (error) {

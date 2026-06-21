@@ -2,17 +2,45 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { SkeletonCard } from '@/lib/ui/LoadingComponents';
+import dynamic from 'next/dynamic';
 import { api } from '@/lib/api/client';
 import { subscribeTicketEvents } from '@/lib/realtime/socketClient';
 import { useAuth } from '@/contexts/AuthContext';
-import AnalyticsOverview from '@/app/(dashboard)/management/_components/AnalyticsOverview';
-import ExecutiveSummary from '@/app/(dashboard)/management/_components/ExecutiveSummary';
-import PerformanceMetrics from '@/app/(dashboard)/management/_components/PerformanceMetrics';
-import DepartmentAnalytics from '@/app/(dashboard)/management/_components/DepartmentAnalytics';
-import TrendAnalysis from '@/app/(dashboard)/management/_components/TrendAnalysis';
-import ReportGenerator from '@/app/(dashboard)/management/_components/ReportGenerator';
-import ExecutiveFeedbackDashboard from '@/app/(dashboard)/management/_components/ExecutiveFeedbackDashboard';
+import {
+  DashboardPageSkeleton,
+  StatsGridSkeleton,
+  ChartGridSkeleton,
+  ExecutiveFeedbackSkeleton,
+} from '@/lib/ui/DashboardSkeletons';
+
+const ExecutiveSummary = dynamic(
+  () => import('@/app/(dashboard)/management/_components/ExecutiveSummary'),
+  { loading: () => <StatsGridSkeleton count={4} /> },
+);
+const AnalyticsOverview = dynamic(
+  () => import('@/app/(dashboard)/management/_components/AnalyticsOverview'),
+  { loading: () => <ChartGridSkeleton /> },
+);
+const PerformanceMetrics = dynamic(
+  () => import('@/app/(dashboard)/management/_components/PerformanceMetrics'),
+  { loading: () => <StatsGridSkeleton count={4} /> },
+);
+const DepartmentAnalytics = dynamic(
+  () => import('@/app/(dashboard)/management/_components/DepartmentAnalytics'),
+  { loading: () => <StatsGridSkeleton count={4} /> },
+);
+const TrendAnalysis = dynamic(
+  () => import('@/app/(dashboard)/management/_components/TrendAnalysis'),
+  { loading: () => <ChartGridSkeleton /> },
+);
+const ReportGenerator = dynamic(
+  () => import('@/app/(dashboard)/management/_components/ReportGenerator'),
+  { loading: () => <DashboardPageSkeleton showTabs={false} content="form" /> },
+);
+const ExecutiveFeedbackDashboard = dynamic(
+  () => import('@/app/(dashboard)/management/_components/ExecutiveFeedbackDashboard'),
+  { loading: () => <ExecutiveFeedbackSkeleton /> },
+);
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -70,12 +98,8 @@ const ManagementDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-8">
-          <div className="space-y-6">
-            <SkeletonCard />
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+        <DashboardPageSkeleton tabCount={7} content="charts" />
       </div>
     );
   }

@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import UserDashboard from '@/app/(dashboard)/user/_components/UserDashboard';
-import { ModernSpinner } from '@/lib/ui/LoadingComponents';
+import { DashboardPageSkeleton } from '@/lib/ui/DashboardSkeletons';
 
 export default function UserPage() {
   const { currentUser, userProfile, loading, authLoading } = useAuth();
@@ -30,8 +30,8 @@ export default function UserPage() {
 
   if (!mounted || loading || authLoading || !currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <ModernSpinner size="xl" color="emerald" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+        <DashboardPageSkeleton tabCount={3} content="tickets" />
       </div>
     );
   }
