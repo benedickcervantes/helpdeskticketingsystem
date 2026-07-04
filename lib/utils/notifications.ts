@@ -43,10 +43,15 @@ export async function getUnreadUserNotificationCount(
   }
 }
 
-export async function getUnreadAdminNotificationCount(): Promise<number> {
+export async function getUnreadAdminNotificationCount(
+  userId?: string,
+): Promise<number> {
   try {
     const notifications = await fetchNotifications();
-    return notifications.filter((n) => !n.read && n.adminNotification).length;
+    return notifications.filter((n) => {
+      if (n.read) return false;
+      return n.adminNotification || (!!userId && n.userId === userId);
+    }).length;
   } catch {
     return 0;
   }

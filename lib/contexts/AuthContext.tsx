@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, clearTokens, SESSION_EXPIRED_EVENT, setTokens } from '@/lib/api/client';
+import { api, clearTokens, getAccessToken, getRefreshToken, SESSION_EXPIRED_EVENT, setTokens } from '@/lib/api/client';
 import { disconnectSocket, getSocket } from '@/lib/realtime/socketClient';
 import type { AuthSessionUser } from '@/types/auth';
 import type { UserProfile } from '@/types/user';
@@ -64,6 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadSession = useCallback(async () => {
     try {
+      if (!getAccessToken() && !getRefreshToken()) {
+        return;
+      }
       const user = await api.get<UserProfile>('/api/v1/auth/me');
       if (user) applySession(user);
     } catch {
