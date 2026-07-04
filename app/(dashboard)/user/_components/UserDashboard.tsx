@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api/client';
@@ -23,6 +24,11 @@ const TicketList = dynamic(
 
 const UserDashboard = () => {
   const { currentUser } = useAuth();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const ticketParam = searchParams.get('ticket');
+  const openKey = searchParams.get('open');
+  const focusConversation = searchParams.get('focus') === 'conversation';
   const [activeTab, setActiveTab] = useState('overview');
   const [ticketFilter, setTicketFilter] = useState('all'); // 'all' or 'my'
   const [allTicketsStats, setAllTicketsStats] = useState({
@@ -37,6 +43,24 @@ const UserDashboard = () => {
   });
   const [statsLoading, setStatsLoading] = useState(true);
 
+  useEffect(() => {
+    if (tabParam === 'tickets') {
+      setActiveTab('tickets');
+    } else if (tabParam === 'create') {
+      setActiveTab('create');
+    } else if (!tabParam) {
+      setActiveTab('overview');
+    }
+  }, [tabParam]);
+
+  useEffect(() => {
+    if (ticketParam) {
+      setActiveTab('tickets');
+      setTicketFilter('all');
+    }
+  }, [ticketParam]);
+
+  const displayTab = activeTab;
 
   // Handle ticket creation and redirect to all tickets
   const handleTicketCreated = (ticket) => {
@@ -104,7 +128,7 @@ const UserDashboard = () => {
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap ${
-              activeTab === 'overview'
+              displayTab === 'overview'
                 ? 'border-emerald-500 text-emerald-400'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
             }`}
@@ -114,7 +138,7 @@ const UserDashboard = () => {
           <button
             onClick={() => setActiveTab('tickets')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap ${
-              activeTab === 'tickets'
+              displayTab === 'tickets'
                 ? 'border-emerald-500 text-emerald-400'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
             }`}
@@ -124,7 +148,7 @@ const UserDashboard = () => {
           <button
             onClick={() => setActiveTab('create')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap ${
-              activeTab === 'create'
+              displayTab === 'create'
                 ? 'border-emerald-500 text-emerald-400'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
             }`}
@@ -135,7 +159,7 @@ const UserDashboard = () => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' && (
+      {displayTab === 'overview' && (
         <div className="space-y-5 pb-4">
           {statsLoading ? (
             <div className="space-y-6">
@@ -282,7 +306,7 @@ const UserDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'tickets' && (
+      {displayTab === 'tickets' && (
         <div className="space-y-5 pb-4">
           {/* Filter Controls */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -318,12 +342,15 @@ const UserDashboard = () => {
           {/* Ticket List */}
           <TicketList 
             showAllTickets={ticketFilter === 'all'} 
-            showUserTicketsOnly={ticketFilter === 'my'} 
+            showUserTicketsOnly={ticketFilter === 'my'}
+            openTicketId={ticketParam}
+            openKey={openKey}
+            focusConversation={focusConversation}
           />
         </div>
       )}
 
-      {activeTab === 'create' && (
+      {displayTab === 'create' && (
         <div className="space-y-5 pb-4">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Create New Support Ticket</h2>

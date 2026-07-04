@@ -31,6 +31,9 @@ const AdminDashboard = () => {
   const { currentUser } = useAuth();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
+  const ticketParam = searchParams.get('ticket');
+  const openKey = searchParams.get('open');
+  const focusConversation = searchParams.get('focus') === 'conversation';
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     total: 0,
@@ -48,12 +51,16 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const validTabs = ['overview', 'tickets', 'users', 'feedback'];
-    if (tabParam && validTabs.includes(tabParam)) {
+    if (ticketParam) {
+      setActiveTab('tickets');
+    } else if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam);
     } else if (!tabParam) {
       setActiveTab('overview');
     }
-  }, [tabParam]);
+  }, [tabParam, ticketParam]);
+
+  const displayTab = activeTab;
 
   const loadDashboardData = useCallback(async () => {
     if (!currentUser) return;
@@ -75,7 +82,13 @@ const AdminDashboard = () => {
       });
       setUsers(usersData);
       setNotifications(notificationsData);
-      setUnreadNotifications(notificationsData.filter((n) => !n.read && n.adminNotification).length);
+      setUnreadNotifications(
+        notificationsData.filter(
+          (n) =>
+            !n.read &&
+            (n.adminNotification || n.userId === currentUser.uid),
+        ).length,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : '';
       if (!message.toLowerCase().includes('session expired')) {
@@ -141,7 +154,7 @@ const AdminDashboard = () => {
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              activeTab === 'overview'
+              displayTab === 'overview'
                 ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
             }`}
@@ -156,7 +169,7 @@ const AdminDashboard = () => {
           <button
             onClick={() => setActiveTab('tickets')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              activeTab === 'tickets'
+              displayTab === 'tickets'
                 ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
             }`}
@@ -171,7 +184,7 @@ const AdminDashboard = () => {
           <button
             onClick={() => setActiveTab('users')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              activeTab === 'users'
+              displayTab === 'users'
                 ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
             }`}
@@ -186,7 +199,7 @@ const AdminDashboard = () => {
           <button
             onClick={() => setActiveTab('feedback')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              activeTab === 'feedback'
+              displayTab === 'feedback'
                 ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                 : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
             }`}
@@ -202,7 +215,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' && (
+      {displayTab === 'overview' && (
         <div className="space-y-5 pb-4">
           {loading ? (
             <div className="space-y-6">
@@ -363,7 +376,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'tickets' && (
+      {displayTab === 'tickets' && (
         <div className="space-y-4 sm:space-y-6 pb-6 sm:pb-8">
           {/* Enhanced Admin Ticket Management Header */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
@@ -391,11 +404,14 @@ const AdminDashboard = () => {
             showAllTickets={true} 
             showUserTicketsOnly={false}
             adminMode={true}
+            openTicketId={ticketParam}
+            openKey={openKey}
+            focusConversation={focusConversation}
           />
         </div>
       )}
 
-      {activeTab === 'users' && (
+      {displayTab === 'users' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">User Management</h2>
@@ -404,7 +420,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'feedback' && (
+      {displayTab === 'feedback' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Feedback Analytics</h2>

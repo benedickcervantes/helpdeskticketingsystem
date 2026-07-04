@@ -18,7 +18,10 @@ const NotificationBell = ({ onClick, isActive = false }) => {
       const isStaff = isStaffRole(userProfile?.role);
       const count = notifications.filter((n) => {
         if (n.read) return false;
-        return isStaff ? n.adminNotification : !n.adminNotification;
+        if (isStaff) {
+          return n.adminNotification || n.userId === currentUser.uid;
+        }
+        return !n.adminNotification;
       }).length;
       setUnreadCount((prev) => {
         if (count > prev) {
