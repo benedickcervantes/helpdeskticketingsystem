@@ -3,9 +3,14 @@
 
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAdminNotifications, getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/lib/utils/notifications';
 import { isStaffRole } from '@/lib/utils/roles';
+import {
+  buildTicketDashboardUrl,
+  isTicketLinkNotification,
+} from '@/lib/utils/ticketNavigation';
 import FeedbackForm from '@/app/(dashboard)/_components/FeedbackForm';
 import { NotificationListSkeleton } from '@/lib/ui/DashboardSkeletons';
 
@@ -24,6 +29,7 @@ function notificationTime(value: unknown): number {
 
 const NotificationCenter = ({ isOpen, onClose }) => {
   const { currentUser, userProfile } = useAuth();
+  const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
@@ -41,7 +47,6 @@ const NotificationCenter = ({ isOpen, onClose }) => {
 
     setLoading(true);
     
-    // Check if user is admin - FIXED: Use userProfile.role instead of currentUser.role
     const isStaff = isStaffRole(userProfile?.role);
     
     const sortByNewest = (items) =>
@@ -62,7 +67,6 @@ const NotificationCenter = ({ isOpen, onClose }) => {
     return () => unsubscribe();
   }, [currentUser, userProfile, isOpen]);
 
-  // Filter notifications based on selected filter
   const filteredNotifications = notifications.filter(notification => {
     switch (filter) {
       case 'unread':
@@ -96,48 +100,56 @@ const NotificationCenter = ({ isOpen, onClose }) => {
   };
 
   const handleNotificationClick = async (notification) => {
-    // Add smooth transition effect
+    if (isTransitioning) return;
+
     setIsTransitioning(true);
     setClickedNotification(notification.id);
 
-    // Mark as read if unread
     if (!notification.read) {
-      await handleMarkAsRead(notification.id);
+      void handleMarkAsRead(notification.id);
     }
 
-    // If it's a feedback requested notification, transition to feedback form
     if (notification.type === 'feedback_requested' && notification.ticketId) {
-      // Start the transition animation
       setNotificationCenterVisible(false);
-      
-      // After animation completes, show feedback form
-      setTimeout(() => {
-        setSelectedTicket({
-          id: notification.ticketId,
-          title: notification.ticketTitle || 'Feedback Request'
-        });
-        setShowFeedbackForm(true);
-        setIsTransitioning(false);
-        setClickedNotification(null);
-      }, 400); // 400ms for smooth transition
-    } else {
-      // For other notifications, just mark as read
-      setTimeout(() => {
-        setIsTransitioning(false);
-        setClickedNotification(null);
-      }, 150);
+      handleCloseNotificationCenter();
+      setSelectedTicket({
+        id: notification.ticketId,
+        title: notification.ticketTitle || 'Feedback Request',
+      });
+      setShowFeedbackForm(true);
+      setIsTransitioning(false);
+      setClickedNotification(null);
+      return;
     }
+
+    if (isTicketLinkNotification(notification.type, notification.ticketId)) {
+      const url = buildTicketDashboardUrl(
+        userProfile?.role,
+        notification.ticketId,
+        {
+          focusConversation: notification.type === 'ticket_message',
+          openKey: Date.now(),
+        },
+      );
+
+      handleCloseNotificationCenter();
+      router.push(url);
+      setIsTransitioning(false);
+      setClickedNotification(null);
+      return;
+    }
+
+    setIsTransitioning(false);
+    setClickedNotification(null);
   };
 
   const handleCloseFeedbackForm = () => {
     setShowFeedbackForm(false);
     setSelectedTicket(null);
-    // Reset notification center visibility when feedback form closes
     setNotificationCenterVisible(true);
   };
 
   const handleCloseNotificationCenter = () => {
-    // Reset all states when closing
     setShowFeedbackForm(false);
     setSelectedTicket(null);
     setNotificationCenterVisible(true);
@@ -205,6 +217,22 @@ const NotificationCenter = ({ isOpen, onClose }) => {
             </svg>
           </div>
         );
+      case 'ticket_message':
+        return (
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-cyan-500/20 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+        );
+      case 'ticket_assigned':
+        return (
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        );
       default:
         return (
           <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gray-500/20 rounded-full flex items-center justify-center">
@@ -221,7 +249,6 @@ const NotificationCenter = ({ isOpen, onClose }) => {
   return (
     <>
       <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-        {/* Notification Center with smooth transition */}
         <div className={`bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md sm:max-w-lg lg:max-w-2xl max-h-[90vh] flex flex-col transition-all duration-500 ease-in-out ${
           notificationCenterVisible 
             ? 'opacity-100 scale-100 translate-y-0' 
@@ -315,11 +342,12 @@ const NotificationCenter = ({ isOpen, onClose }) => {
                     } ${
                       notification.type === 'feedback_requested' 
                         ? 'hover:bg-purple-500/10 hover:border-l-4 hover:border-purple-400' 
+                        : isTicketLinkNotification(notification.type, notification.ticketId)
+                        ? 'hover:bg-cyan-500/10 hover:border-l-4 hover:border-cyan-400'
                         : ''
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    {/* Smooth click effect overlay */}
                     {clickedNotification === notification.id && (
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-transparent animate-pulse"></div>
                     )}
@@ -349,6 +377,39 @@ const NotificationCenter = ({ isOpen, onClose }) => {
                               Click to provide feedback
                             </p>
                             <svg className="w-4 h-4 text-purple-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </div>
+                        )}
+                        {notification.type === 'ticket_message' && notification.ticketId && (
+                          <div className="mt-2 flex items-center space-x-2">
+                            <p className="text-xs sm:text-sm text-cyan-400 font-medium">
+                              Click to view conversation
+                            </p>
+                            <svg className="w-4 h-4 text-cyan-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </div>
+                        )}
+                        {notification.type === 'ticket_assigned' && notification.ticketId && (
+                          <div className="mt-2 flex items-center space-x-2">
+                            <p className="text-xs sm:text-sm text-blue-400 font-medium">
+                              Click to view assigned ticket
+                            </p>
+                            <svg className="w-4 h-4 text-blue-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </div>
+                        )}
+                        {notification.type !== 'feedback_requested' &&
+                          notification.type !== 'ticket_message' &&
+                          notification.type !== 'ticket_assigned' &&
+                          isTicketLinkNotification(notification.type, notification.ticketId) && (
+                          <div className="mt-2 flex items-center space-x-2">
+                            <p className="text-xs sm:text-sm text-emerald-400 font-medium">
+                              Click to view ticket
+                            </p>
+                            <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                           </div>

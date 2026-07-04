@@ -7,11 +7,13 @@ import {
   NOTIFICATION_NEW_EVENT,
   NOTIFICATION_READ_EVENT,
   TICKET_CREATED_EVENT,
+  TICKET_MESSAGE_NEW_EVENT,
+  TICKET_MESSAGES_READ_EVENT,
   TICKET_UPDATED_EVENT,
   USER_PROFILE_UPDATED_EVENT,
 } from '@/lib/realtime/events';
 import type { Notification } from '@/types/notification';
-import type { Ticket } from '@/types/ticket';
+import type { Ticket, TicketMessage } from '@/types/ticket';
 import type { UserProfile } from '@/types/user';
 
 let socket: Socket | null = null;
@@ -63,6 +65,47 @@ export function subscribeTicketEvents(
   return () => {
     s.off(TICKET_CREATED_EVENT, handleCreated);
     s.off(TICKET_UPDATED_EVENT, handleUpdated);
+  };
+}
+
+export function subscribeTicketMessageEvents(
+  onNew?: (payload: { ticketId?: string; message?: TicketMessage }) => void,
+): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+
+  const handleNew = (payload: { ticketId?: string; message?: TicketMessage }) =>
+    onNew?.(payload);
+
+  s.on(TICKET_MESSAGE_NEW_EVENT, handleNew);
+
+  return () => {
+    s.off(TICKET_MESSAGE_NEW_EVENT, handleNew);
+  };
+}
+
+export function subscribeTicketMessagesReadEvents(
+  onRead?: (payload: {
+    ticketId?: string;
+    userId?: string;
+    lastReadAt?: string;
+    role?: string;
+  }) => void,
+): () => void {
+  const s = getSocket();
+  if (!s) return () => {};
+
+  const handleRead = (payload: {
+    ticketId?: string;
+    userId?: string;
+    lastReadAt?: string;
+    role?: string;
+  }) => onRead?.(payload);
+
+  s.on(TICKET_MESSAGES_READ_EVENT, handleRead);
+
+  return () => {
+    s.off(TICKET_MESSAGES_READ_EVENT, handleRead);
   };
 }
 

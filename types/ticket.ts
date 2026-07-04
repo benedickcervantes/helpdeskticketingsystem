@@ -7,6 +7,25 @@ export interface TicketAttachment {
   createdAt?: string;
 }
 
+export interface TicketMessageAuthor {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  photoUrl?: string | null;
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  body: string;
+  createdAt: string;
+  author: TicketMessageAuthor;
+  attachments: TicketAttachment[];
+  /** Present on own messages: true when the other party has read up to this message */
+  seen?: boolean;
+}
+
 export interface Ticket {
   id: string;
   ticketNumber?: string;

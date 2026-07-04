@@ -4,11 +4,14 @@
 import { SkeletonCard, LoadingDots } from '@/lib/ui/LoadingComponents';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { buildUrlWithoutTicketParams } from '@/lib/utils/ticketNavigation';
 import { subscribeTicketEvents, subscribeUserProfileEvents } from '@/lib/realtime/socketClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { getTicketFeedbackStatus } from '@/lib/utils/notifications';
 import FeedbackForm from '@/app/(dashboard)/_components/FeedbackForm';
+import TicketConversation from '@/app/(dashboard)/_components/TicketConversation';
 
 const UserAvatar = ({ user, size = 'sm', className = '' }) => {
   const photoURL = user?.photoURL || user?.photo_url;
@@ -335,8 +338,20 @@ const StatusDropdown = ({ currentStatus, ticketId, ticketTitle, assignedTo, onSt
     </>
   );
 };
-const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, adminMode = false }) => {
+const TicketList = ({
+  showAllTickets = false,
+  showUserTicketsOnly = false,
+  adminMode = false,
+  openTicketId = null,
+  focusConversation = false,
+  modalOnly = false,
+  openKey = null,
+  onTicketModalClose = null,
+}) => {
   const { currentUser, userProfile } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -355,6 +370,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
   const [selectedTicketDetails, setSelectedTicketDetails] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
   const [isDesktopTable, setIsDesktopTable] = useState(false);
+  const openedTicketRef = useRef(null);
 
   const statusColors = {
     open: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
@@ -619,6 +635,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
       });
     } catch (error) {
       console.error('Error assigning ticket:', error);
+      alert(error?.message || 'Failed to assign ticket');
     } finally {
       setAssigningTicketId(null);
     }
@@ -638,6 +655,57 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
     setSelectedTicketDetails(ticket);
     setShowTicketDetails(true);
   };
+
+  const clearTicketUrlParams = useCallback(() => {
+    if (!searchParams.get('ticket')) return;
+    router.replace(
+      buildUrlWithoutTicketParams(pathname, searchParams),
+      { scroll: false },
+    );
+  }, [router, pathname, searchParams]);
+
+  const closeTicketDetailsModal = useCallback(() => {
+    setShowTicketDetails(false);
+    setSelectedTicketDetails(null);
+    openedTicketRef.current = null;
+    clearTicketUrlParams();
+    onTicketModalClose?.();
+  }, [clearTicketUrlParams, onTicketModalClose]);
+
+  useEffect(() => {
+    if (!openTicketId) return;
+
+    const sessionKey = `${openTicketId}:${openKey ?? ''}`;
+    if (openedTicketRef.current === sessionKey) return;
+
+    const openTicket = (ticket) => {
+      openedTicketRef.current = sessionKey;
+      setSelectedTicketDetails(ticket);
+      setShowTicketDetails(true);
+      clearTicketUrlParams();
+
+      if (focusConversation) {
+        setTimeout(() => {
+          document
+            .getElementById('ticket-conversation')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 350);
+      }
+    };
+
+    const existing = tickets.find((t) => t.id === openTicketId);
+    if (existing) {
+      openTicket(existing);
+      return;
+    }
+
+    api
+      .get(`/api/v1/tickets/${openTicketId}`)
+      .then((data) => {
+        if (data) openTicket(normalizeTicket(data));
+      })
+      .catch(() => {});
+  }, [openTicketId, openKey, tickets, focusConversation, normalizeTicket, clearTicketUrlParams]);
 
   const filteredTickets = tickets.filter(ticket => {
     if (filter !== 'all' && ticket.status !== filter) return false;
@@ -915,7 +983,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
 
   if (!mounted) return null;
 
-  if (loading) {
+  if (loading && !modalOnly) {
     return (
       <div className="space-y-4">
         <SkeletonCard />
@@ -925,7 +993,11 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
     );
   }
 
-  if (filteredTickets.length === 0) {
+  if (loading && modalOnly) {
+    return null;
+  }
+
+  if (filteredTickets.length === 0 && !modalOnly && !openTicketId) {
     return (
       <div className="text-center py-12">
         <div className="mx-auto w-24 h-24 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
@@ -951,7 +1023,9 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
   }
 
   return (
-    <div className="space-y-6">
+    <div className={modalOnly ? undefined : 'space-y-6'}>
+      {!modalOnly && (
+      <>
       {/* Enhanced Controls */}
       <div className="space-y-4">
         {/* Search Bar */}
@@ -1294,9 +1368,12 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
         </div>
       )}
 
+      </>
+      )}
+
       {/* Enhanced Ticket Details Modal - FIXED RESPONSIVENESS */}
       {showTicketDetails && selectedTicketDetails && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-30 flex items-center justify-center p-1 sm:p-2 md:p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-1 sm:p-2 md:p-4">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-lg sm:rounded-2xl border border-gray-700/50 w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-[98vh] sm:max-h-[95vh] overflow-hidden shadow-2xl mx-1 sm:mx-2">
             {/* Modal Header - RESPONSIVE */}
             <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border-b border-gray-700/50 p-3 sm:p-4 md:p-6">
@@ -1320,10 +1397,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    setShowTicketDetails(false);
-                    setSelectedTicketDetails(null);
-                  }}
+                  onClick={closeTicketDetailsModal}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800/50 rounded-lg flex-shrink-0"
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1538,15 +1612,25 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
 
                 <FeedbackRatingPanel ticket={selectedTicketDetails} />
 
+                <TicketConversation
+                  ticketId={selectedTicketDetails.id}
+                  ticketStatus={selectedTicketDetails.status}
+                  createdBy={selectedTicketDetails.createdBy}
+                  currentUserId={currentUser?.uid}
+                  currentUserRole={currentUser?.role || userProfile?.role}
+                  onImageClick={(attachment) => setLightboxImage(attachment)}
+                  scrollIntoViewOnMount={focusConversation}
+                />
+
                 {/* Actions - RESPONSIVE */}
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end pt-3 sm:pt-4 border-t border-gray-700/50">
                   {/* Request Feedback button - only show for non-admin mode when status is resolved */}
                   {!adminMode && selectedTicketDetails.status === 'resolved' && selectedTicketDetails.createdBy === currentUser?.uid && !selectedTicketDetails.feedbackSubmitted && (
                     <button
                       onClick={() => {
-                        setShowTicketDetails(false);
-                        setSelectedTicketDetails(null);
-                        handleFeedbackRequest(selectedTicketDetails);
+                        const ticket = selectedTicketDetails;
+                        closeTicketDetailsModal();
+                        handleFeedbackRequest(ticket);
                       }}
                       className="px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                     >
@@ -1558,10 +1642,7 @@ const TicketList = ({ showAllTickets = false, showUserTicketsOnly = false, admin
                     </button>
                   )}
                   <button
-                    onClick={() => {
-                      setShowTicketDetails(false);
-                      setSelectedTicketDetails(null);
-                    }}
+                    onClick={closeTicketDetailsModal}
                     className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

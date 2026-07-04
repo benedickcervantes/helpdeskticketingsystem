@@ -1,0 +1,713 @@
+FEDERAL PIONEER DEV&apos;T. CORP.
+
+4 Pioneer Pioneer St, Cor Sheridan, Brgy, Mandaluyong City, 1550 Metro Manila
+
+Corporate Email Policy
+and Standards Manual
+
+Guidelines for professional communication, security, and migration from personal to corporate email
+Document Version
+1.0
+Effective Date
+[Insert Date]
+Review Date
+[Insert Date]
+Prepared By
+IT Department
+Approved By
+[Management / HR / IT Head]
+Classification
+Internal Use
+
+For Employee and HR Implementation
+
+Table of Contents
+
+1. Purpose
+
+2. Scope
+
+3. Definitions
+
+4. Policy Statement
+
+5. Roles and Responsibilities
+
+6. Corporate Email Standards
+
+7. Email Naming Convention
+
+8. Account Management
+
+9. Acceptable and Prohibited Use
+
+10. Security Requirements
+
+11. Confidentiality and Data Privacy
+
+12. Email Composition and Layout
+
+13. Email Header Fields
+
+14. Signature Standards
+
+15. Email Usage by Function
+
+16. Personal Email vs. Corporate Email
+
+17. Migration from Personal to Corporate Email
+
+18. Shared Mailboxes and Department Accounts
+
+19. Response Time Standards
+
+20. Email Retention and Archiving
+
+21. Employee Turnover and Offboarding
+
+22. Monitoring, Compliance, and Disciplinary Action
+
+23. Training and Acknowledgment
+
+24. Email Templates and Examples
+
+Appendix A — Employee Acknowledgment Form
+
+Appendix B — Pre-Implementation Checklist
+
+1. Purpose
+
+This manual establishes the official standards and policies for the use of corporate email within Federal Pioneer Dev&apos;t. Corp.. It supports the transition from personal email accounts to company-managed corporate email and ensures that employees, HR, and management follow one consistent standard before system implementation.
+
+The objectives of this policy are to:
+
+Establish professional communication standards across all departments
+
+Protect company, client, and employee information
+
+Improve coordination among Sales, Marketing, Operations, Finance, HR, and IT
+
+Ensure consistency when communicating with clients, brokers, developers, suppliers, and partners
+
+Reduce business risk related to data loss, impersonation, and unauthorized disclosure
+
+2. Scope
+
+This policy applies to:
+
+All full-time, part-time, probationary, and contractual employees
+
+Interns and trainees issued a corporate email account
+
+Authorized agents, brokers, or consultants using company email
+
+All devices and platforms used to access corporate email
+
+This policy covers:
+
+Individual employee email accounts
+
+Department and functional email accounts (e.g., sales@, info@)
+
+Shared mailboxes
+
+Email signatures, templates, and communication standards
+
+3. Definitions
+Term
+Definition
+
+Corporate Email
+
+A company-provided and company-managed email account using the official company domain.
+
+Personal Email
+
+A privately owned email account not managed by the company.
+
+Shared Mailbox
+
+A mailbox accessed by multiple authorized users for a specific function.
+
+Confidential Information
+
+Client records, contracts, financial data, commission details, and internal reports.
+
+Business Communication
+
+Any email related to company operations, clients, properties, transactions, or vendors.
+
+4. Policy Statement
+Official Policy
+
+Federal Pioneer Dev&apos;t. Corp. requires all official business communication to be conducted using corporate email accounts, except where a written exception is approved by Management and IT.
+
+Corporate email is a company asset. The company reserves the right to monitor, audit, retain, and retrieve email communications in accordance with this policy, applicable laws, and legitimate business needs.
+
+5. Roles and Responsibilities
+
+Management
+
+Approve and enforce this policy
+
+Ensure departments comply with corporate email standards
+
+Authorize exceptions, if any
+
+Human Resources (HR)
+
+Include this policy in onboarding and the employee handbook
+
+Collect signed Employee Acknowledgment Forms
+
+Coordinate with IT during onboarding, transfer, and offboarding
+
+Apply disciplinary measures for policy violations, as applicable
+
+Information Technology (IT)
+
+Provision, configure, secure, and deactivate email accounts
+
+Implement naming conventions, security controls, and backups
+
+Provide training and technical support
+
+Manage migration from personal to corporate email
+
+Department Heads / Supervisors
+
+Ensure team members use corporate email for official business
+
+Approve shared mailbox access for their department
+
+Ensure proper turnover of client communication during employee exit
+
+Employees
+
+Use corporate email responsibly and professionally
+
+Protect login credentials and company information
+
+Report suspicious emails and security incidents immediately
+
+Stop using personal email for official company business once corporate email is issued
+
+6. Corporate Email Standards
+
+6.1 Professional Communication
+
+All emails sent using a corporate email account must maintain a professional tone. Employees must use proper grammar, complete sentences, and respectful language.
+
+6.2 Consistency
+
+A consistent format across all departments makes communication easier to understand and strengthens the company image through standard greetings, signatures, and layouts.
+
+6.3 Accuracy
+
+Before sending, employees must verify property/project name, unit or lot details, pricing, payment terms, client data, attachments, and recipient lists.
+
+6.4 Accountability
+
+Every email sent from a corporate account is considered an official company record. Employees are accountable for the content they send and forward.
+
+7. Email Naming Convention
+
+7.1 Standard Employee Format
+Primary Format
+
+firstname.lastname@fpdc.com
+
+Example: juan.delacruz@fpdc.com
+
+Purpose
+Recommended Format
+
+General inquiries
+
+info@fpdc.com
+
+Sales
+
+sales@fpdc.com
+
+Customer service
+
+customerservice@fpdc.com
+
+Reservations
+
+reservations@fpdc.com
+
+Marketing
+
+marketing@fpdc.com
+
+HR
+
+hr@fpdc.com
+
+Finance / Billing
+
+billing@fpdc.com
+
+All department accounts must have assigned owners and backup personnel.
+
+8. Account Management
+
+Corporate email accounts are created by IT only upon HR request or Management approval.
+
+New employees must complete orientation, sign the acknowledgment form, set up password and MFA, and configure their official signature.
+
+Email accounts must be suspended or deactivated upon resignation, termination, security incident, or role change.
+
+HR must notify IT in advance for planned exits and immediately for urgent cases.
+
+9. Acceptable and Prohibited Use
+
+Acceptable Use
+
+Client inquiries and follow-ups
+
+Property presentations, quotations, and reservations
+
+Coordination with brokers, developers, and suppliers
+
+Internal approvals, reports, and project updates
+
+Official notices from HR, Finance, and Management
+
+Prohibited Use
+
+Sending confidential company information to personal or unauthorized accounts
+
+Harassment, discrimination, spam, or unauthorized marketing
+
+Sharing login credentials or impersonating another employee
+
+Sending unapproved pricing, discounts, or contractual commitments
+
+Using company email for illegal activity or unauthorized side business
+
+10. Security Requirements
+
+Use strong passwords and never share credentials with anyone, including IT staff.
+
+Enable multi-factor authentication (MFA) where required.
+
+Lock devices when unattended and log out from shared computers.
+
+Report phishing, suspicious links, and lost devices to IT immediately.
+
+Verify sender identity before opening attachments and never send passwords via email.
+
+11. Confidentiality and Data Privacy
+
+Employees must protect client personal information, reservation and sales records, contracts, commission details, financial records, and employee data.
+
+The company expects compliance with applicable data privacy laws, including the Data Privacy Act of 2012 (Philippines), where applicable.
+
+Share only necessary client information
+
+Use BCC appropriately for mass communications
+
+Confirm recipient authorization before sending contracts, IDs, or financial documents
+
+12. Email Composition and Layout
+
+Greeting — professional salutation such as &apos;Dear Mr. Santos,&apos; or &apos;Good day,&apos;
+
+Introduction — state the purpose immediately
+
+Main Message — provide details in a clear and organized manner
+
+Action Required — indicate if a response, approval, payment, or confirmation is needed
+
+Closing — end the email professionally
+
+Signature — include the complete corporate signature
+
+13. Email Header Fields
+Field
+Purpose
+Usage Guidance
+
+To
+
+Primary recipient
+
+Person expected to act or respond
+
+CC
+
+For information
+
+Keep supervisors or related team members informed
+
+BCC
+
+Hidden recipient list
+
+Use for mass email where privacy is required
+
+Subject
+
+Summary of content
+
+Must be specific, short, and relevant
+
+Subject Line Examples
+Good Subject Lines
+
+Property Viewing Schedule – Unit A-1205, Greenfield Residences
+
+Reservation Confirmation – Mr. Juan Santos – Lot 15 Block 3
+
+Request for Approval – Discount on Unit B-802
+
+Poor Subject Lines
+
+Hello
+
+Follow up
+
+Important
+
+Document
+
+14. Signature Standards
+
+All corporate emails must include a standardized signature with the following fields:
+
+Full Name
+
+Job Title and Department
+
+Company Name
+
+Mobile Number
+
+Corporate Email Address
+
+Company Website
+
+Signature Example
+
+Juan Dela Cruz
+
+Property Specialist | Sales Department
+
+Federal Pioneer Dev&apos;t. Corp.
+
+4 Pioneer Pioneer St, Cor Sheridan, Brgy, Mandaluyong City, 1550 Metro Manila
+
+Mobile: +63 912 345 6789
+
+Email: juan.delacruz@fpdc.com
+
+Website: www.fpdc.com
+
+CONFIDENTIALITY NOTICE:
+
+This email may contain confidential information intended only for the recipient.
+
+15. Email Usage by Function
+
+Property Inquiries — respond to buyers, investors, tenants, and property seekers using corporate email.
+
+Reservation and Sales Transactions — document quotations, payment instructions, and confirmations through corporate email.
+
+Internal Communication — use email for approvals, reports, project updates, and coordination.
+
+Customer Service — handle concerns, complaints, and follow-ups professionally.
+
+HR and Administrative Communication — official announcements must come from authorized HR or Management accounts.
+
+16. Personal Email vs. Corporate Email
+Category
+Personal Email
+Corporate Email
+
+Ownership
+
+Individual
+
+Company
+
+Management
+
+User only
+
+IT and Company
+
+Business Use
+
+Not allowed for official business
+
+Required for official business
+
+Security Control
+
+Not managed by company
+
+Managed by company
+
+Turnover
+
+Not transferred to company
+
+Subject to turnover and archiving
+
+Once a corporate email account is issued, employees must not use personal email for official company transactions, client communication, or internal business records.
+
+17. Migration from Personal to Corporate Email
+
+The company will announce an official migration schedule and cutover date.
+
+All new client communication must use corporate email after the cutover date.
+
+Employees must notify active clients, brokers, and partners of their official corporate email address.
+
+Employees must not continue sending official quotations or contracts from personal email after migration.
+
+IT and HR will provide account setup, signature configuration, orientation, and support contacts.
+
+18. Shared Mailboxes and Department Accounts
+
+Access is granted only to authorized personnel approved by the Department Head and IT.
+
+Shared mailboxes must be used only for their intended business purpose.
+
+Employees must identify themselves when replying from a shared mailbox, if required.
+
+Unresolved client issues must be escalated to the supervisor.
+
+19. Response Time Standards
+Email Type
+Target Response Time
+
+Client inquiry
+
+Within 1 business day
+
+Reservation / sales follow-up
+
+Within 4 business hours, when possible
+
+Internal approval request
+
+Within 1 business day
+
+Urgent transaction or payment concern
+
+Within 2 business hours
+
+General informational email
+
+Within 2 business days
+
+If a complete response is not yet available, send a brief acknowledgment stating that the request is being processed.
+
+20. Email Retention and Archiving
+
+Corporate email may be stored, archived, and retrieved for business, legal, audit, and security purposes.
+
+Employees must not delete emails related to pending transactions, complaints, contracts, or legal matters without approval.
+
+Upon separation, company access to business-related email records remains with the company.
+
+21. Employee Turnover and Offboarding
+
+Endorse active clients to the assigned replacement employee or supervisor.
+
+Turn over important email threads related to reservations, contracts, payments, and approvals.
+
+Return access to shared mailboxes and confirm no personal recovery information remains linked to company accounts.
+
+Include all ongoing reservations, listings, contracts, and approvals in the turnover report.
+
+IT will disable email access on the employee&apos;s last working day unless Management approves a limited extension.
+
+22. Monitoring, Compliance, and Disciplinary Action
+
+The company may monitor corporate email usage to protect systems and data, investigate security incidents, ensure policy compliance, and support audit and legal requirements.
+
+Violations may result in verbal or written warning, temporary suspension of email access, disciplinary action up to termination, or legal action if applicable.
+
+Unauthorized disclosure of confidential information
+
+Use of personal email for official business after migration
+
+Harassment or unprofessional communication
+
+Sharing of credentials or fraudulent client communication
+
+23. Training and Acknowledgment
+
+Employees must attend orientation on email policy and basic security practices.
+
+Employees must configure approved email signatures.
+
+Employees must sign the Employee Acknowledgment Form.
+
+HR will maintain records of signed acknowledgments.
+
+No employee should be considered fully onboarded to corporate email until orientation and acknowledgment are completed.
+
+24. Email Templates and Examples
+
+24.1 Property Inquiry Response
+Email Template
+
+FROM: juan.delacruz@fpdc.com
+
+TO: client@email.com
+
+CC: salesmanager@fpdc.com
+
+SUBJECT: Property Inquiry Response – Greenfield Residences
+
+Dear Mr. Santos,
+
+Good day.
+
+Thank you for your interest in Greenfield Residences. We are pleased to share information on available units, pricing, payment terms, and current promotions.
+
+Attached is the project brochure for your review. If you would like to schedule a site viewing, please let us know your preferred date and time.
+
+We look forward to assisting you with your property investment needs.
+
+Sincerely,
+
+Juan Dela Cruz
+
+24.2 Reservation Confirmation
+Email Template
+
+SUBJECT: Reservation Confirmation – Unit A-1205, Greenfield Residences
+
+Dear Mr. Santos,
+
+This is to confirm your reservation for Unit A-1205 at Greenfield Residences under the name Juan Santos.
+
+Reservation Fee: PHP [Amount]
+
+Payment Due Date: [Date]
+
+Kindly review the attached documents and confirm receipt of this email.
+
+24.3 New Corporate Email Advisory to Client
+Email Template
+
+SUBJECT: Updated Official Email Contact – Federal Pioneer Dev&apos;t. Corp.
+
+Dear Mr. Santos,
+
+Please use my official company email for all future business communication:
+
+juan.delacruz@fpdc.com
+
+Thank you for your continued trust.
+
+Appendix A — Employee Acknowledgment Form
+
+I, ________________________________, employee ID ____________________, acknowledge that I have received, read, and understood the Corporate Email Policy and Standards Manual of Federal Pioneer Dev&apos;t. Corp..
+
+I agree to:
+
+Use corporate email for official business communication
+
+Comply with security, confidentiality, and professional standards
+
+Protect my account credentials and company information
+
+Follow turnover and offboarding requirements upon separation
+
+I understand that violation of this policy may result in disciplinary action.
+
+Field
+Details
+
+Employee Name
+
+________________________________
+
+Signature
+
+________________________________
+
+Date
+
+________________________________
+
+Department
+
+________________________________
+
+Immediate Supervisor
+
+________________________________
+
+Appendix B — Pre-Implementation Checklist
+
+Management / HR
+
+Approve policy manual
+
+Announce official migration date
+
+Update employee handbook and onboarding materials
+
+Prepare acknowledgment forms
+
+IT
+
+Register company domain and configure email platform
+
+Create naming convention and account list
+
+Configure security settings (password policy, MFA, spam filtering)
+
+Prepare signature template and setup guide
+
+Create department and shared mailboxes
+
+Prepare offboarding and mailbox retention process
+
+Department Heads
+
+Identify employees requiring email access
+
+Identify shared mailbox owners and users
+
+Communicate client transition plan to teams
+
+Employees
+
+Attend orientation
+
+Sign acknowledgment form
+
+Configure corporate email on approved devices
+
+Update email signature
+
+Notify active clients of new corporate email address
+
+Version
+Date
+Author
+Changes
+
+1.0
+
+[Insert Date]
+
+IT / HR
+
+Initial release
+
+For questions about this policy, contact:
+
+IT Helpdesk: [email / phone]
+
+HR Department: [email / phone]

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { api } from '@/lib/api/client';
 import { subscribeTicketEvents } from '@/lib/realtime/socketClient';
@@ -42,6 +43,11 @@ const ExecutiveFeedbackDashboard = dynamic(
   { loading: () => <ExecutiveFeedbackSkeleton /> },
 );
 
+const TicketList = dynamic(
+  () => import('@/app/(dashboard)/_components/TicketList'),
+  { ssr: false },
+);
+
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'analytics', label: 'Analytics' },
@@ -53,6 +59,10 @@ const TABS = [
 ];
 
 const ManagementDashboard = () => {
+  const searchParams = useSearchParams();
+  const ticketParam = searchParams.get('ticket');
+  const openKey = searchParams.get('open');
+  const focusConversation = searchParams.get('focus') === 'conversation';
   const [activeTab, setActiveTab] = useState('overview');
   const [tickets, setTickets] = useState([]);
   const [users, setUsers] = useState([]);
@@ -60,8 +70,18 @@ const ManagementDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30'); // Last 30 days
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [modalTicketSession, setModalTicketSession] = useState(null);
 
   const { userProfile } = useAuth();
+
+  useEffect(() => {
+    if (!ticketParam) return;
+    setModalTicketSession({
+      ticketId: ticketParam,
+      openKey,
+      focusConversation,
+    });
+  }, [ticketParam, openKey, focusConversation]);
 
   const loadData = useCallback(async () => {
     try {
@@ -230,6 +250,17 @@ const ManagementDashboard = () => {
           </div>
         )}
       </div>
+
+      {modalTicketSession && (
+        <TicketList
+          showAllTickets
+          openTicketId={modalTicketSession.ticketId}
+          openKey={modalTicketSession.openKey}
+          focusConversation={modalTicketSession.focusConversation}
+          modalOnly
+          onTicketModalClose={() => setModalTicketSession(null)}
+        />
+      )}
     </div>
   );
 };
