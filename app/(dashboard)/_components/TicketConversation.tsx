@@ -291,9 +291,11 @@ export default function TicketConversation({
     setAttachmentError('');
   };
 
+  const canSend = body.trim().length > 0 || attachmentFiles.length > 0;
+
   const handleSend = async () => {
     const trimmed = body.trim();
-    if (!trimmed || sending || !canReply) return;
+    if (!canSend || sending || !canReply) return;
 
     setSending(true);
     setError('');
@@ -421,20 +423,24 @@ export default function TicketConversation({
                       {formatMessageTime(message.createdAt)}
                     </span>
                   </div>
-                  <div
-                    className={`inline-block text-left rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 ${
-                      isOwn
-                        ? 'bg-emerald-600/20 border border-emerald-500/30 text-gray-100'
-                        : 'bg-gray-700/40 border border-gray-600/50 text-gray-200'
-                    }`}
-                  >
-                    <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
-                      {message.body}
-                    </p>
-                  </div>
+                  {message.body?.trim() && (
+                    <div
+                      className={`inline-block text-left rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 ${
+                        isOwn
+                          ? 'bg-emerald-600/20 border border-emerald-500/30 text-gray-100'
+                          : 'bg-gray-700/40 border border-gray-600/50 text-gray-200'
+                      }`}
+                    >
+                      <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
+                        {message.body}
+                      </p>
+                    </div>
+                  )}
                   {message.attachments?.length > 0 && (
                     <div
-                      className={`mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 ${isOwn ? 'justify-items-end' : ''}`}
+                      className={`${message.body?.trim() ? 'mt-2' : ''} flex flex-wrap gap-2 ${
+                        isOwn ? 'justify-end' : 'justify-start'
+                      }`}
                     >
                       {message.attachments.map((attachment) => (
                         <button
@@ -553,7 +559,7 @@ export default function TicketConversation({
             <button
               type="button"
               onClick={handleSend}
-              disabled={sending || !body.trim()}
+              disabled={sending || !canSend}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {sending ? (
