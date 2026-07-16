@@ -1300,7 +1300,7 @@ export const LogoLoadingScreen = ({
   message = 'Loading...', 
   showProgress = false, 
   progress = 0,
-  logo = 'FCDC',
+  logo = 'FPDC',
   className = '' 
 }) => {
   return (

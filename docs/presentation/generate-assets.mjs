@@ -16,9 +16,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots');
 const PNG_DIR = path.join(__dirname, 'png-slides-en');
-const HTML_EN = path.join(__dirname, 'FCDC-Helpdesk-Slides-EN.html');
+const HTML_EN = path.join(__dirname, 'FPDC-Helpdesk-Slides-EN.html');
 const ASSETS_DIR = path.join(__dirname, 'assets');
-const LOGO_DEST = path.join(ASSETS_DIR, 'fcdc-logo.png');
+const LOGO_DEST = path.join(ASSETS_DIR, 'fpdc-logo.png');
 const LIVE_URL = 'https://helpdeskticketingsystem.vercel.app';
 
 const SLIDE_W = 1920;
@@ -32,8 +32,8 @@ async function ensureDir(dir) {
 async function processLogo() {
   ensureDir(ASSETS_DIR);
   const candidates = [
-    path.join(__dirname, '..', '..', 'public', 'FCDC LOGO.png'),
-    path.join(__dirname, '..', '..', 'public', 'fcdc-logo.png'),
+    path.join(__dirname, '..', '..', 'public', 'FPDC LOGO.png'),
+    path.join(__dirname, '..', '..', 'public', 'fpdc-logo.png'),
   ];
   const input = candidates.find((p) => fs.existsSync(p));
   if (!input) {
@@ -63,7 +63,7 @@ async function processLogo() {
     .png()
     .toFile(LOGO_DEST);
 
-  console.log('  ✓ FCDC logo processed (transparent background)');
+  console.log('  ✓ FPDC logo processed (transparent background)');
 }
 
 async function shot(page, fileName, options = {}) {
@@ -114,7 +114,7 @@ async function tryLogin(page, email, password) {
 
 async function tryRegister(page) {
   const stamp = Date.now();
-  const email = `fcdc.training.${stamp}@demo.local`;
+  const email = `fpdc.training.${stamp}@demo.local`;
   const password = 'Training123!';
 
   await page.goto(`${LIVE_URL}/auth?register=true`, { waitUntil: 'networkidle', timeout: 60000 });

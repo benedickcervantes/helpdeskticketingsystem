@@ -1,4 +1,4 @@
-# Canva Upload Guide — FCDC Helpdesk Training Slides
+# Canva Upload Guide — FPDC Helpdesk Training Slides
 
 **Your Canva design:** https://www.canva.com/design/DAHOZkMm-Zc/H6z2QKiOfv7RVHatrR_myw/edit
 
@@ -20,7 +20,7 @@ C:\Users\IT DEPT. 02\Documents\helpdeskticketingsystem\docs\presentation\png-sli
 1. Open your [Canva design](https://www.canva.com/design/DAHOZkMm-Zc/H6z2QKiOfv7RVHatrR_myw/edit)
 2. **Uploads** → upload all 20 PNG files from `png-slides-en\`
 3. Add one slide per page, drag each PNG to fill the slide
-4. Optionally add FCDC logo overlay from `public/fcdc-logo.png`
+4. Optionally add FPDC logo overlay from `public/fpdc-logo.png`
 
 ### Regenerate PNGs anytime
 ```powershell
@@ -46,7 +46,7 @@ Captured from https://helpdeskticketingsystem.vercel.app/
 ## English HTML Source (editable)
 
 ```
-docs/presentation/FCDC-Helpdesk-Slides-EN.html
+docs/presentation/FPDC-Helpdesk-Slides-EN.html
 ```
 
 Open in browser → Ctrl+P → Save as PDF → upload PDF to Canva if you prefer.
@@ -56,7 +56,7 @@ Open in browser → Ctrl+P → Save as PDF → upload PDF to Canva if you prefer
 ## Filipino / Taglish HTML (original)
 
 ```
-docs/presentation/FCDC-Helpdesk-Slides.html
+docs/presentation/FPDC-Helpdesk-Slides.html
 ```
 
 ---

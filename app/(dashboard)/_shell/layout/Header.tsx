@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FcdcLogo } from '@/lib/ui/FcdcLogo';
+import { FpdcLogo } from '@/lib/ui/FpdcLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useShellOptional } from '@/contexts/ShellContext';
 import { getDashboardPath, isOnDashboardPage } from '@/lib/utils/roles';
@@ -98,14 +98,14 @@ const Header = () => {
               )}
               {/* Logo - Updated to match footer */}
               <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
-                <FcdcLogo
+                <FpdcLogo
                   size="md"
                   className="group-hover:scale-105 transition-transform duration-200"
                   priority
                 />
                 <div className="block min-w-0">
                   <h1 className="text-sm sm:text-base md:text-lg font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
-                    FCDC
+                    FPDC
                   </h1>
                   <p className="hidden lg:block text-[10px] leading-tight text-gray-400 group-hover:text-gray-300 transition-colors duration-200 truncate">
                     Helpdesk Enterprise IT Support

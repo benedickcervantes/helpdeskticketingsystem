@@ -36,7 +36,7 @@ const BRAND = {
 };
 
 const REPORT_TITLE = 'Executive Feedback Report';
-const ORGANIZATION = 'FCDC IT Helpdesk';
+const ORGANIZATION = 'FPDC IT Helpdesk';
 
 function getReportPeriodLabel(dateRange?: string | number): string {
   return getFeedbackReportPeriodLabel(dateRange);

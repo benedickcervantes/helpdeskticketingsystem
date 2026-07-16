@@ -22,7 +22,7 @@ import {
 } from 'docx';
 
 const COMPANY = "FEDERAL PIONEER DEV'T. CORP.";
-const SYSTEM = 'FCDC IT Helpdesk Ticketing System';
+const SYSTEM = 'FPDC IT Helpdesk Ticketing System';
 
 const NAVY = '1B365D';
 const GOLD = 'C5A028';
@@ -109,11 +109,11 @@ const cover = [
 ];
 
 const viberMainLines = [
-  '📢 FCDC IT HELP DESK — ANNOUNCEMENT',
+  '📢 FPDC IT HELP DESK — ANNOUNCEMENT',
   '',
   'Good day, Team!',
   '',
-  'Please be informed that the FCDC IT Helpdesk Ticketing System Policy and Standards Manual (Version 1.1) has been officially sent via email to Management and HR for review and approval.',
+  'Please be informed that the FPDC IT Helpdesk Ticketing System Policy and Standards Manual (Version 1.1) has been officially sent via email to Management and HR for review and approval.',
   '',
   'If you are included in the email thread, kindly check your inbox for the full policy document and details.',
   '',
@@ -126,13 +126,13 @@ const viberMainLines = [
 ];
 
 const viberReminderLines = [
-  '📌 REMINDER — FCDC Helpdesk Policy',
+  '📌 REMINDER — FPDC Helpdesk Policy',
   '',
-  'This is a reminder that the FCDC IT Helpdesk Ticketing System Policy and Standards Manual has been officially sent via email to Management and HR.',
+  'This is a reminder that the FPDC IT Helpdesk Ticketing System Policy and Standards Manual has been officially sent via email to Management and HR.',
   '',
   'Please check your inbox if you are part of the email thread. Further updates will follow after approval.',
   '',
-  '— IT Department | FCDC',
+  '— IT Department | FPDC',
 ];
 
 const template1 = [

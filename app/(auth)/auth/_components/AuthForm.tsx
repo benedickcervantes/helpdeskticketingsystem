@@ -2,7 +2,7 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { ModernSpinner } from '@/lib/ui/LoadingComponents';
-import { FcdcLogo } from '@/lib/ui/FcdcLogo';
+import { FpdcLogo } from '@/lib/ui/FpdcLogo';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -238,7 +238,7 @@ const AuthForm = () => {
         <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 sm:p-8 shadow-2xl">
         {/* Header */}
         <div className="text-center">
-          <FcdcLogo size="xl" className="mx-auto shadow-2xl" priority />
+          <FpdcLogo size="xl" className="mx-auto shadow-2xl" priority />
           <h2 className="mt-4 text-2xl sm:text-3xl font-bold text-white">
             {isForgotPassword
               ? forgotStep === 1
@@ -254,7 +254,7 @@ const AuthForm = () => {
                 ? 'Enter your registered email to verify your account'
                 : `Create a new password for ${verifiedEmail}`
               : isLogin
-                ? 'Sign in to your FCDC account'
+                ? 'Sign in to your FPDC account'
                 : 'Join thousands of IT professionals'}
           </p>
         </div>
