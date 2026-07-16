@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FPDC Helpdesk — Employee Training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: #0f1419;
+      --bg-card: #1a2332;
+      --bg-card-hover: #243044;
+      --emerald: #10b981;
+      --emerald-light: #34d399;
+      --cyan: #06b6d4;
+      --cyan-light: #22d3ee;
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --border: rgba(16, 185, 129, 0.2);
+      --red: #ef4444;
+      --orange: #f97316;
+      --yellow: #eab308;
+      --slide-w: 1920px;
+      --slide-h: 1080px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0a0e14;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+      padding: 0;
+    }
+
+    #slides-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      gap: 24px;
+    }
+
+    .slide-scale-wrap {
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+      border-radius: 6px;
+      margin: 0 auto;
+    }
+
+    .slide {
+      width: var(--slide-w);
+      height: var(--slide-h);
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #0f1419 100%);
+      page-break-after: always;
+      break-after: page;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 52px 32px;
+      transform-origin: top left;
+    }
+
+    .slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 90% 10%, rgba(16,185,129,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 350px at 5% 90%, rgba(6,182,212,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .slide::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .slide > * { position: relative; z-index: 1; }
+
+    /* Header bar */
+    .slide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-shrink: 0;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-box {
+      width: 52px;
+      height: 52px;
+      background: #ffffff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 5px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .slide-num {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--emerald);
+      background: rgba(16,185,129,0.12);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(90deg, var(--emerald-light), var(--cyan-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2 {
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.8px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--emerald-light);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 22px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--emerald);
+      background: rgba(16,185,129,0.1);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 24px;
+      margin-bottom: 24px;
+    }
+
+    .tag .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--emerald);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Content area */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Cards grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+    .card {
+      background: rgba(26, 35, 50, 0.8);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .card.emerald { border-color: rgba(16,185,129,0.25); }
+    .card.cyan { border-color: rgba(6,182,212,0.25); }
+    .card.red { border-color: rgba(239,68,68,0.25); }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+
+    .card-icon.emerald { background: rgba(16,185,129,0.15); }
+    .card-icon.cyan { background: rgba(6,182,212,0.15); }
+    .card-icon.red { background: rgba(239,68,68,0.15); }
+
+    .card h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card p, .card li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* Lists */
+    ul.checklist { list-style: none; }
+    ul.checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 16px;
+      line-height: 1.45;
+      margin-bottom: 11px;
+      color: var(--text-primary);
+    }
+
+    ul.checklist li::before {
+      content: '✓';
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      background: rgba(16,185,129,0.15);
+      color: var(--emerald);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    ul.dont li::before {
+      content: '✕';
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(16,185,129,0.12);
+      color: var(--emerald-light);
+      font-weight: 600;
+      text-align: left;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th:first-child { border-radius: 12px 0 0 0; }
+    th:last-child { border-radius: 0 12px 0 0; }
+
+    td {
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:last-child td:first-child { border-radius: 0 0 0 12px; }
+    tr:last-child td:last-child { border-radius: 0 0 12px 0; }
+
+    tbody tr { background: rgba(26,35,50,0.5); }
+    td strong { color: var(--text-primary); }
+
+    /* Compare columns */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .compare-col h3 { font-size: 16px; margin-bottom: 16px; }
+    .compare-col.bad h3 { color: var(--red); }
+    .compare-col.good h3 { color: var(--emerald); }
+
+    .compare-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(26,35,50,0.6);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .compare-col.bad .compare-item { border-left: 3px solid var(--red); }
+    .compare-col.good .compare-item { border-left: 3px solid var(--emerald); }
+
+    /* Flow diagram */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      text-align: center;
+      padding: 16px 20px;
+      background: rgba(26,35,50,0.8);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      min-width: 140px;
+    }
+
+    .flow-step.active { border-color: var(--emerald); background: rgba(16,185,129,0.08); }
+    .flow-step .icon { font-size: 28px; margin-bottom: 6px; }
+    .flow-step .label { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .flow-step .desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .flow-arrow { color: var(--emerald); font-size: 24px; font-weight: 300; }
+
+    /* Agenda timeline */
+    .timeline { display: flex; flex-direction: column; gap: 0; width: 100%; max-width: 1680px; margin: 0 auto; }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 20px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      align-items: center;
+    }
+
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-time {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+      background: rgba(6,182,212,0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .timeline-topic { font-size: 16px; color: var(--text-primary); }
+
+    /* Code block */
+    .code-block {
+      background: #0a0e14;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+
+    .code-block.good { border-color: rgba(16,185,129,0.3); }
+    .code-block.bad { border-color: rgba(239,68,68,0.3); }
+
+    /* Title slide special */
+    .title-slide { justify-content: center; text-align: center; }
+    .title-slide .content { align-items: center; justify-content: center; flex: 1; }
+    .title-slide h1 { font-size: 56px; }
+
+    .title-logo {
+      width: 130px;
+      height: 130px;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 14px;
+      margin-bottom: 28px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .title-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .title-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+      margin-top: 32px;
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .title-meta span { display: flex; align-items: center; gap: 8px; }
+    .title-meta .title-venue { flex: 1 1 100%; justify-content: center; text-align: center; line-height: 1.45; max-width: 920px; margin: 0 auto; }
+
+    .url-badge {
+      display: inline-block;
+      margin-top: 28px;
+      padding: 12px 28px;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      color: var(--emerald-light);
+      font-weight: 500;
+    }
+
+    /* Closing slide */
+    .closing-slide { text-align: center; justify-content: center; }
+    .closing-slide h1 { font-size: 64px; margin-bottom: 24px; }
+    .next-steps {
+      text-align: left;
+      max-width: 600px;
+      margin: 32px auto 0;
+    }
+
+    .next-steps li {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      list-style: none;
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .next-steps li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    /* Footer */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Priority badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.low { background: rgba(16,185,129,0.15); color: var(--emerald); }
+    .badge.med { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .badge.high { background: rgba(249,115,22,0.15); color: var(--orange); }
+    .badge.crit { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    /* Screenshot frames */
+    .split-shot { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: stretch; }
+    .split-shot-wide { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: stretch; }
+
+    .screenshot-frame {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      background: #0a0e14;
+    }
+
+    .screenshot-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .split-shot-wide .screenshot-frame:not(.screenshot-auth) img {
+      min-height: 480px;
+      max-height: 560px;
+      object-fit: cover;
+    }
+
+    .screenshot-caption {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .screenshot-hero {
+      width: 100%;
+      flex: 1;
+      min-height: 420px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      background: #0a0e14;
+    }
+
+    .screenshot-hero img {
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .slide-with-shot .content {
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .slide-with-shot h2 {
+      margin-bottom: 6px;
+    }
+
+    /* Slide 8 — Access / Login + Register */
+    .slide-auth-access .content { gap: 18px; }
+    .auth-access-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-shrink: 0; }
+    .auth-access-head h2 { margin: 0; font-size: 36px; }
+    .url-pill {
+      padding: 10px 20px;
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.35);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--emerald-light);
+      white-space: nowrap;
+    }
+    .auth-access-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr 1fr;
+      gap: 18px;
+      flex: 1;
+      min-height: 0;
+      align-items: stretch;
+    }
+    .auth-guide { display: flex; flex-direction: column; gap: 12px; justify-content: center; }
+    .auth-guide-block {
+      background: rgba(26,35,50,0.8);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .auth-guide-block.accent {
+      border-color: rgba(16,185,129,0.4);
+      background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(6,182,212,0.06) 100%);
+    }
+    .auth-guide-tag {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--emerald);
+      margin-bottom: 10px;
+    }
+    .auth-steps { list-style: none; padding: 0; margin: 0; counter-reset: authstep; }
+    .auth-steps li {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--text-secondary);
+    }
+    .auth-steps li:last-child { margin-bottom: 0; }
+    .auth-steps li::before {
+      counter-increment: authstep;
+      content: counter(authstep);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: rgba(16,185,129,0.2);
+      color: var(--emerald-light);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .auth-guide-block p { font-size: 14px; line-height: 1.5; color: var(--text-secondary); margin: 0; }
+    .auth-guide-note { font-size: 13px; color: var(--text-muted); padding: 4px 6px 0; }
+    .auth-panel {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      background: rgba(10,14,20,0.55);
+      border: 1px solid rgba(16,185,129,0.22);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+      overflow: hidden;
+    }
+    .auth-panel figcaption {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .auth-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      color: #041016;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .auth-panel-img {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #151c28 0%, #0a0e14 100%);
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 0;
+    }
+    .auth-panel-img img {
+      width: 100%;
+      height: auto;
+      max-height: 500px;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 8px;
+      display: block;
+    }
+    .auth-panel-login .auth-panel-img,
+    .auth-panel-register .auth-panel-img {
+      overflow: hidden;
+      min-height: 480px;
+      background: radial-gradient(ellipse at center, #151c28 0%, #0a0e14 100%);
+    }
+    .auth-panel-login .auth-panel-img img,
+    .auth-panel-register .auth-panel-img img {
+      width: 100%;
+      height: 100%;
+      min-height: 480px;
+      max-height: none;
+      object-position: center center;
+      border-radius: 8px;
+      display: block;
+    }
+    .auth-panel-login .auth-panel-img img { object-fit: cover; }
+    .auth-panel-register .auth-panel-img img { object-fit: cover; }
+
+    /* Presentation mode */
+    #present-start {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(5, 8, 12, 0.92);
+      backdrop-filter: blur(8px);
+    }
+    #present-start.hidden { display: none; }
+    #present-start-btn {
+      padding: 16px 36px;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: inherit;
+      color: #041016;
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.35);
+    }
+    #present-start-btn:hover { filter: brightness(1.08); }
+    #present-start p { font-size: 14px; color: var(--text-muted); text-align: center; line-height: 1.6; }
+    #present-hud {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10001;
+      padding: 8px 14px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--emerald-light);
+      pointer-events: none;
+    }
+    #present-hud.hidden { display: none; }
+    #present-progress {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      width: 0;
+      z-index: 10001;
+      background: linear-gradient(90deg, var(--emerald), var(--cyan));
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+      transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    #present-progress.hidden { display: none; }
+    body.presentation-mode { overflow: hidden; background: #000; }
+    body.presentation-mode #slides-container {
+      position: fixed;
+      inset: 0;
+      padding: 0;
+      gap: 0;
+      width: 100vw;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+    body.presentation-mode .slide-scale-wrap {
+      position: absolute;
+      display: block;
+      margin: 0;
+      box-shadow: none;
+      border-radius: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      z-index: 1;
+      will-change: transform, opacity, filter;
+      transition:
+        opacity 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.52s ease,
+        visibility 0.52s;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+    }
+    body.presentation-mode .slide-scale-wrap.is-visible {
+      visibility: visible;
+    }
+    body.presentation-mode .slide-scale-wrap.is-active {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 3;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+    }
+    body.presentation-mode .slide-scale-wrap.from-right {
+      opacity: 0;
+      transform: translate3d(64px, 0, 0) scale(0.985);
+      filter: blur(8px);
+    }
+    body.presentation-mode .slide-scale-wrap.from-left {
+      opacity: 0;
+      transform: translate3d(-64px, 0, 0) scale(0.985);
+      filter: blur(8px);
+    }
+    body.presentation-mode .slide-scale-wrap.to-left {
+      opacity: 0;
+      transform: translate3d(-64px, 0, 0) scale(0.985);
+      filter: blur(8px);
+      z-index: 2;
+    }
+    body.presentation-mode .slide-scale-wrap.to-right {
+      opacity: 0;
+      transform: translate3d(64px, 0, 0) scale(0.985);
+      filter: blur(8px);
+      z-index: 2;
+    }
+    body.presentation-mode.is-transitioning .slide-scale-wrap.is-exiting {
+      pointer-events: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body.presentation-mode .slide-scale-wrap {
+        transition: opacity 0.2s ease;
+        filter: none !important;
+        transform: none !important;
+      }
+    }
+
+    /* Print */
+    @media print {
+      body { background: #000; }
+      .slide {
+        margin: 0;
+        box-shadow: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      @page { size: 1920px 1080px; margin: 0; }
+    }
+
+    @media screen {
+      /* print hint removed */
+    }
+  </style>
+</head>
+<body>
+
+<div id="present-start">
+  <button type="button" id="present-start-btn">▶ Start Presentation</button>
+  <p>P · Start &nbsp;|&nbsp; → / Space · Next &nbsp;|&nbsp; ← · Previous &nbsp;|&nbsp; F · Fullscreen &nbsp;|&nbsp; Esc · Exit</p>
+</div>
+<div id="present-hud" class="hidden">1 / 20</div>
+<div id="present-progress" class="hidden"></div>
+
+<div id="slides-container">
+
+<!-- SLIDE 1: TITLE -->
+<section class="slide title-slide">
+  <div class="content">
+    <div class="title-logo">
+      <img src="assets/fpdc-logo.png" alt="FPDC Logo" />
+    </div>
+    <div class="tag"><span class="dot"></span> IT Department — Employee Training</div>
+    <h1>FPDC Helpdesk<br><span class="gradient">Ticketing System</span></h1>
+    <p class="subtitle">How to Use the New IT Support Platform</p>
+    <div class="title-meta">
+      <span>📅 July 2026</span>
+      <span>⏱ 1–2 Hours</span>
+      <span class="title-venue">📍 4 Pioneer Pioneer St, Cor Sheridan, Brgy, Mandaluyong City, 1550 Metro Manila</span>
+    </div>
+    <div class="url-badge">helpdeskticketingsystem.vercel.app</div>
+  </div>
+  <div class="slide-footer">
+    <span>FPDC Helpdesk Training</span>
+    <span>Slide 1</span>
+  </div>
+</section>
+
+<!-- SLIDE 2: AGENDA -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">02 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Agenda</h2>
+    <div class="timeline">
+      <div class="timeline-item"><div class="timeline-time">0:00–0:10</div><div class="timeline-topic">Welcome, objectives, and why we need this system</div></div>
+      <div class="timeline-item"><div class="timeline-time">0:10–0:25</div><div class="timeline-topic">What the Helpdesk System is and employee benefits</div></div>
+      <div class="timeline-item"><div class="timeline-time">0:25–0:40</div><div class="timeline-topic">Account setup, login, and profile</div></div>
+      <div class="timeline-item"><div class="timeline-time">0:40–1:05</div><div class="timeline-topic"><strong>Live Demo:</strong> Creating a support ticket</div></div>
+      <div class="timeline-item"><div class="timeline-time">1:05–1:20</div><div class="timeline-topic">Track tickets, messages, notifications, feedback</div></div>
+      <div class="timeline-item"><div class="timeline-time">1:20–1:35</div><div class="timeline-topic">Best practices and common mistakes</div></div>
+      <div class="timeline-item"><div class="timeline-time">1:35–1:50</div><div class="timeline-topic">Hands-on activity (optional)</div></div>
+      <div class="timeline-item"><div class="timeline-time">1:50–2:00</div><div class="timeline-topic">Q&amp;A, comments, suggestions, closing</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 2</span></div>
+</section>
+
+<!-- SLIDE 3: OBJECTIVES -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">03 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Learning Objectives</h2>
+    <p class="subtitle" style="margin-bottom:28px">By the end of this session, you will be able to:</p>
+    <ul class="checklist">
+      <li>Log in and access your dashboard</li>
+      <li>Submit an IT support ticket correctly and completely</li>
+      <li>Choose the right category and priority</li>
+      <li>Track ticket status (Open → In Progress → Resolved)</li>
+      <li>Communicate with the IT team via ticket conversation</li>
+      <li>Submit feedback after your issue is resolved</li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 3</span></div>
+</section>
+
+<!-- SLIDE 4: WHY -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">04 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Why Do We Need This?</h2>
+    <div class="compare">
+      <div class="compare-col bad">
+        <h3>❌ Old Way</h3>
+        <div class="compare-item">Text/Viber/Messenger to IT staff personally</div>
+        <div class="compare-item">No record of who submitted the request</div>
+        <div class="compare-item">Requests get lost in chat history</div>
+        <div class="compare-item">No visibility on who is handling it</div>
+        <div class="compare-item">No priority — everything marked "urgent"</div>
+      </div>
+      <div class="compare-col good">
+        <h3>✅ Helpdesk System</h3>
+        <div class="compare-item">Formal ticket with a unique ticket number</div>
+        <div class="compare-item">Full audit trail and history</div>
+        <div class="compare-item">Saved and trackable status updates</div>
+        <div class="compare-item">Assigned IT staff for every ticket</div>
+        <div class="compare-item">Proper priority levels and feedback loop</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 4</span></div>
+</section>
+
+<!-- SLIDE 5: WHAT IS IT -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">05 / 20</span>
+  </div>
+  <div class="content">
+    <h2>What Is the Helpdesk System?</h2>
+    <div class="grid-3">
+      <div class="card emerald"><div class="card-icon emerald">📋</div><h4>Report IT Issues</h4><p>Hardware, software, network, email, security — all in one platform.</p></div>
+      <div class="card cyan"><div class="card-icon cyan">🔢</div><h4>Unique Ticket Number</h4><p>e.g. Ticket #42 — every request has an official record.</p></div>
+      <div class="card emerald"><div class="card-icon emerald">👁️</div><h4>Real-time Status</h4><p>See whether your ticket is Open, In Progress, or Resolved.</p></div>
+      <div class="card cyan"><div class="card-icon cyan">💬</div><h4>Ticket Conversation</h4><p>Message the IT team inside the ticket — not via personal chat.</p></div>
+      <div class="card emerald"><div class="card-icon emerald">🔔</div><h4>Notifications</h4><p>Automatic updates when there is a new message or status change.</p></div>
+      <div class="card cyan"><div class="card-icon cyan">⭐</div><h4>Feedback System</h4><p>Rate and suggest improvements after your issue is resolved.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 5</span></div>
+</section>
+
+<!-- SLIDE 6: BENEFITS -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">06 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Benefits for You</h2>
+    <div class="grid-2">
+      <div class="card emerald"><h4>⚡ Faster Support</h4><p>Automatic routing to the right IT staff. No more guessing who is available.</p></div>
+      <div class="card cyan"><h4>🔍 Transparency</h4><p>Know your status: Open → In Progress → Resolved → Closed.</p></div>
+      <div class="card emerald"><h4>📁 Full Record</h4><p>Requests no longer get lost. Check your ticket history anytime.</p></div>
+      <div class="card cyan"><h4>🔔 Real-time Updates</h4><p>Notification bell alerts you when there is progress on your ticket.</p></div>
+      <div class="card emerald"><h4>🗣️ Your Voice Matters</h4><p>Feedback form after resolution helps IT continuously improve.</p></div>
+      <div class="card cyan"><h4>🔒 Secure & Professional</h4><p>Company account, encrypted login, role-based access.</p></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 6</span></div>
+</section>
+
+<!-- SLIDE 7: ROLES -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">07 / 20</span>
+  </div>
+  <div class="content">
+    <h2>User Roles</h2>
+    <table style="border-radius:12px;overflow:hidden">
+      <thead><tr><th>Role</th><th>Who</th><th>Capabilities</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--emerald)">User</strong></td><td>Regular employee (YOU)</td><td>Create ticket, track tickets, message IT, submit feedback</td></tr>
+        <tr><td><strong>Admin</strong></td><td>IT Staff</td><td>Assign tickets, update status, manage users</td></tr>
+        <tr><td><strong>Manager</strong></td><td>Management</td><td>View analytics, reports, feedback trends</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:24px;font-size:16px;color:var(--emerald-light);text-align:center;font-weight:500">This session focuses on the <strong>User role</strong> — how to report and track IT issues</p>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 7</span></div>
+</section>
+
+<!-- SLIDE 8: ACCESS -->
+<section class="slide slide-auth-access">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">08 / 20</span>
+  </div>
+  <div class="content">
+    <div class="auth-access-head">
+      <h2>Step 1: Access the System</h2>
+      <div class="url-pill">helpdeskticketingsystem.vercel.app</div>
+    </div>
+    <div class="auth-access-grid">
+      <aside class="auth-guide">
+        <div class="auth-guide-block">
+          <span class="auth-guide-tag">How to Sign In</span>
+          <ol class="auth-steps">
+            <li>Open your browser (Chrome, Edge, Firefox)</li>
+            <li>Go to the site and click Sign In</li>
+            <li>Enter your company email and password</li>
+          </ol>
+        </div>
+        <div class="auth-guide-block accent">
+          <span class="auth-guide-tag">First Time — Register</span>
+          <p>On the login page, click <strong>Sign up</strong> at the bottom → fill in Name, Email, Department, Password → <strong>Create Account</strong></p>
+        </div>
+        <p class="auth-guide-note">🔑 Forgot Password? — link on the login page</p>
+      </aside>
+      <figure class="auth-panel auth-panel-login">
+        <figcaption><span class="auth-num">A</span> Sign In</figcaption>
+        <div class="auth-panel-img">
+          <img src="screenshots/02-auth-login-card.png" alt="Sign In page" />
+        </div>
+      </figure>
+      <figure class="auth-panel auth-panel-register">
+        <figcaption><span class="auth-num">B</span> Register</figcaption>
+        <div class="auth-panel-img">
+          <img src="screenshots/03-auth-register.png" alt="Register page" />
+        </div>
+      </figure>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 8</span></div>
+</section>
+
+<!-- SLIDE 9: DASHBOARD -->
+<section class="slide slide-with-shot">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">09 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Step 2: Your Dashboard</h2>
+    <p class="subtitle" style="font-size:15px;margin-bottom:12px">After login, use the tabs: <strong>Overview</strong> · <strong>Create Ticket</strong> · <strong>My Tickets</strong></p>
+    <div class="screenshot-hero">
+      <img src="screenshots/04-user-dashboard.png" alt="User dashboard" />
+    </div>
+    <p class="screenshot-caption">Live site — User Dashboard (Overview tab)</p>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 9</span></div>
+</section>
+
+<!-- SLIDE 10: CREATE TICKET -->
+<section class="slide slide-with-shot">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">10 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Step 3: Create a Ticket</h2>
+    <p class="subtitle" style="font-size:15px;margin-bottom:8px">Fill in title, description, category, priority — then click <strong>Submit</strong>.</p>
+    <div class="card" style="margin-bottom:10px;padding:12px 16px;border-color:rgba(16,185,129,0.35);background:rgba(16,185,129,0.08)">
+      <p style="font-size:14px;line-height:1.5;margin:0">📎 <strong>Attach Screenshot (Optional)</strong> — you can attach a <strong>photo or screenshot</strong> of the error to your ticket. PNG, JPG, WEBP, GIF · up to <strong>3 images</strong> · 5MB each. IT resolves issues faster with a visual!</p>
+    </div>
+    <div class="screenshot-hero">
+      <img src="screenshots/05-create-ticket.png" alt="Create ticket form with attachment" style="object-position:center bottom" />
+    </div>
+    <p class="screenshot-caption">Live site — Create Ticket · note the <strong>Attach Screenshot</strong> section at the bottom of the form</p>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 10</span></div>
+</section>
+
+<!-- SLIDE 11: GOOD VS BAD -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">11 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Good vs Bad Ticket Example</h2>
+    <div class="card" style="margin-bottom:14px;padding:12px 16px;border-color:rgba(16,185,129,0.35);background:rgba(16,185,129,0.08);text-align:center">
+      <p style="font-size:14px;margin:0">💡 <strong>Pro tip:</strong> Attach a screenshot of the error — tap the <strong>Attach Screenshot</strong> area on the Create Ticket form</p>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3 style="color:var(--red)">❌ Bad Example</h3>
+        <div class="code-block bad">Title: Problem<br>Description: Not working<br>Category: Other<br>Priority: Critical<br><br>❌ No screenshot · not enough detail</div>
+      </div>
+      <div>
+        <h3 style="color:var(--emerald)">✅ Good Example</h3>
+        <div class="code-block good">Title: Outlook cannot send email — Billing<br><br>Description:<br>• Since 9 AM unable to send<br>• Error: "Cannot connect to server"<br>• Restarted Outlook, same error<br>• PC-12, Maria Santos<br><br>Category: Email | Priority: High<br><br>📎 Attachment: screenshot of error message<br>(Tap to add photo or screenshot)</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 11</span></div>
+</section>
+
+<!-- SLIDE 12: TRACK -->
+<section class="slide slide-with-shot">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">12 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Step 4: Track Your Tickets</h2>
+    <p class="subtitle" style="margin-bottom:12px;font-size:15px">Open the <strong>My Tickets</strong> tab to see ticket number, status, priority, and assigned IT staff.</p>
+    <div class="screenshot-hero" style="margin-bottom:16px">
+      <img src="screenshots/06-my-tickets.png" alt="My tickets list" />
+    </div>
+    <div class="flow">
+      <div class="flow-step active"><div class="icon">📥</div><div class="label">OPEN</div><div class="desc">Received</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="icon">🔧</div><div class="label">IN PROGRESS</div><div class="desc">IT working</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="icon">✅</div><div class="label">RESOLVED</div><div class="desc">Fixed</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="icon">📁</div><div class="label">CLOSED</div><div class="desc">Archived</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 12</span></div>
+</section>
+
+<!-- SLIDE 13: CONVERSATION -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">13 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Step 5: Ticket Conversation</h2>
+    <div class="grid-2">
+      <ul class="checklist">
+        <li>Click the ticket in your list</li>
+        <li>Open the Conversation panel</li>
+        <li>Type your reply and send</li>
+        <li>Attach a screenshot (max 3, 5MB)</li>
+        <li>See when IT has marked it as "Seen"</li>
+      </ul>
+      <div class="card emerald">
+        <h4>💡 Tips</h4>
+        <p style="margin-top:12px;line-height:1.8">✅ Reply inside the ticket — not via Viber<br>✅ Be specific in follow-up replies<br>✅ Attach a screenshot for visual issues</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 13</span></div>
+</section>
+
+<!-- SLIDE 14: NOTIFICATIONS & FEEDBACK -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">14 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Notifications & Feedback</h2>
+    <div class="grid-2">
+      <div class="card cyan">
+        <h4>🔔 Notifications</h4>
+        <p style="margin-top:14px;line-height:1.8">• New message on your ticket<br>• Status change (Open → In Progress)<br>• Ticket assigned to IT staff<br>• Ticket resolved — time for feedback!</p>
+      </div>
+      <div class="card emerald">
+        <h4>⭐ Submit Feedback</h4>
+        <p style="margin-top:14px;line-height:1.8">1. Rate the service: 1–5 stars<br>2. Optional suggestions for IT<br>3. Submit — one feedback per ticket<br><br><em style="color:var(--emerald-light)">Helps IT continuously improve!</em></p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 14</span></div>
+</section>
+
+<!-- SLIDE 15: DO's -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">15 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Best Practices — DO's ✅</h2>
+    <div class="grid-2">
+      <ul class="checklist">
+        <li>Always submit a ticket for all IT concerns</li>
+        <li>Provide complete details in the description</li>
+        <li>Attach a screenshot when there is an error</li>
+        <li>Choose the correct category</li>
+        <li>Use the appropriate priority level</li>
+      </ul>
+      <ul class="checklist">
+        <li>Reply in ticket conversation — not via Viber</li>
+        <li>Submit feedback after resolution</li>
+        <li>Check notifications regularly</li>
+        <li>Protect your password — never share it</li>
+        <li>One ticket per issue</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 15</span></div>
+</section>
+
+<!-- SLIDE 16: DON'Ts -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">16 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Common Mistakes — DON'Ts ❌</h2>
+    <div class="grid-2">
+      <ul class="checklist dont">
+        <li>Message IT personally instead of submitting a ticket</li>
+        <li>Submit a ticket with no description</li>
+        <li>Use Critical priority for minor issues</li>
+        <li>Create duplicate tickets for the same issue</li>
+      </ul>
+      <ul class="checklist dont">
+        <li>Ignore follow-up messages from IT</li>
+        <li>Share login credentials</li>
+        <li>Submit tickets for colleagues (teach them instead)</li>
+        <li>Rely on verbal requests only</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 16</span></div>
+</section>
+
+<!-- SLIDE 17: CATEGORY REFERENCE -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">17 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Category Quick Reference</h2>
+    <table>
+      <thead><tr><th>If you have a problem with...</th><th>Category</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Computer, printer, monitor</td><td><strong>Hardware</strong></td><td>"Monitor flickering"</td></tr>
+        <tr><td>Application, program crash</td><td><strong>Software</strong></td><td>"Excel keeps crashing"</td></tr>
+        <tr><td>WiFi, internet down</td><td><strong>Network</strong></td><td>"No internet on 3rd floor"</td></tr>
+        <tr><td>Outlook, email</td><td><strong>Email</strong></td><td>"Cannot receive emails"</td></tr>
+        <tr><td>Password, suspicious email</td><td><strong>Security</strong></td><td>"Received phishing email"</td></tr>
+        <tr><td>Not sure</td><td><strong>Other</strong></td><td>"Need help with new system"</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 17</span></div>
+</section>
+
+<!-- SLIDE 18: HANDS ON -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">18 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Hands-On Activity</h2>
+    <div class="card emerald" style="margin-bottom:24px;padding:28px">
+      <h4>📌 Scenario</h4>
+      <p style="margin-top:10px;font-size:16px;color:var(--text-primary)">Your department printer has not been printing since this morning. It shows a "Paper Jam" error but there is no stuck paper.</p>
+    </div>
+    <ul class="checklist">
+      <li>Log in to the system</li>
+      <li>Create a ticket with a clear title, detailed description, correct category, and appropriate priority</li>
+      <li>Submit and note your ticket number</li>
+      <li>Raise your hand when done — IT will verify</li>
+    </ul>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 18</span></div>
+</section>
+
+<!-- SLIDE 19: Q&A -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="logo-area"><div class="logo-box"><img src="assets/fpdc-logo.png" alt="FPDC" /></div><span class="logo-text">Helpdesk Training</span></div>
+    <span class="slide-num">19 / 20</span>
+  </div>
+  <div class="content">
+    <h2>Q&amp;A · Comments · Suggestions</h2>
+    <div class="grid-2">
+      <div>
+        <h3>Ask your questions!</h3>
+        <ul class="checklist">
+          <li>Open Q&amp;A — what is still unclear?</li>
+          <li>Comments — what works well or feels confusing?</li>
+          <li>Suggestions — what features would you like?</li>
+          <li>Post-seminar survey (Google Form)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Common Questions</h4>
+        <p style="margin-top:12px;line-height:2;font-size:13px">
+          <strong>Can I submit a ticket for a colleague?</strong><br>It is better for them to submit their own ticket.<br><br>
+          <strong>How long until resolution?</strong><br>Depends on priority — Critical = ASAP.<br><br>
+          <strong>Forgot your password?</strong><br>Use Forgot Password on the login page.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 19</span></div>
+</section>
+
+<!-- SLIDE 20: CLOSING -->
+<section class="slide closing-slide">
+  <div class="content">
+    <h1>Thank <span class="gradient">You!</span></h1>
+    <p class="subtitle">FPDC Helpdesk Ticketing System</p>
+    <div class="url-badge">helpdeskticketingsystem.vercel.app</div>
+    <ul class="next-steps">
+      <li>All employees — register and log in today</li>
+      <li>Start using the system for all IT support requests</li>
+      <li>Convert old informal requests into tickets</li>
+      <li>Send feedback to IT if you face challenges in the first week</li>
+    </ul>
+    <p style="margin-top:32px;font-size:14px;color:var(--text-muted)">IT Department · [Email] · [Phone] · [Office Location]</p>
+  </div>
+  <div class="slide-footer"><span>FPDC Helpdesk Training</span><span>Slide 20</span></div>
+</section>
+
+</div>
+
+<script src="presentation-mode.js"></script>
+
+</body>
+</html>

@@ -47,7 +47,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <MainLoadingScreen 
-        message="Initializing FCDC System"
+        message="Initializing FPDC System"
         showProgress={true}
         progress={loadingProgress}
       />

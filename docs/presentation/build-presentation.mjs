@@ -18,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots');
 const PNG_DIR = path.join(__dirname, 'png-slides-en');
 const ASSETS_DIR = path.join(__dirname, 'assets');
-const LOGO_DEST = path.join(ASSETS_DIR, 'fcdc-logo.png');
+const LOGO_DEST = path.join(ASSETS_DIR, 'fpdc-logo.png');
 const LIVE_URL = 'https://helpdeskticketingsystem.vercel.app';
 
 const SLIDE_W = 1920;
@@ -26,8 +26,8 @@ const SLIDE_H = 1080;
 const VIEWPORT = { width: 1920, height: 1080 };
 
 const HTML_SOURCES = [
-  { src: 'FCDC-Helpdesk-Slides-EN.html', out: 'FCDC-Helpdesk-Slides-EN-standalone.html' },
-  { src: 'FCDC-Helpdesk-Slides.html', out: 'FCDC-Helpdesk-Slides-standalone.html' },
+  { src: 'FPDC-Helpdesk-Slides-EN.html', out: 'FPDC-Helpdesk-Slides-EN-standalone.html' },
+  { src: 'FPDC-Helpdesk-Slides.html', out: 'FPDC-Helpdesk-Slides-standalone.html' },
 ];
 
 const SCREENSHOT_FILES = [
@@ -57,8 +57,8 @@ function toDataUri(filePath) {
 async function prepareLogo() {
   ensureDir(ASSETS_DIR);
   const candidates = [
-    path.join(__dirname, '..', '..', 'public', 'FCDC LOGO.png'),
-    path.join(__dirname, '..', '..', 'public', 'fcdc-logo.png'),
+    path.join(__dirname, '..', '..', 'public', 'FPDC LOGO.png'),
+    path.join(__dirname, '..', '..', 'public', 'fpdc-logo.png'),
   ];
   const input = candidates.find((p) => fs.existsSync(p));
   if (!input) {
@@ -134,7 +134,7 @@ async function tryLogin(page, email, password) {
 }
 
 async function tryRegister(page) {
-  const email = `fcdc.training.${Date.now()}@demo.local`;
+  const email = `fpdc.training.${Date.now()}@demo.local`;
   const password = 'Training123!';
   await page.goto(`${LIVE_URL}/auth?register=true`, { waitUntil: 'networkidle', timeout: 60000 });
   await page.waitForTimeout(1500);
@@ -185,7 +185,7 @@ function embedAssetsInHtml(htmlPath, outPath) {
 
   const logoUri = toDataUri(LOGO_DEST);
   if (logoUri) {
-    html = html.replace(/src="assets\/fcdc-logo\.png"/g, `src="${logoUri}"`);
+    html = html.replace(/src="assets\/fpdc-logo\.png"/g, `src="${logoUri}"`);
   }
 
   for (const file of SCREENSHOT_FILES) {
@@ -295,7 +295,7 @@ async function main() {
   }
 
   console.log('\n✅ Build complete!');
-  console.log('   Open: FCDC-Helpdesk-Slides-EN-standalone.html');
+  console.log('   Open: FPDC-Helpdesk-Slides-EN-standalone.html');
   console.log('   Canva: png-slides-en/');
 }
 

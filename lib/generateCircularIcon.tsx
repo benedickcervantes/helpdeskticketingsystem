@@ -3,7 +3,7 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 
 async function getLogoDataUrl(): Promise<string> {
-  const logoPath = path.join(process.cwd(), 'public', 'FCDC LOGO.png');
+  const logoPath = path.join(process.cwd(), 'public', 'FPDC LOGO.png');
   const logoData = await readFile(logoPath);
   return `data:image/png;base64,${logoData.toString('base64')}`;
 }

@@ -3,7 +3,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FcdcLogo } from '@/lib/ui/FcdcLogo';
+import { FpdcLogo } from '@/lib/ui/FpdcLogo';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useShell } from '@/contexts/ShellContext';
@@ -213,13 +213,13 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
         <div className={`flex items-center border-b border-gray-700/50 flex-shrink-0 ${showCollapsed ? 'justify-center p-3' : 'justify-between p-4'}`}>
           {!showCollapsed && (
             <Link href="/" className="flex items-center space-x-3 group min-w-0" onClick={onMobileClose}>
-              <FcdcLogo
+              <FpdcLogo
                 size="sm"
                 className="group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 flex-shrink-0"
               />
               <div className="min-w-0">
-                <span className="text-lg font-bold text-white">FCDC</span>
-                <p className="text-xs text-gray-400 -mt-1 truncate">FCDC Enterprise IT</p>
+                <span className="text-lg font-bold text-white">FPDC</span>
+                <p className="text-xs text-gray-400 -mt-1 truncate">FPDC Enterprise IT</p>
               </div>
             </Link>
           )}

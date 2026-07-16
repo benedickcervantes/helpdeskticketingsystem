@@ -1,5 +1,5 @@
 /**
- * Generates FCDC Helpdesk Ticketing System Policy & Standards Manual (.docx)
+ * Generates FPDC Helpdesk Ticketing System Policy & Standards Manual (.docx)
  * Design aligned with Federal Pioneer Corporate Email Policy template.
  */
 import fs from 'fs';
@@ -25,7 +25,7 @@ import {
 const COMPANY = "FEDERAL PIONEER DEV'T. CORP.";
 const ADDRESS =
   '4 Pioneer Pioneer St, Cor Sheridan, Brgy, Mandaluyong City, 1550 Metro Manila';
-const SYSTEM = 'FCDC IT Helpdesk Ticketing System';
+const SYSTEM = 'FPDC IT Helpdesk Ticketing System';
 const EFFECTIVE_DATE = 'June 23, 2025';
 const REVIEW_DATE = 'June 23, 2026';
 
@@ -119,7 +119,7 @@ const definitionsTable = () =>
         cell('Term', { shading: NAVY, bold: true, color: WHITE, width: 30 }),
         cell('Definition', { shading: NAVY, bold: true, color: WHITE, width: 70 }),
       ]),
-      tableRow([cell('Helpdesk Ticket', { bold: true }), cell('A formal record of an IT support request submitted through the FCDC Helpdesk Ticketing System.')]),
+      tableRow([cell('Helpdesk Ticket', { bold: true }), cell('A formal record of an IT support request submitted through the FPDC Helpdesk Ticketing System.')]),
       tableRow([cell('End User', { bold: true }), cell('An employee or authorized personnel with a standard USER role who submits and tracks support tickets.')]),
       tableRow([cell('IT Administrator', { bold: true }), cell('Authorized IT personnel with ADMIN role responsible for system configuration, user management, and ticket resolution oversight.')]),
       tableRow([cell('IT Manager', { bold: true }), cell('Authorized personnel with MANAGER role who monitors performance metrics, reports, and service quality.')]),
@@ -559,7 +559,7 @@ const sections = [
     ],
   }),
   para([font('For questions about this policy, contact:', { size: 22, bold: true })], { before: 400 }),
-  bullet('IT Helpdesk: support@fcdc.com | (555) 123-4567'),
+  bullet('IT Helpdesk: support@FPDC.com | (555) 123-4567'),
   bullet('HR Department: hr@fpdc.com'),
 ];
 
