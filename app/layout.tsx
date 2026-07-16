@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'FCDC Helpdesk Enterprise IT Support',
+  title: 'FPDC Helpdesk Enterprise IT Support',
   description:
-    'Professional FCDC IT Support Ticketing System for efficient support management and issue resolution.',
+    'Professional FPDC IT Support Ticketing System for efficient support management and issue resolution.',
 };
 
 export default function RootLayout({

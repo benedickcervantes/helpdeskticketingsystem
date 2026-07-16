@@ -23,7 +23,7 @@ import {
 const COMPANY = "FEDERAL PIONEER DEV'T. CORP.";
 const ADDRESS =
   '4 Pioneer Pioneer St, Cor Sheridan, Brgy, Mandaluyong City, 1550 Metro Manila';
-const SYSTEM = 'FCDC IT Helpdesk Ticketing System';
+const SYSTEM = 'FPDC IT Helpdesk Ticketing System';
 const POLICY_FILE =
   'Federal-Pioneer-Helpdesk-Ticketing-System-Policy-and-Standards-Manual-v1.1.docx';
 

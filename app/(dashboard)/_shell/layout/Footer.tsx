@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import { FcdcLogo } from '@/lib/ui/FcdcLogo';
+import { FpdcLogo } from '@/lib/ui/FpdcLogo';
 
 const Footer = () => {
   const [mounted, setMounted] = useState(false);
@@ -111,14 +111,14 @@ const Footer = () => {
             {/* Company Info */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
-                <FcdcLogo size="lg" />
+                <FpdcLogo size="lg" />
                 <div>
-                  <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">FCDC</span>
+                  <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">FPDC</span>
                   <p className="text-xs text-gray-400 -mt-1">Helpdesk Enterprise IT Support</p>
                 </div>
               </div>
               <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
-                Professional FCDC IT Support Ticketing System for efficient support management and issue resolution. 
+                Professional FPDC IT Support Ticketing System for efficient support management and issue resolution. 
                 Streamline your IT operations with our advanced platform.
               </p>
               <div className="flex space-x-4">
@@ -205,7 +205,7 @@ const Footer = () => {
                       if (helpSection) {
                         helpSection.scrollIntoView({ behavior: 'smooth' });
                       } else {
-                        alert('FCDC Help Center\n\nFor technical support:\n• Create a support ticket\n• Contact IT Department\n• Check system status\n\nPhone: (555) 123-4567\nEmail: support@fcdc.com');
+                        alert('FPDC Help Center\n\nFor technical support:\n• Create a support ticket\n• Contact IT Department\n• Check system status\n\nPhone: (555) 123-4567\nEmail: support@FPDC.com');
                       }
                     }}
                     className="text-gray-400 hover:text-cyan-400 transition-colors duration-300 flex items-center group cursor-pointer"
@@ -219,7 +219,7 @@ const Footer = () => {
                 <li>
                   <button 
                     onClick={() => {
-                      alert('FCDC Contact Information\n\nIT Support Department\nPhone: (555) 123-4567\nEmail: support@fcdc.com\n\nBusiness Hours:\nMonday - Friday: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 1:00 PM\n\nEmergency Support:\n24/7 Hotline: (555) 911-HELP');
+                      alert('FPDC Contact Information\n\nIT Support Department\nPhone: (555) 123-4567\nEmail: support@FPDC.com\n\nBusiness Hours:\nMonday - Friday: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 1:00 PM\n\nEmergency Support:\n24/7 Hotline: (555) 911-HELP');
                     }}
                     className="text-gray-400 hover:text-cyan-400 transition-colors duration-300 flex items-center group cursor-pointer"
                   >
@@ -236,7 +236,7 @@ const Footer = () => {
           <div className="border-t border-gray-800 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-500 text-sm">
-                © 2025 FCDC. All rights reserved.
+                © 2025 FPDC. All rights reserved.
               </p>
               <div className="flex flex-wrap gap-4 mt-4 md:mt-0 justify-center md:justify-end">
                 <button 
@@ -275,7 +275,7 @@ const Footer = () => {
       {/* Legal Policy Modals */}
       <LegalModal
         title="Privacy Policy"
-        content={`FCDC Helpdesk Ticketing System - Privacy Policy
+        content={`FPDC Helpdesk Ticketing System - Privacy Policy
 
 Last Updated: January 2025
 
@@ -308,19 +308,19 @@ Last Updated: January 2025
 • Opt-out of non-essential communications
 • File complaints with our Data Protection Officer
 
-Contact: privacy@fcdc.com | (555) 123-4567`}
+Contact: privacy@FPDC.com | (555) 123-4567`}
         isOpen={activeModal === 'privacy'}
         onClose={() => setActiveModal(null)}
       />
 
       <LegalModal
         title="Terms of Service"
-        content={`FCDC Helpdesk Ticketing System - Terms of Service
+        content={`FPDC Helpdesk Ticketing System - Terms of Service
 
 Last Updated: January 2025
 
 1. ACCEPTANCE OF TERMS
-By accessing and using the FCDC Helpdesk Ticketing System, you agree to be bound by these Terms of Service.
+By accessing and using the FPDC Helpdesk Ticketing System, you agree to be bound by these Terms of Service.
 
 2. SYSTEM USAGE
 • Use the system only for legitimate IT support requests
@@ -347,7 +347,7 @@ By accessing and using the FCDC Helpdesk Ticketing System, you agree to be bound
 • Backup procedures are in place
 
 6. LIABILITY
-• FCDC is not liable for indirect damages
+• FPDC is not liable for indirect damages
 • Users are responsible for data backup
 • System downtime does not constitute breach of contract
 
@@ -356,14 +356,14 @@ By accessing and using the FCDC Helpdesk Ticketing System, you agree to be bound
 • Continued use constitutes acceptance
 • Major changes will be communicated via email
 
-Contact: legal@fcdc.com | (555) 123-4567`}
+Contact: legal@FPDC.com | (555) 123-4567`}
         isOpen={activeModal === 'terms'}
         onClose={() => setActiveModal(null)}
       />
 
       <LegalModal
         title="Cookie Policy"
-        content={`FCDC Helpdesk Ticketing System - Cookie Policy
+        content={`FPDC Helpdesk Ticketing System - Cookie Policy
 
 Last Updated: January 2025
 
@@ -413,7 +413,7 @@ ANALYTICS COOKIES (Optional)
 • Customize cookie preferences
 • Clear cookies at any time
 
-Contact: privacy@fcdc.com | (555) 123-4567`}
+Contact: privacy@FPDC.com | (555) 123-4567`}
         isOpen={activeModal === 'cookies'}
         onClose={() => setActiveModal(null)}
       />

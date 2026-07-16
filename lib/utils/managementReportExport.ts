@@ -14,7 +14,7 @@ export const REPORT_BRAND = {
   white: [255, 255, 255] as const,
 };
 
-export const ORGANIZATION = 'FCDC IT Helpdesk';
+export const ORGANIZATION = 'FPDC IT Helpdesk';
 
 export type ManagementReport = {
   title: string;
