@@ -232,6 +232,9 @@ async function exportSlidePNGs(_browser, htmlPath, context) {
     const num = String(i + 1).padStart(2, '0');
     await page.evaluate(({ index, w, h }) => {
       document.querySelector('.print-hint')?.remove();
+      document.getElementById('present-start')?.remove();
+      document.getElementById('present-hud')?.remove();
+      document.getElementById('present-progress')?.remove();
       document.body.style.cssText = `margin:0;padding:0;background:#0f1419;overflow:hidden;width:${w}px;height:${h}px`;
       const container = document.getElementById('slides-container');
       if (container) container.style.cssText = 'padding:0;gap:0;display:block';
@@ -263,21 +266,26 @@ async function exportSlidePNGs(_browser, htmlPath, context) {
 }
 
 async function main() {
+  const skipCapture = process.argv.includes('--skip-capture');
   ensureDir(SCREENSHOTS_DIR);
   ensureDir(PNG_DIR);
   await prepareLogo();
 
   const browser = await chromium.launch({ headless: true });
   try {
-    const context = await browser.newContext({
-      viewport: VIEWPORT,
-      deviceScaleFactor: 2,
-    });
-    const page = await context.newPage();
-    await capturePublicScreenshots(page);
-    await captureAuthenticatedScreenshots(page);
-    await page.close();
-    await context.close();
+    if (!skipCapture) {
+      const context = await browser.newContext({
+        viewport: VIEWPORT,
+        deviceScaleFactor: 2,
+      });
+      const page = await context.newPage();
+      await capturePublicScreenshots(page);
+      await captureAuthenticatedScreenshots(page);
+      await page.close();
+      await context.close();
+    } else {
+      console.log('\n⏭ Skipping screenshot capture (--skip-capture)');
+    }
 
     console.log('\n📦 Embedding assets into standalone HTML...');
     const standalonePaths = HTML_SOURCES.map(({ src, out }) =>
