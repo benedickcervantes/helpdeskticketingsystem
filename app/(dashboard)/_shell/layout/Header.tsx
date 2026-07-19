@@ -64,7 +64,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 bg-app-header backdrop-blur-sm border-b border-app-subtle z-50">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-app-subtle bg-app-header lg:backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-12 sm:h-14">
             {/* Left side - Menu toggle + Logo */}

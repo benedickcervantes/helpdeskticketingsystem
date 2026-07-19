@@ -95,7 +95,7 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
           <p className="text-2xl sm:text-3xl font-bold text-app mt-1 sm:mt-2">{value}</p>
           {subtitle && <p className="text-xs text-app-muted mt-1">{subtitle}</p>}
         </div>
-        <div className={`p-2 sm:p-3 rounded-xl ${color} backdrop-blur-sm flex-shrink-0`}>
+        <div className={`p-2 sm:p-3 rounded-xl ${color} flex-shrink-0`}>
           {icon}
         </div>
       </div>

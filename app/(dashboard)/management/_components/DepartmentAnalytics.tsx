@@ -204,7 +204,7 @@ const DepartmentAnalytics = ({ tickets, users }) => {
   );
 
   const DetailCard = ({ department, stats }) => (
-    <div className="bg-app-surface-2/40 rounded-xl border border-app-subtle p-4 space-y-3 min-w-0">
+    <div className="bg-app-surface-2 rounded-xl border border-app-subtle p-4 space-y-3 min-w-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between min-w-0">
         <h4 className="text-sm font-semibold text-app break-words [overflow-wrap:anywhere] min-w-0 flex-1">
           {department}

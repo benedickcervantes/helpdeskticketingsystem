@@ -302,7 +302,7 @@ const UserDashboard = () => {
                       key={stat.label}
                       type="button"
                       onClick={() => goToTickets('my')}
-                      className="group text-left rounded-xl border border-app-subtle bg-app-surface-2/40 hover:bg-app-surface-2 hover:border-app-primary px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                      className="group text-left rounded-xl border border-app-subtle bg-app-surface-2 hover:border-app-primary px-4 py-3.5 sm:p-4 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
                       <div className="flex items-start justify-between gap-2">
@@ -313,7 +313,7 @@ const UserDashboard = () => {
                           </p>
                           <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
                         </div>
-                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
+                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} [@media(hover:hover)]:group-hover:scale-105 transition-transform`}>
                           {stat.icon}
                         </div>
                       </div>
@@ -393,11 +393,11 @@ const UserDashboard = () => {
                       key={item.label}
                       type="button"
                       onClick={() => goToTickets('all')}
-                      className="group flex flex-col rounded-xl border border-app-subtle bg-app-surface-2/30 hover:bg-app-surface-2 hover:border-app-primary px-3.5 py-3.5 transition-all duration-200 text-left"
+                      className="group flex flex-col rounded-xl border border-app-subtle bg-app-surface-2 hover:border-app-primary px-3.5 py-3.5 transition-colors duration-200 text-left"
                     >
                       <div className={`accent-hover-line ${item.bar}`} aria-hidden="true" />
                       <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-xl ${item.iconBg} ${item.iconColor} group-hover:scale-105 transition-transform`}>
+                        <div className={`p-2.5 rounded-xl ${item.iconBg} ${item.iconColor} [@media(hover:hover)]:group-hover:scale-105 transition-transform`}>
                           {item.icon}
                         </div>
                         <div className="min-w-0">
@@ -412,7 +412,7 @@ const UserDashboard = () => {
 
               {/* Empty state nudge */}
               {myTicketsStats.total === 0 && (
-                <section className="rounded-xl border border-dashed border-app bg-app-surface-2/20 px-5 py-8 text-center">
+                <section className="rounded-xl border border-dashed border-app bg-app-surface-2 px-5 py-8 text-center">
                   <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -454,7 +454,7 @@ const UserDashboard = () => {
                   </p>
                 </div>
               </div>
-              <div className="inline-flex rounded-xl border border-app-subtle bg-app-surface/40 p-1 self-start sm:self-auto">
+              <div className="inline-flex rounded-xl border border-app-subtle bg-app-surface-2 p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setTicketFilter('all')}
