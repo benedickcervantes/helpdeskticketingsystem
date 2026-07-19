@@ -59,18 +59,18 @@ function AppShellContent({ children }) {
 
   if (!currentUser || isLandingPage) {
     return (
-      <div className="min-h-screen bg-app-gradient text-app" style={shellStyle}>
+      <div className="min-h-screen bg-app-gradient text-app app-shell" style={shellStyle}>
         <Header />
-        <main className="pt-12 sm:pt-14 pb-6 overflow-x-hidden">{children}</main>
+        <main className="pt-0 lg:pt-14 pb-6 overflow-x-hidden">{children}</main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-app-gradient text-app" style={shellStyle}>
+    <div className="min-h-screen bg-app-gradient text-app app-shell" style={shellStyle}>
       <Header />
 
-      <div className="flex pt-12 sm:pt-14 min-h-[calc(100vh-3rem)] sm:min-h-[calc(100vh-3.5rem)]">
+      <div className="flex pt-0 lg:pt-14 min-h-[calc(100vh-3rem)] sm:min-h-[calc(100vh-3.5rem)]">
         {shouldShowSidebar && (
           <Sidebar
             isMobileOpen={isSidebarOpen}
@@ -87,7 +87,7 @@ function AppShellContent({ children }) {
 
       {shouldShowSidebar && isSidebarOpen && (
         <div
-          className="fixed inset-0 top-12 sm:top-14 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 top-12 sm:top-14 bg-black/60 z-30 lg:hidden"
           onClick={closeSidebar}
           aria-hidden="true"
         />
