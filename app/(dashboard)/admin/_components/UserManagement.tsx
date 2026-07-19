@@ -244,6 +244,7 @@ const UserManagement = () => {
   const [viewMode, setViewMode] = useState('auto');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [filterDepartment, setFilterDepartment] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -265,16 +266,17 @@ const UserManagement = () => {
   });
 
   const departments = [
-    "CRG (Customer Relation Group)", 
-    "TG (Takeout Group)", 
-    "Billing and Collection Group", 
-    "Treasury Group", 
-    "Finance and Tax Group", 
-    "Disbursement Group", 
-    "RSD (Real Estate Services Department)", 
-    "Engineering Department", 
+    "CRG (Customer Relation Group)",
+    "TG (Takeout Group)",
+    "Billing and Collection Group",
+    "Treasury Group",
+    "Finance and Tax Group",
+    "Disbursement Group",
+    "RSD (Real Estate Services Department)",
+    "Engineering Department",
     "IT Group",
-    "Sales and Marketing Group", 
+    "HR Group",
+    "Sales and Marketing Group",
     "Leasing Group"
   ];
   const roles = ['user', 'admin', 'manager'];
@@ -321,10 +323,15 @@ const UserManagement = () => {
                            user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            user.department?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = filterRole === 'all' || user.role === filterRole;
+      const matchesDepartment =
+        filterDepartment === 'all' ||
+        (filterDepartment === 'none'
+          ? !user.department
+          : user.department === filterDepartment);
       const matchesStatus = filterStatus === 'all' || 
                            (filterStatus === 'active' && user.isActive) ||
                            (filterStatus === 'inactive' && !user.isActive);
-      return matchesSearch && matchesRole && matchesStatus;
+      return matchesSearch && matchesRole && matchesDepartment && matchesStatus;
     })
     .sort((a, b) => {
       let aValue = a[sortBy];
@@ -602,10 +609,9 @@ const UserManagement = () => {
           </div>
         </div>
 
-        {/* Enhanced Search and Filter Bar */}
+        {/* Search and filters */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          {/* Search Input */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
                 <svg className="h-4 w-4 sm:h-5 sm:w-5 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -618,26 +624,44 @@ const UserManagement = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="block w-full pl-8 sm:pl-10 pr-2 sm:pr-3 py-2 app-field border rounded-lg focus:outline-none text-xs sm:text-sm"
+                aria-label="Search users"
               />
             </div>
           </div>
 
-          {/* Filter Dropdowns */}
-          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 shrink-0">
+            <select
+              value={filterDepartment}
+              onChange={(e) => setFilterDepartment(e.target.value)}
+              className="app-select w-full sm:w-auto sm:min-w-[150px] sm:max-w-[200px] px-2 sm:px-3 py-2 pr-9 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              aria-label="Filter by department"
+            >
+              <option value="all">All Departments</option>
+              <option value="none">No Department</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="app-field px-2 sm:px-3 py-2 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              className="app-select w-full sm:w-auto px-2 sm:px-3 py-2 pr-9 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              aria-label="Filter by role"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
               <option value="user">User</option>
             </select>
 
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="app-field px-2 sm:px-3 py-2 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              className="app-select w-full sm:w-auto px-2 sm:px-3 py-2 pr-9 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -651,7 +675,8 @@ const UserManagement = () => {
                 setSortBy(field);
                 setSortOrder(order);
               }}
-              className="app-field px-2 sm:px-3 py-2 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              className="app-select w-full sm:w-auto px-2 sm:px-3 py-2 pr-9 border rounded-lg focus:outline-none text-xs sm:text-sm"
+              aria-label="Sort users"
             >
               <option value="name-asc">Name A-Z</option>
               <option value="name-desc">Name Z-A</option>
@@ -668,14 +693,19 @@ const UserManagement = () => {
           <span>
             Showing {filteredAndSortedUsers.length} of {users.length} users
           </span>
-          {(searchTerm || filterRole !== 'all' || filterStatus !== 'all') && (
+          {(searchTerm ||
+            filterRole !== 'all' ||
+            filterDepartment !== 'all' ||
+            filterStatus !== 'all') && (
             <button
+              type="button"
               onClick={() => {
                 setSearchTerm('');
                 setFilterRole('all');
+                setFilterDepartment('all');
                 setFilterStatus('all');
               }}
-              className="text-app-primary hover:text-app-primary transition-colors"
+              className="text-app-primary hover:opacity-80 transition-opacity"
             >
               Clear filters
             </button>
