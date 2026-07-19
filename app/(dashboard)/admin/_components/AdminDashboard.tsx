@@ -332,7 +332,7 @@ const AdminDashboard = () => {
                       key={stat.label}
                       type="button"
                       onClick={() => setActiveTab('tickets')}
-                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
                       <div className="flex items-start justify-between gap-2">
@@ -343,7 +343,7 @@ const AdminDashboard = () => {
                           </p>
                           <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
                         </div>
-                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
+                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} [@media(hover:hover)]:group-hover:scale-105 transition-transform`}>
                           {stat.icon}
                         </div>
                       </div>
@@ -409,7 +409,7 @@ const AdminDashboard = () => {
                       key={stat.label}
                       type="button"
                       onClick={() => setActiveTab(stat.tab)}
-                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
                       <div className="flex items-start justify-between gap-2">
@@ -420,7 +420,7 @@ const AdminDashboard = () => {
                           </p>
                           <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
                         </div>
-                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
+                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} [@media(hover:hover)]:group-hover:scale-105 transition-transform`}>
                           {stat.icon}
                         </div>
                       </div>

@@ -428,6 +428,97 @@ body {
   background: var(--app-surface);
 }
 
+/*
+  Mobile Android Chrome: translucent surfaces + fixed header backdrop-filter
+  leave compositor paint trails (ghosted/flickering cards). Use opaque fills
+  and skip transform/accent animations unless a real hover pointer is present.
+*/
+@media (max-width: 1023px) {
+  :root,
+  [data-theme="dark"],
+  [data-theme="light"] {
+    --app-header-bg: var(--app-surface);
+    --app-panel-bg: var(--app-surface-2);
+    --app-panel-bg-2: var(--app-surface-2);
+  }
+
+  .app-card,
+  .app-chip,
+  .app-select-toolbar,
+  .bg-app-panel {
+    background-color: var(--app-surface-2);
+    background-image: none;
+  }
+
+  [data-theme="light"] .app-card,
+  [data-theme="light"] .app-chip,
+  [data-theme="light"] .app-select-toolbar,
+  [data-theme="light"] .bg-app-panel {
+    background-color: var(--app-surface);
+    background-image: none;
+  }
+
+  .app-field {
+    background-color: var(--app-surface-3);
+  }
+
+  [data-theme="light"] .app-field {
+    background-color: var(--app-surface);
+  }
+
+  /* Common translucent Tailwind surface utilities across dashboards */
+  .bg-app-surface\/40,
+  .bg-app-surface-2\/20,
+  .bg-app-surface-2\/30,
+  .bg-app-surface-2\/40,
+  .bg-app-surface-2\/50,
+  .bg-app-surface-2\/60,
+  .bg-app-surface-2\/70,
+  .bg-app-surface-2\/80,
+  .bg-app-surface-3\/40,
+  .bg-app-surface-3\/50,
+  .bg-app-surface-3\/60 {
+    background-color: var(--app-surface-2) !important;
+  }
+
+  [data-theme="light"] .bg-app-surface\/40,
+  [data-theme="light"] .bg-app-surface-2\/20,
+  [data-theme="light"] .bg-app-surface-2\/30,
+  [data-theme="light"] .bg-app-surface-2\/40,
+  [data-theme="light"] .bg-app-surface-2\/50,
+  [data-theme="light"] .bg-app-surface-2\/60,
+  [data-theme="light"] .bg-app-surface-2\/70,
+  [data-theme="light"] .bg-app-surface-2\/80,
+  [data-theme="light"] .bg-app-surface-3\/40,
+  [data-theme="light"] .bg-app-surface-3\/50,
+  [data-theme="light"] .bg-app-surface-3\/60 {
+    background-color: var(--app-surface) !important;
+  }
+
+  /* Fixed-header blur + scrolling translucent layers = paint trails on Android */
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  .backdrop-blur-md,
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@media (hover: none) {
+  .group:hover .accent-hover-line,
+  .group:active .accent-hover-line,
+  .group:focus-within .accent-hover-line {
+    width: 2.5rem;
+  }
+
+  /* Kill card/icon transforms on touch — sticky :hover leaves paint trails on Android */
+  .app-card,
+  .group {
+    transform: none !important;
+  }
+}
+
 /* Line clamp utility for text truncation */
 .line-clamp-1 {
   overflow: hidden;

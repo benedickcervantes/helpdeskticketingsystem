@@ -130,7 +130,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
   const MetricCard = ({ title, value, target, status, icon, color, subtitle }) => (
     <div className="app-card rounded-xl border p-4 sm:p-6 hover:border-app-primary transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl ${color} backdrop-blur-sm`}>
+        <div className={`p-3 rounded-xl ${color}`}>
           {icon}
         </div>
         <div className="text-right">
@@ -307,7 +307,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
       <div className="app-card rounded-xl border p-4 sm:p-6">
         <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Performance Summary</h3>
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-app-primary-soft rounded-lg">
                 <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +324,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-sky-500/15 rounded-lg">
                 <svg className="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,7 +342,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
           </div>
 
           {feedbackMetrics.totalFeedback > 0 && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-app-primary-soft rounded-lg">
                   <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,7 +361,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-cyan-500/15 rounded-lg">
                 <svg className="w-5 h-5 text-cyan-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,7 +378,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-orange-500/15 rounded-lg">
                 <svg className="w-5 h-5 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,7 +395,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-amber-500/15 rounded-lg">
                 <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
