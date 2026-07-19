@@ -33,9 +33,9 @@ const AuthForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Redirect if already authenticated
+  // Redirect if authenticated (keep global loader visible during navigation)
   useEffect(() => {
-    if (currentUser && userProfile && !authLoading) {
+    if (currentUser && userProfile) {
       const userRole = userProfile.role || 'user';
       if (userRole === 'admin') {
         router.push('/admin');
@@ -45,7 +45,7 @@ const AuthForm = () => {
         router.push('/user');
       }
     }
-  }, [currentUser, userProfile, authLoading, router]);
+  }, [currentUser, userProfile, router]);
 
   // Check for register query parameter
   useEffect(() => {
@@ -80,6 +80,23 @@ const AuthForm = () => {
   };
 
   const getErrorMessage = (error) => {
+    const rawMessage = String(error?.message || '');
+    const lowerMessage = rawMessage.toLowerCase();
+
+    if (
+      error?.status === 429 ||
+      error?.code === 'auth/too-many-requests' ||
+      lowerMessage.includes('throttlerexception') ||
+      lowerMessage.includes('too many requests') ||
+      lowerMessage.includes('too many attempts') ||
+      lowerMessage.includes('rate limit')
+    ) {
+      if (lowerMessage.includes('please wait')) {
+        return rawMessage;
+      }
+      return 'You have made too many attempts. Please wait about a minute, then try again.';
+    }
+
     if (error.code === 'auth/user-not-found') {
       return 'No account found with this email address.';
     } else if (error.code === 'auth/wrong-password') {
@@ -92,10 +109,8 @@ const AuthForm = () => {
       return 'Password should be at least 6 characters long.';
     } else if (error.code === 'auth/invalid-email') {
       return 'Please enter a valid email address.';
-    } else if (error.code === 'auth/too-many-requests') {
-      return 'Too many failed attempts. Please try again later.';
-    } else if (error.message) {
-      return error.message;
+    } else if (rawMessage) {
+      return rawMessage;
     }
     return 'An error occurred. Please try again.';
   };
@@ -218,18 +233,6 @@ const AuthForm = () => {
       setLoading(false);
     }
   };
-
-  // Show loading screen if authentication is in progress
-  if (authLoading && currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="text-center">
-          <ModernSpinner size="xl" color="emerald" />
-          <p className="mt-4 text-gray-300 font-medium">Authenticating...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">

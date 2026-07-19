@@ -39,6 +39,16 @@ function isAuthFailureStatus(status: number): boolean {
   return status === 401 || status === 403;
 }
 
+function isRateLimitMessage(message: string): boolean {
+  const value = message.toLowerCase();
+  return (
+    value.includes('throttlerexception') ||
+    value.includes('too many requests') ||
+    value.includes('too many attempts') ||
+    value.includes('rate limit')
+  );
+}
+
 async function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
 
@@ -124,6 +134,14 @@ export async function apiFetch<T = any>(
       /* ignore */
     }
 
+    if (res.status === 429 || isRateLimitMessage(message)) {
+      const alreadyFriendly = /please wait/i.test(message);
+      if (!alreadyFriendly) {
+        message =
+          'You have made too many attempts. Please wait about a minute, then try again.';
+      }
+    }
+
     if (
       isAuthFailureStatus(res.status) &&
       message.toLowerCase().includes('session expired')
@@ -132,7 +150,9 @@ export async function apiFetch<T = any>(
       notifySessionExpired();
     }
 
-    throw new Error(message);
+    const error = new Error(message) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
   }
 
   if (res.status === 204) return null;
