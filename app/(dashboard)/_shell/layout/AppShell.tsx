@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { usePathname } from 'next/navigation';
 import { ShellProvider, useShell } from '@/contexts/ShellContext';
 import Sidebar from '@/shell/layout/Sidebar';
@@ -11,6 +12,7 @@ import PopupMenu from '@/shell/layout/PopupMenu';
 
 function AppShellContent({ children }) {
   const { currentUser } = useAuth();
+  const { shellStyle } = useTheme();
   const pathname = usePathname();
   const {
     isSidebarOpen,
@@ -57,7 +59,7 @@ function AppShellContent({ children }) {
 
   if (!currentUser || isLandingPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-app-gradient text-app" style={shellStyle}>
         <Header />
         <main className="pt-12 sm:pt-14 pb-6 overflow-x-hidden">{children}</main>
       </div>
@@ -65,7 +67,7 @@ function AppShellContent({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-app-gradient text-app" style={shellStyle}>
       <Header />
 
       <div className="flex pt-12 sm:pt-14 min-h-[calc(100vh-3rem)] sm:min-h-[calc(100vh-3.5rem)]">

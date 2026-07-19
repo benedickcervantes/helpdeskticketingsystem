@@ -20,6 +20,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { IntelligentLoadingManager, StageProgressIndicator, SkeletonChart, SkeletonCard } from '@/lib/ui/LoadingComponents';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 import {
   ANALYTICS_EARLIEST_DATE,
   buildDailyTrendSeries,
@@ -29,6 +30,9 @@ import {
 } from '@/lib/utils/analytics';
 
 const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => {
+  const { theme } = useTheme();
+  const chartAxis = theme === 'light' ? '#5b6b7f' : '#9CA3AF';
+  const chartGrid = theme === 'light' ? '#c5ceda' : '#4B5563';
   const [chartData, setChartData] = useState({
     dailyTrends: [],
     statusDistribution: [],
@@ -243,8 +247,8 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
     if (active && payload && payload.length) {
       const point = payload[0]?.payload;
       return (
-        <div className="bg-gray-800 border border-gray-700 p-2 sm:p-3 rounded-lg shadow-lg max-w-[200px] sm:max-w-none">
-          <p className="font-semibold text-white text-xs sm:text-sm">{point?.dateLabel || label}</p>
+        <div className="bg-app-panel border border-app p-2 sm:p-3 rounded-lg shadow-lg max-w-[200px] sm:max-w-none">
+          <p className="font-semibold text-app text-xs sm:text-sm">{point?.dateLabel || label}</p>
           {payload.map((entry, index) => {
             const value =
               entry.dataKey === 'avgResolutionTime'
@@ -255,13 +259,13 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
                 ? 'Avg resolution time'
                 : entry.name || entry.dataKey;
             return (
-              <p key={index} className="text-gray-200 text-xs sm:text-sm">
+              <p key={index} className="text-app-soft text-xs sm:text-sm">
                 {labelText}: <span style={{ color: entry.color }}>{value}</span>
               </p>
             );
           })}
           {point?.completedCount > 0 ? (
-            <p className="text-gray-400 text-xs mt-1">
+            <p className="text-app-muted text-xs mt-1">
               {point.completedCount} completed ticket{point.completedCount === 1 ? '' : 's'}
             </p>
           ) : null}
@@ -276,9 +280,9 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
     return value < 1 ? `${Math.round(value * 60)}m` : `${value}h`;
   };
 
-  const axisTick = { fontSize: 10 };
+  const axisTick = { fontSize: 10, fill: chartAxis };
   const chartHeight = 250;
-  const legendProps = { wrapperStyle: { fontSize: '11px', paddingTop: '8px' } };
+  const legendProps = { wrapperStyle: { fontSize: '11px', paddingTop: '8px', color: chartAxis } };
 
   const dailyTrendLines = [
     { dataKey: 'total', label: 'Total Tickets', mobileLabel: 'Total', color: '#3b82f6' },
@@ -315,11 +319,11 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
 
     return (
       <g transform={`translate(${x},${y})`}>
-        <text x={0} y={0} dy={line2 ? -2 : 4} textAnchor="end" fill="#9CA3AF" fontSize={9}>
+        <text x={0} y={0} dy={line2 ? -2 : 4} textAnchor="end" fill={chartAxis} fontSize={9}>
           {line1}
         </text>
         {line2 ? (
-          <text x={0} y={0} dy={10} textAnchor="end" fill="#9CA3AF" fontSize={9}>
+          <text x={0} y={0} dy={10} textAnchor="end" fill={chartAxis} fontSize={9}>
             {line2}
           </text>
         ) : null}
@@ -335,15 +339,15 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
         {departments.map((dept) => (
           <div
             key={dept.department}
-            className="bg-gray-700/30 rounded-lg border border-gray-600/40 p-3 min-w-0"
+            className="app-card rounded-lg border p-3 min-w-0"
           >
-            <p className="text-xs sm:text-sm font-medium text-white mb-2 break-words [overflow-wrap:anywhere]">
+            <p className="text-xs sm:text-sm font-medium text-app mb-2 break-words [overflow-wrap:anywhere]">
               {dept.department}
             </p>
             <div className="space-y-2">
               {departmentBars.slice(0, 3).map((bar) => (
                 <div key={bar.dataKey}>
-                  <div className="flex items-center justify-between text-[10px] text-gray-400 mb-0.5">
+                  <div className="flex items-center justify-between text-[10px] text-app-muted mb-0.5">
                     <span className="flex items-center gap-1.5">
                       <span
                         className="w-2 h-2 rounded-full flex-shrink-0"
@@ -353,7 +357,7 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
                     </span>
                     <span>{dept[bar.dataKey] || 0}</span>
                   </div>
-                  <div className="h-1.5 bg-gray-600 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-app-surface-3 rounded-full overflow-hidden">
                     <div
                       className="h-1.5 rounded-full"
                       style={{
@@ -365,7 +369,7 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-500 mt-2">
+            <p className="text-[10px] text-app-muted mt-2">
               Total: {dept.total || 0} tickets
             </p>
           </div>
@@ -411,12 +415,12 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
   const TrendLineLegend = ({ lines = [] }) => (
     <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
       {lines.map((line) => (
-        <div key={line.dataKey} className="flex items-center gap-2 min-w-0 px-2 py-1.5 rounded-lg bg-gray-700/30">
+        <div key={line.dataKey} className="flex items-center gap-2 min-w-0 px-2 py-1.5 rounded-lg bg-app-surface-2/60">
           <span
             className="w-4 h-1 rounded-full flex-shrink-0"
             style={{ backgroundColor: line.color }}
           />
-          <span className="text-xs text-gray-300 truncate">
+          <span className="text-xs text-app-soft truncate">
             <span className="sm:hidden">{line.mobileLabel}</span>
             <span className="hidden sm:inline">{line.label}</span>
           </span>
@@ -436,17 +440,17 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
           return (
             <div
               key={entry.name}
-              className="flex items-start gap-2 min-w-0 p-2 sm:p-2.5 rounded-lg bg-gray-700/30 border border-gray-600/40"
+              className="flex items-start gap-2 min-w-0 p-2 sm:p-2.5 rounded-lg bg-app-surface-2/60 border border-app/40"
             >
               <span
                 className="w-3 h-3 mt-0.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: entry.color }}
               />
               <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-white break-words [overflow-wrap:anywhere]">
+                <p className="text-xs sm:text-sm font-medium text-app break-words [overflow-wrap:anywhere]">
                   {entry.name}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-app-muted mt-0.5">
                   {entry.value} ({percent}%)
                 </p>
               </div>
@@ -461,87 +465,87 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
     return (
       <div className="space-y-6 md:space-y-8">
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Analytics Overview</h2>
-          <p className="text-gray-400">Loading comprehensive data visualization and insights</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-app mb-2">Analytics Overview</h2>
+          <p className="text-app-muted">Loading comprehensive data visualization and insights</p>
         </div>
 
         {/* Key Metrics Cards Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+            <div key={i} className="app-card rounded-xl border p-4 md:p-6">
               <div className="animate-pulse">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="h-3 bg-gray-600 rounded w-20"></div>
-                  <div className="w-5 h-5 bg-gray-600 rounded"></div>
+                  <div className="h-3 bg-app-surface-3 rounded w-20"></div>
+                  <div className="w-5 h-5 bg-app-surface-3 rounded"></div>
                 </div>
-                <div className="h-8 bg-gray-600 rounded w-16"></div>
+                <div className="h-8 bg-app-surface-3 rounded w-16"></div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Daily Trends Chart Skeleton */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-600 rounded w-48 mb-4"></div>
-            <div className="h-64 bg-gray-600/20 rounded"></div>
+            <div className="h-6 bg-app-surface-3 rounded w-48 mb-4"></div>
+            <div className="h-64 bg-app-surface-3/40 rounded"></div>
           </div>
         </div>
 
         {/* Status and Priority Distribution Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="app-card rounded-xl border p-4 md:p-6">
             <div className="animate-pulse">
-              <div className="h-6 bg-gray-600 rounded w-40 mb-4"></div>
+              <div className="h-6 bg-app-surface-3 rounded w-40 mb-4"></div>
               <div className="flex items-center justify-center h-64">
-                <div className="w-32 h-32 bg-gray-600 rounded-full"></div>
+                <div className="w-32 h-32 bg-app-surface-3 rounded-full"></div>
               </div>
             </div>
           </div>
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="app-card rounded-xl border p-4 md:p-6">
             <div className="animate-pulse">
-              <div className="h-6 bg-gray-600 rounded w-44 mb-4"></div>
+              <div className="h-6 bg-app-surface-3 rounded w-44 mb-4"></div>
               <div className="flex items-center justify-center h-64">
-                <div className="w-32 h-32 bg-gray-600 rounded-full"></div>
+                <div className="w-32 h-32 bg-app-surface-3 rounded-full"></div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Department Performance Skeleton */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-600 rounded w-52 mb-4"></div>
-            <div className="h-64 bg-gray-600/20 rounded"></div>
+            <div className="h-6 bg-app-surface-3 rounded w-52 mb-4"></div>
+            <div className="h-64 bg-app-surface-3/40 rounded"></div>
           </div>
         </div>
 
         {/* Resolution Time Trends Skeleton */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-600 rounded w-56 mb-4"></div>
-            <div className="h-64 bg-gray-600/20 rounded"></div>
+            <div className="h-6 bg-app-surface-3 rounded w-56 mb-4"></div>
+            <div className="h-64 bg-app-surface-3/40 rounded"></div>
           </div>
         </div>
 
         {/* Monthly Comparison and SLA Performance Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="app-card rounded-xl border p-4 md:p-6">
             <div className="animate-pulse">
-              <div className="h-6 bg-gray-600 rounded w-44 mb-4"></div>
-              <div className="h-64 bg-gray-600/20 rounded"></div>
+              <div className="h-6 bg-app-surface-3 rounded w-44 mb-4"></div>
+              <div className="h-64 bg-app-surface-3/40 rounded"></div>
             </div>
           </div>
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+          <div className="app-card rounded-xl border p-4 md:p-6">
             <div className="animate-pulse">
-              <div className="h-6 bg-gray-600 rounded w-36 mb-4"></div>
+              <div className="h-6 bg-app-surface-3 rounded w-36 mb-4"></div>
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-                    <div className="h-4 bg-gray-600 rounded w-20"></div>
+                  <div key={i} className="flex items-center justify-between p-3 bg-app-surface-2/60 rounded-lg">
+                    <div className="h-4 bg-app-surface-3 rounded w-20"></div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-gray-600 rounded-full h-2"></div>
-                      <div className="h-4 bg-gray-600 rounded w-8"></div>
+                      <div className="w-16 bg-app-surface-3 rounded-full h-2"></div>
+                      <div className="h-4 bg-app-surface-3 rounded w-8"></div>
                     </div>
                   </div>
                 ))}
@@ -551,10 +555,10 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
         </div>
 
         {/* Response Time Distribution Skeleton */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-600 rounded w-60 mb-4"></div>
-            <div className="h-64 bg-gray-600/20 rounded"></div>
+            <div className="h-6 bg-app-surface-3 rounded w-60 mb-4"></div>
+            <div className="h-64 bg-app-surface-3/40 rounded"></div>
           </div>
         </div>
       </div>
@@ -564,14 +568,14 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
     <div className="space-y-4 sm:space-y-8 min-w-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-4 sm:mb-8 px-1">
         <div className="text-center sm:text-left min-w-0">
-          <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">Analytics Overview</h2>
-          <p className="text-xs sm:text-sm text-gray-400">Comprehensive data visualization and insights</p>
+          <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-app mb-1 sm:mb-2">Analytics Overview</h2>
+          <p className="text-xs sm:text-sm text-app-muted">Comprehensive data visualization and insights</p>
         </div>
         {onDateRangeChange ? (
           <select
             value={dateRange}
             onChange={(e) => onDateRangeChange(e.target.value)}
-            className="w-full sm:w-auto shrink-0 px-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full sm:w-auto shrink-0 px-3 py-2 app-field border rounded-lg text-sm focus:outline-none"
             aria-label="Date range"
           >
             <option value="7">Last 7 days</option>
@@ -584,58 +588,58 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs md:text-sm font-medium text-gray-400">Total Tickets</span>
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="text-xs md:text-sm font-medium text-app-muted">Total Tickets</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <p className="text-xl md:text-2xl font-bold text-white">{tickets?.length || 0}</p>
+          <p className="text-xl md:text-2xl font-bold text-app">{tickets?.length || 0}</p>
         </div>
         
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs md:text-sm font-medium text-gray-400">Resolved</span>
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="text-xs md:text-sm font-medium text-app-muted">Resolved</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-xl md:text-2xl font-bold text-white">
+          <p className="text-xl md:text-2xl font-bold text-app">
             {tickets?.filter(t => t.status === 'resolved').length || 0}
           </p>
         </div>
         
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs md:text-sm font-medium text-gray-400">Open</span>
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="text-xs md:text-sm font-medium text-app-muted">Open</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <p className="text-xl md:text-2xl font-bold text-white">
+          <p className="text-xl md:text-2xl font-bold text-app">
             {tickets?.filter(t => t.status === 'open').length || 0}
           </p>
         </div>
         
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 md:p-6">
+        <div className="app-card rounded-xl border p-4 md:p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs md:text-sm font-medium text-gray-400">Critical</span>
-            <svg className="w-4 h-4 md:w-5 md:h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="text-xs md:text-sm font-medium text-app-muted">Critical</span>
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-xl md:text-2xl font-bold text-white">
+          <p className="text-xl md:text-2xl font-bold text-app">
             {tickets?.filter(t => t.priority === 'critical').length || 0}
           </p>
         </div>
       </div>
 
       {/* Daily Trends - Line Chart */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
         <div className="mb-3 sm:mb-4">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white">Daily Ticket Trends</h3>
-          <p className="text-xs text-gray-500 mt-1 break-words">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-app">Daily Ticket Trends</h3>
+          <p className="text-xs text-app-muted mt-1 break-words">
             Showing data from {ANALYTICS_EARLIEST_DATE.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
@@ -657,16 +661,16 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
                       bottom: axisConfig.height,
                     }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
                     <XAxis
                       dataKey="date"
-                      stroke="#9CA3AF"
-                      tick={{ ...axisTick, fill: '#9CA3AF' }}
+                      stroke={chartAxis}
+                      tick={{ ...axisTick, fill: chartAxis }}
                       minTickGap={8}
                       {...axisConfig}
                     />
                     <YAxis
-                      stroke="#9CA3AF"
+                      stroke={chartAxis}
                       tick={axisTick}
                       width={24}
                       allowDecimals={false}
@@ -701,8 +705,8 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
       {/* Status and Priority Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         {/* Status Distribution - Pie Chart */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0 overflow-hidden">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-3 sm:mb-4">Status Distribution</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0 overflow-hidden">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-3 sm:mb-4">Status Distribution</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -712,7 +716,7 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
                   cy="50%"
                   labelLine={false}
                   outerRadius="70%"
-                  fill="#8884d8"
+                  fill="var(--app-primary)"
                   dataKey="value"
                 >
                   {(chartData.statusDistribution || []).map((entry, index) => (
@@ -727,8 +731,8 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
         </div>
 
         {/* Priority Distribution - Donut Chart */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0 overflow-hidden">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-3 sm:mb-4">Priority Distribution</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0 overflow-hidden">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-3 sm:mb-4">Priority Distribution</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -757,13 +761,13 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
       </div>
 
       {/* Department Performance */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-        <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-3 sm:mb-4">Department Performance</h3>
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+        <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-3 sm:mb-4">Department Performance</h3>
         {(() => {
           const departments = chartData.departmentPerformance || [];
 
           if (departments.length === 0) {
-            return <p className="text-sm text-gray-400">No department data available.</p>;
+            return <p className="text-sm text-app-muted">No department data available.</p>;
           }
 
           if (isMobile) {
@@ -783,12 +787,12 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
                     barCategoryGap="20%"
                     barGap={4}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" horizontal={false} />
-                    <XAxis type="number" stroke="#9CA3AF" tick={axisTick} allowDecimals={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} horizontal={false} />
+                    <XAxis type="number" stroke={chartAxis} tick={axisTick} allowDecimals={false} />
                     <YAxis
                       type="category"
                       dataKey="department"
-                      stroke="#9CA3AF"
+                      stroke={chartAxis}
                       width={148}
                       tick={<DepartmentYAxisTick />}
                     />
@@ -810,9 +814,9 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
       </div>
 
       {/* Resolution Time Trends - Area Chart */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-        <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-1 sm:mb-2">Average Resolution Time Trends</h3>
-        <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+        <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-1 sm:mb-2">Average Resolution Time Trends</h3>
+        <p className="text-xs sm:text-sm text-app-muted mb-3 sm:mb-4">
           Average hours from ticket creation to completion, grouped by the day each ticket was completed (Resolved or Closed).
         </p>
         {(() => {
@@ -821,7 +825,7 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
 
           if (!hasCompletedData) {
             return (
-              <p className="text-sm text-gray-400 py-8 text-center">
+              <p className="text-sm text-app-muted py-8 text-center">
                 No completed tickets in this date range yet. Data appears once tickets are marked Resolved or Closed.
               </p>
             );
@@ -831,10 +835,10 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
             <ChartWrapper>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                  <XAxis dataKey="date" stroke="#9CA3AF" tick={axisTick} interval="preserveStartEnd" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis dataKey="date" stroke={chartAxis} tick={axisTick} interval="preserveStartEnd" />
                   <YAxis
-                    stroke="#9CA3AF"
+                    stroke={chartAxis}
                     tick={{ ...axisTick }}
                     width={36}
                     tickFormatter={resolutionYAxisTick}
@@ -862,14 +866,14 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
       {/* Monthly Comparison and SLA Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         {/* Monthly Comparison */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-3 sm:mb-4">Monthly Comparison</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-3 sm:mb-4">Monthly Comparison</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData.monthlyComparison || []} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                <XAxis dataKey="month" stroke="#9CA3AF" tick={axisTick} />
-                <YAxis stroke="#9CA3AF" tick={axisTick} width={30} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                <XAxis dataKey="month" stroke={chartAxis} tick={axisTick} />
+                <YAxis stroke={chartAxis} tick={axisTick} width={30} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend {...legendProps} />
                 <Bar dataKey="tickets" fill="#3b82f6" name="Total" />
@@ -880,26 +884,26 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
         </div>
 
         {/* SLA Performance */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-3 sm:mb-4">SLA Compliance</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-3 sm:mb-4">SLA Compliance</h3>
           <div className="space-y-2 sm:space-y-3">
             {(chartData.slaData || []).map((sla, index) => (
-              <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 bg-gray-700/30 rounded-lg">
+              <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 bg-app-surface-2/60 rounded-lg">
                 <div className="min-w-0">
-                  <span className="text-xs sm:text-sm font-medium text-white">{sla.priority}</span>
-                  <span className="text-xs text-gray-400 ml-1 sm:ml-2">({sla.target})</span>
+                  <span className="text-xs sm:text-sm font-medium text-app">{sla.priority}</span>
+                  <span className="text-xs text-app-muted ml-1 sm:ml-2">({sla.target})</span>
                 </div>
                 <div className="flex items-center space-x-2 flex-shrink-0">
-                  <div className="flex-1 sm:w-16 min-w-[60px] bg-gray-600 rounded-full h-2">
+                  <div className="flex-1 sm:w-16 min-w-[60px] bg-app-surface-3 rounded-full h-2">
                     <div 
                       className={`h-2 rounded-full ${
-                        sla.compliance >= 90 ? 'bg-emerald-500' :
+                        sla.compliance >= 90 ? 'bg-app-primary' :
                         sla.compliance >= 80 ? 'bg-yellow-500' : 'bg-red-500'
                       }`}
                       style={{ width: `${sla.compliance}%` }}
                     ></div>
                   </div>
-                  <span className="text-xs sm:text-sm font-medium text-white w-10 sm:w-12 text-right">{sla.compliance}%</span>
+                  <span className="text-xs sm:text-sm font-medium text-app w-10 sm:w-12 text-right">{sla.compliance}%</span>
                 </div>
               </div>
             ))}
@@ -908,14 +912,14 @@ const AnalyticsOverview = ({ tickets, users, dateRange, onDateRangeChange }) => 
       </div>
 
       {/* Response Time Distribution */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-        <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-3 sm:mb-4">Response Time Distribution</h3>
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+        <h3 className="text-base sm:text-lg md:text-xl font-bold text-app mb-3 sm:mb-4">Response Time Distribution</h3>
         <ChartWrapper>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData.responseTimeDistribution || []} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-              <XAxis dataKey="range" stroke="#9CA3AF" tick={axisTick} />
-              <YAxis stroke="#9CA3AF" tick={axisTick} width={30} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+              <XAxis dataKey="range" stroke={chartAxis} tick={axisTick} />
+              <YAxis stroke={chartAxis} tick={axisTick} width={30} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" fill="#8b5cf6" />
             </BarChart>

@@ -38,6 +38,36 @@ const NotificationCenter = ({ isOpen, onClose }) => {
   const [clickedNotification, setClickedNotification] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [notificationCenterVisible, setNotificationCenterVisible] = useState(true);
+  const [isRendered, setIsRendered] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Enter / exit animation for the modal shell
+  useEffect(() => {
+    if (isOpen) {
+      setIsRendered(true);
+      const frame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsVisible(true));
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+
+    setIsVisible(false);
+    const timer = window.setTimeout(() => {
+      setIsRendered(false);
+      setNotificationCenterVisible(true);
+    }, 280);
+    return () => window.clearTimeout(timer);
+  }, [isOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') handleCloseNotificationCenter();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!currentUser || !isOpen) {
@@ -187,8 +217,8 @@ const NotificationCenter = ({ isOpen, onClose }) => {
         );
       case 'feedback_submitted':
         return (
-          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-app-primary-soft rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -235,8 +265,8 @@ const NotificationCenter = ({ isOpen, onClose }) => {
         );
       default:
         return (
-          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gray-500/20 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-app-surface-3/60 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-3.595-3.598A9.969 9.969 0 0118 9.5V7a6 6 0 10-12 0v2.5a9.969 9.969 0 001.595 3.902L5 17h5m5 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </div>
@@ -244,24 +274,47 @@ const NotificationCenter = ({ isOpen, onClose }) => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isRendered && !showFeedbackForm) return null;
 
   return (
     <>
-      <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-        <div className={`bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md sm:max-w-lg lg:max-w-2xl max-h-[90vh] flex flex-col transition-all duration-500 ease-in-out ${
-          notificationCenterVisible 
-            ? 'opacity-100 scale-100 translate-y-0' 
-            : 'opacity-0 scale-95 translate-y-4'
-        }`}>
+      {isRendered && (
+      <div
+        className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 transition-all duration-300 ease-out ${
+          isVisible ? 'bg-black/50 backdrop-blur-sm' : 'bg-black/0 backdrop-blur-none'
+        }`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleCloseNotificationCenter();
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={isStaffRole(userProfile?.role) ? 'Staff Notifications' : 'Your Notifications'}
+          className={`relative bg-app-panel border border-app rounded-2xl shadow-2xl w-full max-w-md sm:max-w-lg lg:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+            isVisible && notificationCenterVisible
+              ? 'opacity-100 scale-100 translate-y-0'
+              : 'opacity-0 scale-95 translate-y-4'
+          }`}
+        >
+          {/* Top accent */}
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
+
           {/* Header */}
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700">
-            <h2 className="text-lg sm:text-xl font-semibold text-white">
-              {isStaffRole(userProfile?.role) ? 'Staff Notifications' : 'Your Notifications'}
-            </h2>
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-app bg-app-surface-2/60">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary ring-1 ring-app-primary/30">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-3.595-3.598A9.969 9.969 0 0118 9.5V7a6 6 0 10-12 0v2.5a9.969 9.969 0 001.595 3.902L5 17h5m5 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-app truncate">
+                {isStaffRole(userProfile?.role) ? 'Staff Notifications' : 'Your Notifications'}
+              </h2>
+            </div>
             <button
               onClick={handleCloseNotificationCenter}
-              className="p-1 sm:p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700"
+              className="p-1 sm:p-2 text-app-muted hover:text-app transition-all duration-200 rounded-lg hover:bg-app-surface-3 hover:rotate-90"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -270,13 +323,13 @@ const NotificationCenter = ({ isOpen, onClose }) => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex border-b border-gray-700">
+          <div className="flex border-b border-app">
             <button
               onClick={() => setFilter('all')}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 ${
                 filter === 'all'
-                  ? 'text-emerald-400 border-b-2 border-emerald-400 bg-emerald-400/10'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'text-app-primary border-b-2 border-app-primary bg-app-primary-soft'
+                  : 'text-app-muted hover:text-app hover:bg-app-surface-2/70'
               }`}
             >
               All ({notifications.length})
@@ -285,8 +338,8 @@ const NotificationCenter = ({ isOpen, onClose }) => {
               onClick={() => setFilter('unread')}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 ${
                 filter === 'unread'
-                  ? 'text-emerald-400 border-b-2 border-emerald-400 bg-emerald-400/10'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'text-app-primary border-b-2 border-app-primary bg-app-primary-soft'
+                  : 'text-app-muted hover:text-app hover:bg-app-surface-2/70'
               }`}
             >
               Unread ({notifications.filter(n => !n.read).length})
@@ -295,8 +348,8 @@ const NotificationCenter = ({ isOpen, onClose }) => {
               onClick={() => setFilter('read')}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 ${
                 filter === 'read'
-                  ? 'text-emerald-400 border-b-2 border-emerald-400 bg-emerald-400/10'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'text-app-primary border-b-2 border-app-primary bg-app-primary-soft'
+                  : 'text-app-muted hover:text-app hover:bg-app-surface-2/70'
               }`}
             >
               Read ({notifications.filter(n => n.read).length})
@@ -309,15 +362,15 @@ const NotificationCenter = ({ isOpen, onClose }) => {
               <NotificationListSkeleton count={5} />
             ) : filteredNotifications.length === 0 ? (
               <div className="text-center py-8 sm:py-12 px-4">
-                <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">
+                <div className="text-app-muted text-4xl sm:text-6xl mb-3 sm:mb-4">
                   <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-3.595-3.598A9.969 9.969 0 0118 9.5V7a6 6 0 10-12 0v2.5a9.969 9.969 0 001.595 3.902L5 17h5m5 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                 </div>
-                <h3 className="text-base sm:text-lg font-medium text-white mb-2">
+                <h3 className="text-base sm:text-lg font-medium text-app mb-2">
                   No {filter === 'all' ? '' : filter} notifications
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-app-muted">
                   {filter === 'unread' 
                     ? 'All caught up! No unread notifications.'
                     : filter === 'read'
@@ -329,12 +382,16 @@ const NotificationCenter = ({ isOpen, onClose }) => {
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-700">
-                {filteredNotifications.map((notification) => (
+              <div className="divide-y divide-app">
+                {filteredNotifications.map((notification, index) => (
                   <div
                     key={notification.id}
-                    className={`p-3 sm:p-4 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer relative overflow-hidden ${
-                      !notification.read ? 'bg-gray-700/30' : ''
+                    style={{
+                      animationDelay: isVisible ? `${Math.min(index, 8) * 35}ms` : '0ms',
+                      animationFillMode: 'both',
+                    }}
+                    className={`p-3 sm:p-4 hover:bg-app-surface-2/70 transition-all duration-300 cursor-pointer relative overflow-hidden animate-slide-up-fade ${
+                      !notification.read ? 'bg-app-surface-2/50' : ''
                     } ${
                       clickedNotification === notification.id 
                         ? 'bg-purple-500/20 scale-[0.98] shadow-lg' 
@@ -356,19 +413,19 @@ const NotificationCenter = ({ isOpen, onClose }) => {
                       {getNotificationIcon(notification.type)}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm sm:text-base font-medium text-white truncate">
+                          <h4 className="text-sm sm:text-base font-medium text-app truncate">
                             {notification.title}
                           </h4>
                           <div className="flex items-center space-x-2 flex-shrink-0">
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-app-muted">
                               {formatTimeAgo(notification.createdAt)}
                             </span>
                             {!notification.read && (
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                              <div className="w-2 h-2 bg-app-primary rounded-full animate-pulse"></div>
                             )}
                           </div>
                         </div>
-                        <p className="text-xs sm:text-sm text-gray-300 mt-1 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-app-soft mt-1 line-clamp-2">
                           {notification.message}
                         </p>
                         {notification.type === 'feedback_requested' && (
@@ -406,10 +463,10 @@ const NotificationCenter = ({ isOpen, onClose }) => {
                           notification.type !== 'ticket_assigned' &&
                           isTicketLinkNotification(notification.type, notification.ticketId) && (
                           <div className="mt-2 flex items-center space-x-2">
-                            <p className="text-xs sm:text-sm text-emerald-400 font-medium">
+                            <p className="text-xs sm:text-sm text-app-primary font-medium">
                               Click to view ticket
                             </p>
-                            <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                           </div>
@@ -439,15 +496,15 @@ const NotificationCenter = ({ isOpen, onClose }) => {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-3 sm:p-4 border-t border-gray-700">
-              <div className="flex items-center justify-between gap-3 text-xs sm:text-sm text-gray-400">
+            <div className="p-3 sm:p-4 border-t border-app">
+              <div className="flex items-center justify-between gap-3 text-xs sm:text-sm text-app-muted">
                 <span>
                   {notifications.filter(n => !n.read).length} unread · {notifications.length} total
                 </span>
                 {notifications.some((n) => !n.read) && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="px-3 py-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg font-medium transition-colors whitespace-nowrap"
+                    className="px-3 py-1.5 text-app-primary hover:bg-app-primary-soft rounded-lg font-medium transition-colors whitespace-nowrap"
                   >
                     Mark all as read
                   </button>
@@ -456,23 +513,24 @@ const NotificationCenter = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
-
-        {/* Feedback Form Modal with smooth transition */}
-        {showFeedbackForm && selectedTicket && (
-          <div className={`fixed inset-0 z-[60] transition-all duration-500 ease-in-out ${
-            showFeedbackForm 
-              ? 'opacity-100 scale-100' 
-              : 'opacity-0 scale-95'
-          }`}>
-            <FeedbackForm
-              ticketId={selectedTicket.id}
-              ticketTitle={selectedTicket.title}
-              isOpen={showFeedbackForm}
-              onClose={handleCloseFeedbackForm}
-            />
-          </div>
-        )}
       </div>
+      )}
+
+      {/* Feedback Form Modal with smooth transition */}
+      {showFeedbackForm && selectedTicket && (
+        <div className={`fixed inset-0 z-[60] transition-all duration-500 ease-in-out ${
+          showFeedbackForm
+            ? 'opacity-100 scale-100'
+            : 'opacity-0 scale-95'
+        }`}>
+          <FeedbackForm
+            ticketId={selectedTicket.id}
+            ticketTitle={selectedTicket.title}
+            isOpen={showFeedbackForm}
+            onClose={handleCloseFeedbackForm}
+          />
+        </div>
+      )}
     </>
   );
 };

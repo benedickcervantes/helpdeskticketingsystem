@@ -9,6 +9,7 @@ import { useShellOptional } from '@/contexts/ShellContext';
 import { getDashboardPath, isOnDashboardPage } from '@/lib/utils/roles';
 import NotificationBell from '@/shell/notifications/NotificationBell';
 import NotificationCenter from '@/shell/notifications/NotificationCenter';
+import ThemeMenu from '@/shell/theme/ThemeMenu';
 
 const Header = () => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -38,6 +39,8 @@ const Header = () => {
 
   const dashboardPath = getDashboardPath(userProfile?.role);
   const showDashboardButton = !isOnDashboardPage(pathname, userProfile?.role);
+  const isLandingPage = pathname === '/';
+  const showThemeMenu = !!currentUser && !isLandingPage;
 
   const ProfilePhoto = () => {
     const photoURL = userProfile?.photoURL || userProfile?.photo_url;
@@ -47,13 +50,13 @@ const Header = () => {
         <img
           src={photoURL}
           alt="Profile"
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-gray-700/50"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-app-subtle"
         />
       );
     }
 
     return (
-      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-semibold text-sm sm:text-base border-2 border-gray-700/50">
+      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-app-primary flex items-center justify-center font-semibold text-sm sm:text-base border-2 border-app-subtle">
         {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
       </div>
     );
@@ -61,7 +64,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 z-50">
+      <header className="fixed top-0 left-0 right-0 bg-app-header backdrop-blur-sm border-b border-app-subtle z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-12 sm:h-14">
             {/* Left side - Menu toggle + Logo */}
@@ -69,7 +72,7 @@ const Header = () => {
               {shell?.showSidebarToggle && (
                 <button
                   onClick={shell.toggleSidebar}
-                  className="lg:hidden flex items-center justify-center p-2 mr-1 sm:mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-200 min-h-[44px] min-w-[44px]"
+                  className="lg:hidden flex items-center justify-center p-2 mr-1 sm:mr-2 rounded-lg text-app-muted hover:text-app hover:bg-app-surface-2 transition-colors duration-200 min-h-[44px] min-w-[44px]"
                   aria-label={shell.isSidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
                   aria-expanded={shell.isSidebarOpen}
                 >
@@ -87,7 +90,7 @@ const Header = () => {
               {shell?.showPopupToggle && (
                 <button
                   onClick={shell.togglePopupMenu}
-                  className="lg:hidden flex items-center justify-center p-2 mr-1 sm:mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition-colors duration-200 min-h-[44px] min-w-[44px]"
+                  className="lg:hidden flex items-center justify-center p-2 mr-1 sm:mr-2 rounded-lg text-app-muted hover:text-app hover:bg-app-surface-2 transition-colors duration-200 min-h-[44px] min-w-[44px]"
                   aria-label="Open menu"
                   aria-expanded={shell.isPopupMenuOpen}
                 >
@@ -104,10 +107,10 @@ const Header = () => {
                   priority
                 />
                 <div className="block min-w-0">
-                  <h1 className="text-sm sm:text-base md:text-lg font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+                  <h1 className="text-sm sm:text-base md:text-lg font-bold leading-tight text-app">
                     FPDC
                   </h1>
-                  <p className="hidden lg:block text-[10px] leading-tight text-gray-400 group-hover:text-gray-300 transition-colors duration-200 truncate">
+                  <p className="hidden lg:block text-[10px] leading-tight text-app-muted group-hover:text-app-soft transition-colors duration-200 truncate">
                     Helpdesk Enterprise IT Support
                   </p>
                 </div>
@@ -121,11 +124,13 @@ const Header = () => {
                 {showDashboardButton && (
                   <Link
                     href={dashboardPath}
-                    className="hidden sm:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                    className="hidden sm:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-app-primary text-sm font-medium rounded-lg transition-colors duration-200"
                   >
                     Dashboard
                   </Link>
                 )}
+
+                {showThemeMenu && <ThemeMenu />}
 
                 {/* Notification Bell */}
                 <NotificationBell 
@@ -137,33 +142,33 @@ const Header = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-1.5 sm:space-x-2 p-1 rounded-xl bg-gray-800/50 border border-gray-700/30 hover:bg-gray-700/50 transition-colors duration-200"
+                    className="flex items-center space-x-1.5 sm:space-x-2 p-1 rounded-xl bg-app-surface-2/50 border border-app-subtle hover:bg-app-surface-3 transition-colors duration-200"
                   >
                     <ProfilePhoto />
                     <div className="hidden sm:block text-left min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-20 lg:max-w-28 leading-tight">
+                      <p className="text-xs sm:text-sm font-medium text-app truncate max-w-20 lg:max-w-28 leading-tight">
                         {userProfile?.name || 'User'}
                       </p>
                     </div>
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-app-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
                   {/* Profile Dropdown Menu */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50">
-                      <div className="p-3 sm:p-4 border-b border-gray-700">
+                    <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-app-surface border border-app rounded-xl shadow-xl z-50">
+                      <div className="p-3 sm:p-4 border-b border-app">
                         <div className="flex items-center space-x-3">
                           <ProfilePhoto />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white truncate">
+                            <p className="text-sm font-medium text-app truncate">
                               {userProfile?.name || 'User'}
                             </p>
-                            <p className="hidden sm:block text-xs sm:text-sm text-gray-400 truncate">
+                            <p className="hidden sm:block text-xs sm:text-sm text-app-muted truncate">
                               {userProfile?.email || 'user@example.com'}
                             </p>
-                            <p className="text-xs text-emerald-400 font-medium">
+                            <p className="text-xs text-app-primary font-medium">
                               {userProfile?.department || 'Department'}
                             </p>
                           </div>
@@ -173,7 +178,7 @@ const Header = () => {
                         {showDashboardButton && (
                           <Link
                             href={dashboardPath}
-                            className="flex items-center px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200 sm:hidden"
+                            className="flex items-center px-3 sm:px-4 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200 sm:hidden"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +189,7 @@ const Header = () => {
                         )}
                         <Link
                           href="/profile"
-                          className="flex items-center px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200"
+                          className="flex items-center px-3 sm:px-4 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
                           onClick={() => setIsProfileOpen(false)}
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,7 +202,7 @@ const Header = () => {
                             setIsProfileOpen(false);
                             logout();
                           }}
-                          className="flex items-center w-full px-3 sm:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors duration-200"
+                          className="flex items-center w-full px-3 sm:px-4 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -210,17 +215,17 @@ const Header = () => {
                 </div>
               </div>
             ) : (
-              /* Non-authenticated users */
+              /* Non-authenticated users — no theme customizer on public landing */
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <Link
                   href="/auth"
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-medium text-app-soft hover:text-app transition-colors duration-200"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth?register=true"
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm"
                 >
                   Register
                 </Link>

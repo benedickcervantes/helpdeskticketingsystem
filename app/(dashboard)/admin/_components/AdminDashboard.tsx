@@ -16,7 +16,10 @@ import {
 
 const TicketList = dynamic(
   () => import('@/app/(dashboard)/_components/TicketList'),
-  { loading: () => <TicketListSkeleton /> },
+  {
+    ssr: false,
+    loading: () => <TicketListSkeleton />,
+  },
 );
 const UserManagement = dynamic(
   () => import('@/app/(dashboard)/admin/_components/UserManagement'),
@@ -28,7 +31,7 @@ const FeedbackAnalytics = dynamic(
 );
 
 const AdminDashboard = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const ticketParam = searchParams.get('ticket');
@@ -44,8 +47,6 @@ const AdminDashboard = () => {
     users: 0,
     feedback: 0
   });
-  const [users, setUsers] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -72,18 +73,16 @@ const AdminDashboard = () => {
         api.get('/api/v1/notifications'),
       ]);
       setStats({
-        total: tickets.length,
-        open: tickets.filter((t) => t.status === 'open').length,
-        inProgress: tickets.filter((t) => t.status === 'in-progress').length,
-        resolved: tickets.filter((t) => t.status === 'resolved').length,
-        critical: tickets.filter((t) => t.priority === 'critical').length,
-        users: usersData.length,
-        feedback: feedbackData.length,
+        total: tickets?.length || 0,
+        open: (tickets || []).filter((t) => t.status === 'open').length,
+        inProgress: (tickets || []).filter((t) => t.status === 'in-progress').length,
+        resolved: (tickets || []).filter((t) => t.status === 'resolved').length,
+        critical: (tickets || []).filter((t) => t.priority === 'critical').length,
+        users: usersData?.length || 0,
+        feedback: feedbackData?.length || 0,
       });
-      setUsers(usersData);
-      setNotifications(notificationsData);
       setUnreadNotifications(
-        notificationsData.filter(
+        (notificationsData || []).filter(
           (n) =>
             !n.read &&
             (n.adminNotification || n.userId === currentUser.uid),
@@ -109,54 +108,28 @@ const AdminDashboard = () => {
     };
   }, [loadDashboardData]);
 
-  const StatCard = ({ title, value, color, icon, description }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300 transform hover:-translate-y-1">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-400">{title}</p>
-          <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{value}</p>
-          {description && (
-            <p className="text-xs text-gray-500 mt-1">{description}</p>
-          )}
-        </div>
-        <div className={`p-3 rounded-xl ${color} backdrop-blur-sm flex-shrink-0`}>
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
+  const firstName = userProfile?.name?.split(' ')[0] || 'Admin';
+  const profilePhotoURL = userProfile?.photoURL || userProfile?.photo_url || null;
+  const activeTickets = stats.open + stats.inProgress;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-      {/* Page Title and Description - Enhanced Responsive Design */}
       <div className="pt-4 sm:pt-6 pb-4 sm:pb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white">Admin Dashboard</h1>
-            <p className="mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg text-gray-400">Manage tickets, users, and system settings</p>
-          </div>
-          
-          {/* Admin Notification Badge */}
-          {unreadNotifications > 0 && (
-            <div className="flex items-center space-x-2 bg-emerald-500/20 border border-emerald-500/30 rounded-lg px-3 py-2">
-              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-3.595-3.598A9.969 9.969 0 0118 9.5V7a6 6 0 10-12 0v2.5a9.969 9.969 0 001.595 3.902L5 17h5m5 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span className="text-sm font-medium text-emerald-400">{unreadNotifications} new notifications</span>
-            </div>
-          )}
-        </div>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-app">Admin Dashboard</h1>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-app-muted">
+          Manage tickets, users, and system settings
+        </p>
       </div>
 
       {/* Enhanced Navigation Tabs - Mobile Optimized */}
       <div className="mb-6 sm:mb-8">
-        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-gray-700 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
+        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-app overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'overview'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -170,8 +143,8 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('tickets')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'tickets'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -185,8 +158,8 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('users')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'users'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -200,8 +173,8 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('feedback')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'feedback'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -216,7 +189,7 @@ const AdminDashboard = () => {
 
       {/* Tab Content */}
       {displayTab === 'overview' && (
-        <div className="space-y-5 pb-4">
+        <div className="space-y-6 pb-6">
           {loading ? (
             <div className="space-y-6">
               <StatsGridSkeleton count={4} />
@@ -224,182 +197,278 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
-          {/* Ticket Overview — matches User Dashboard layout */}
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Ticket Overview</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <StatCard
-                title="Total Tickets"
-                value={stats.total}
-                color="bg-blue-500/20"
-                description="All system tickets"
-                icon={
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                }
-              />
-              <StatCard
-                title="Open Tickets"
-                value={stats.open}
-                color="bg-red-500/20"
-                description="Awaiting response"
-                icon={
-                  <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                }
-              />
-              <StatCard
-                title="In Progress"
-                value={stats.inProgress}
-                color="bg-yellow-500/20"
-                description="Being worked on"
-                icon={
-                  <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                }
-              />
-              <StatCard
-                title="Resolved"
-                value={stats.resolved}
-                color="bg-green-500/20"
-                description="Completed tickets"
-                icon={
-                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                }
-              />
-            </div>
-          </div>
-
-          {/* Admin-specific metrics */}
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">System Metrics</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <StatCard
-                title="Critical"
-                value={stats.critical}
-                color="bg-purple-500/20"
-                description="High-priority tickets"
-                icon={
-                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                }
-              />
-              <StatCard
-                title="Total Users"
-                value={stats.users}
-                color="bg-cyan-500/20"
-                description="Registered accounts"
-                icon={
-                  <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                }
-              />
-              <StatCard
-                title="Feedback"
-                value={stats.feedback}
-                color="bg-indigo-500/20"
-                description="User feedback received"
-                icon={
-                  <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                }
-              />
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <button
-                onClick={() => setActiveTab('tickets')}
-                className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors duration-300">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+              {/* Welcome + primary actions */}
+              <section className="relative overflow-hidden rounded-2xl border border-app-subtle bg-app-panel px-5 py-5 sm:px-7 sm:py-6">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    {profilePhotoURL ? (
+                      <img
+                        src={profilePhotoURL}
+                        alt={userProfile?.name || 'Admin'}
+                        className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl object-cover border border-app-primary shadow-lg"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-app-primary text-app-on-primary font-semibold text-lg border border-app-primary shadow-lg">
+                        {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm text-app-primary font-medium">Admin console</p>
+                      <h2 className="text-xl sm:text-2xl font-bold text-app mt-0.5 truncate">
+                        Hi, {firstName}
+                      </h2>
+                      <p className="text-sm text-app-muted mt-1.5">
+                        {activeTickets > 0
+                          ? `${activeTickets} active ticket${activeTickets === 1 ? '' : 's'} across the system.`
+                          : stats.total > 0
+                            ? 'No active tickets right now — queue is clear.'
+                            : 'No tickets yet. Waiting for the first support request.'}
+                        {unreadNotifications > 0 && (
+                          <span className="text-app-primary">
+                            {' '}· {unreadNotifications} unread notification{unreadNotifications === 1 ? '' : 's'}
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-lg">Manage Tickets</h3>
-                    <p className="text-sm text-emerald-100">View and manage all tickets</p>
+                  <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('tickets')}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-app-primary text-app-on-primary text-sm font-semibold px-4 py-2.5 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Manage Tickets
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('users')}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-app bg-app-surface-2 hover:bg-app-surface-3 hover:border-app-primary text-app-soft text-sm font-medium px-4 py-2.5 transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                      </svg>
+                      Users
+                    </button>
                   </div>
                 </div>
-              </button>
+              </section>
 
-              <button
-                onClick={() => setActiveTab('users')}
-                className="bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-emerald-500/30 text-white p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-emerald-500/20 rounded-lg group-hover:bg-emerald-500/30 transition-colors duration-300">
-                    <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-lg">User Management</h3>
-                    <p className="text-sm text-gray-400">Manage user accounts and roles</p>
-                  </div>
+              {/* Ticket Overview */}
+              <section>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <h3 className="text-base sm:text-lg font-semibold text-app">Ticket Overview</h3>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('tickets')}
+                    className="text-xs sm:text-sm text-app-primary hover:opacity-80 font-medium transition-colors"
+                  >
+                    See all
+                  </button>
                 </div>
-              </button>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    {
+                      label: 'Total',
+                      value: stats.total,
+                      accent: 'text-app',
+                      bar: 'bg-blue-500',
+                      iconBg: 'bg-blue-500/20',
+                      iconColor: 'text-blue-400',
+                      hint: 'All system tickets',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Open',
+                      value: stats.open,
+                      accent: 'text-rose-300',
+                      bar: 'bg-rose-500',
+                      iconBg: 'bg-rose-500/20',
+                      iconColor: 'text-rose-400',
+                      hint: 'Awaiting response',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'In progress',
+                      value: stats.inProgress,
+                      accent: 'text-amber-300',
+                      bar: 'bg-amber-500',
+                      iconBg: 'bg-amber-500/20',
+                      iconColor: 'text-amber-400',
+                      hint: 'Being worked on',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Resolved',
+                      value: stats.resolved,
+                      accent: 'text-app-primary',
+                      bar: 'bg-app-primary',
+                      iconBg: 'bg-app-primary-soft',
+                      iconColor: 'text-app-primary',
+                      hint: 'Completed tickets',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ),
+                    },
+                  ].map((stat) => (
+                    <button
+                      key={stat.label}
+                      type="button"
+                      onClick={() => setActiveTab('tickets')}
+                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs text-app-muted font-medium">{stat.label}</p>
+                          <p className={`text-2xl sm:text-3xl font-bold mt-1.5 tabular-nums ${stat.accent}`}>
+                            {stat.value}
+                          </p>
+                          <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
+                        </div>
+                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
+                          {stat.icon}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-              <button
-                onClick={() => setActiveTab('feedback')}
-                className="bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white p-6 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl group"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors duration-300">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-lg text-white">Feedback Analytics</h3>
-                    <p className="text-sm text-indigo-100">View feedback insights</p>
-                  </div>
+              {/* System Metrics */}
+              <section>
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <h3 className="text-base sm:text-lg font-semibold text-app">System Metrics</h3>
                 </div>
-              </button>
-            </div>
-          </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    {
+                      label: 'Critical',
+                      value: stats.critical,
+                      accent: 'text-purple-300',
+                      bar: 'bg-purple-500',
+                      iconBg: 'bg-purple-500/20',
+                      iconColor: 'text-purple-400',
+                      hint: 'High-priority tickets',
+                      tab: 'tickets',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Total Users',
+                      value: stats.users,
+                      accent: 'text-cyan-300',
+                      bar: 'bg-cyan-500',
+                      iconBg: 'bg-cyan-500/20',
+                      iconColor: 'text-cyan-400',
+                      hint: 'Registered accounts',
+                      tab: 'users',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Feedback',
+                      value: stats.feedback,
+                      accent: 'text-indigo-300',
+                      bar: 'bg-indigo-500',
+                      iconBg: 'bg-indigo-500/20',
+                      iconColor: 'text-indigo-400',
+                      hint: 'User feedback received',
+                      tab: 'feedback',
+                      icon: (
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      ),
+                    },
+                  ].map((stat) => (
+                    <button
+                      key={stat.label}
+                      type="button"
+                      onClick={() => setActiveTab(stat.tab)}
+                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs text-app-muted font-medium">{stat.label}</p>
+                          <p className={`text-2xl sm:text-3xl font-bold mt-1.5 tabular-nums ${stat.accent}`}>
+                            {stat.value}
+                          </p>
+                          <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
+                        </div>
+                        <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
+                          {stat.icon}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
             </>
           )}
         </div>
       )}
 
       {displayTab === 'tickets' && (
-        <div className="space-y-4 sm:space-y-6 pb-6 sm:pb-8">
-          {/* Enhanced Admin Ticket Management Header */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">All Support Tickets</h2>
-              <p className="text-xs sm:text-sm text-gray-400">Comprehensive ticket management with advanced filtering and search</p>
-            </div>
-            
-            {/* Admin-specific quick stats - Mobile Responsive */}
-            <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm">
-              <div className="bg-red-500/20 text-red-400 px-2 py-1 rounded border border-red-500/30">
-                {stats.open} Open
+        <div className="space-y-5 pb-4">
+          <div className="relative overflow-hidden rounded-2xl border border-app-subtle bg-app-panel px-4 py-4 sm:px-5 sm:py-5">
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary border border-app-primary">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-semibold text-app">All Support Tickets</h2>
+                  <p className="text-sm text-app-muted mt-0.5">
+                    Manage, assign, and resolve support requests
+                  </p>
+                </div>
               </div>
-              <div className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded border border-yellow-500/30">
-                {stats.inProgress} In Progress
-              </div>
-              <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded border border-purple-500/30">
-                {stats.critical} Critical
+
+              <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+                <span className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/15 px-3 py-1.5 text-xs sm:text-sm font-medium text-rose-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  {stats.open} Open
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/15 px-3 py-1.5 text-xs sm:text-sm font-medium text-amber-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  {stats.inProgress} In Progress
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-500/15 px-3 py-1.5 text-xs sm:text-sm font-medium text-purple-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+                  {stats.critical} Critical
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Enhanced TicketList with admin privileges */}
           <TicketList 
             showAllTickets={true} 
             showUserTicketsOnly={false}
@@ -414,7 +483,7 @@ const AdminDashboard = () => {
       {displayTab === 'users' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">User Management</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-app mb-4 sm:mb-6">User Management</h2>
             <UserManagement />
           </div>
         </div>
@@ -423,7 +492,7 @@ const AdminDashboard = () => {
       {displayTab === 'feedback' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Feedback Analytics</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-app mb-4 sm:mb-6">Feedback Analytics</h2>
             <FeedbackAnalytics />
           </div>
         </div>

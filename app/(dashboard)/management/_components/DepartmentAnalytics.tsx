@@ -70,19 +70,19 @@ const DepartmentAnalytics = ({ tickets, users }) => {
   const departmentEntries = Object.entries(departmentStats);
   const resolutionBadgeClass = (rate) =>
     rate >= 80
-      ? 'bg-emerald-500/20 text-emerald-400'
+      ? 'bg-app-primary-soft text-app-primary border-app-primary/30'
       : rate >= 60
-        ? 'bg-yellow-500/20 text-yellow-400'
-        : 'bg-red-500/20 text-red-400';
+        ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
+        : 'bg-rose-500/15 text-rose-600 border-rose-500/30';
 
   const DepartmentCard = ({ department, stats }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-5 md:p-6 hover:border-emerald-500/30 transition-all duration-300 min-w-0 h-full">
+    <div className="app-card rounded-xl border p-4 sm:p-5 md:p-6 hover:border-app-primary transition-all duration-300 min-w-0 h-full">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 min-w-0">
-        <h3 className="text-base sm:text-lg font-semibold text-white break-words [overflow-wrap:anywhere] min-w-0 flex-1">
+        <h3 className="text-base sm:text-lg font-semibold text-app break-words [overflow-wrap:anywhere] min-w-0 flex-1">
           {department}
         </h3>
         <span
-          className={`inline-flex shrink-0 px-2 py-1 text-xs font-semibold rounded-full ${resolutionBadgeClass(stats.resolutionRate)}`}
+          className={`inline-flex shrink-0 px-2 py-1 text-[11px] font-semibold rounded-lg border ${resolutionBadgeClass(stats.resolutionRate)}`}
         >
           {stats.resolutionRate}% resolved
         </span>
@@ -90,38 +90,38 @@ const DepartmentAnalytics = ({ tickets, users }) => {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
         <div className="min-w-0">
-          <p className="text-xs sm:text-sm text-gray-400">Total Users</p>
-          <p className="text-xl sm:text-2xl font-bold text-white">{stats.totalUsers}</p>
+          <p className="text-xs sm:text-sm text-app-muted">Total Users</p>
+          <p className="text-xl sm:text-2xl font-bold text-app">{stats.totalUsers}</p>
         </div>
         <div className="min-w-0">
-          <p className="text-xs sm:text-sm text-gray-400">Active Users</p>
-          <p className="text-xl sm:text-2xl font-bold text-white">{stats.activeUsers}</p>
+          <p className="text-xs sm:text-sm text-app-muted">Active Users</p>
+          <p className="text-xl sm:text-2xl font-bold text-app">{stats.activeUsers}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
         <div className="min-w-0">
-          <p className="text-xs sm:text-sm text-gray-400">Total Tickets</p>
-          <p className="text-base sm:text-lg font-semibold text-white">{stats.totalTickets}</p>
+          <p className="text-xs sm:text-sm text-app-muted">Total Tickets</p>
+          <p className="text-base sm:text-lg font-semibold text-app">{stats.totalTickets}</p>
         </div>
         <div className="min-w-0">
-          <p className="text-xs sm:text-sm text-gray-400">Resolved</p>
-          <p className="text-base sm:text-lg font-semibold text-white">{stats.resolvedTickets}</p>
+          <p className="text-xs sm:text-sm text-app-muted">Resolved</p>
+          <p className="text-base sm:text-lg font-semibold text-app">{stats.resolvedTickets}</p>
         </div>
       </div>
 
       <div className="mb-4 min-w-0">
-        <p className="text-xs sm:text-sm text-gray-400">Avg Resolution Time</p>
-        <p className="text-base sm:text-lg font-semibold text-white">
+        <p className="text-xs sm:text-sm text-app-muted">Avg Resolution Time</p>
+        <p className="text-base sm:text-lg font-semibold text-app">
           {stats.resolvedTickets > 0
             ? formatResolutionTime(stats.avgResolutionTime)
             : '—'}
         </p>
       </div>
 
-      <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-app-surface-2 rounded-full h-2 overflow-hidden">
         <div
-          className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
+          className="h-2 rounded-full bg-app-primary transition-all duration-300"
           style={{ width: `${stats.resolutionRate}%` }}
         />
       </div>
@@ -134,8 +134,8 @@ const DepartmentAnalytics = ({ tickets, users }) => {
       .slice(0, 3);
 
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-5 md:p-6 min-w-0 h-full">
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
+      <div className="app-card rounded-xl border p-4 sm:p-5 md:p-6 min-w-0 h-full">
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">
           Top Performing Departments
         </h3>
         <div className="space-y-4">
@@ -143,29 +143,29 @@ const DepartmentAnalytics = ({ tickets, users }) => {
             <div key={dept} className="flex items-start justify-between gap-3 min-w-0">
               <div className="flex items-start min-w-0 flex-1">
                 <div
-                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center font-bold text-sm ${
                     index === 0
-                      ? 'bg-yellow-500'
+                      ? 'bg-amber-500/20 text-amber-800 border border-amber-500/40'
                       : index === 1
-                        ? 'bg-gray-400'
-                        : 'bg-orange-500'
+                        ? 'bg-app-surface-2 text-app-soft border border-app'
+                        : 'bg-orange-500/15 text-orange-800 border border-orange-500/35'
                   }`}
                 >
                   {index + 1}
                 </div>
                 <div className="ml-3 min-w-0">
-                  <p className="text-sm font-medium text-white break-words [overflow-wrap:anywhere]">
+                  <p className="text-sm font-medium text-app break-words [overflow-wrap:anywhere]">
                     {dept}
                   </p>
-                  <p className="text-xs text-gray-400">{stats.totalTickets} tickets</p>
+                  <p className="text-xs text-app-muted">{stats.totalTickets} tickets</p>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-sm font-semibold text-white">{stats.resolutionRate}%</p>
-                <p className="text-xs text-gray-400">resolution rate</p>
-                <div className="w-16 bg-gray-700 rounded-full h-1 mt-1 overflow-hidden">
+                <p className="text-sm font-semibold text-app">{stats.resolutionRate}%</p>
+                <p className="text-xs text-app-muted">resolution rate</p>
+                <div className="w-16 bg-app-surface-2 rounded-full h-1 mt-1 overflow-hidden">
                   <div
-                    className="h-1 rounded-full bg-emerald-500"
+                    className="h-1 rounded-full bg-app-primary"
                     style={{ width: `${stats.resolutionRate}%` }}
                   />
                 </div>
@@ -178,22 +178,22 @@ const DepartmentAnalytics = ({ tickets, users }) => {
   };
 
   const DepartmentComparison = () => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-5 md:p-6 min-w-0 h-full">
-      <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
+    <div className="app-card rounded-xl border p-4 sm:p-5 md:p-6 min-w-0 h-full">
+      <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">
         Department Comparison
       </h3>
       <div className="space-y-4">
         {departmentEntries.map(([dept, stats]) => (
           <div key={dept} className="space-y-2 min-w-0">
             <div className="flex justify-between items-start gap-3 min-w-0">
-              <span className="text-sm font-medium text-gray-300 break-words [overflow-wrap:anywhere] min-w-0 flex-1">
+              <span className="text-sm font-medium text-app-soft break-words [overflow-wrap:anywhere] min-w-0 flex-1">
                 {dept}
               </span>
-              <span className="text-sm text-gray-400 shrink-0">{stats.resolutionRate}%</span>
+              <span className="text-sm text-app-muted shrink-0">{stats.resolutionRate}%</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-app-surface-2 rounded-full h-2 overflow-hidden">
               <div
-                className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
+                className="h-2 rounded-full bg-app-primary transition-all duration-300"
                 style={{ width: `${stats.resolutionRate}%` }}
               />
             </div>
@@ -204,37 +204,37 @@ const DepartmentAnalytics = ({ tickets, users }) => {
   );
 
   const DetailCard = ({ department, stats }) => (
-    <div className="bg-gray-800/30 rounded-xl border border-gray-700/50 p-4 space-y-3 min-w-0">
+    <div className="bg-app-surface-2/40 rounded-xl border border-app-subtle p-4 space-y-3 min-w-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between min-w-0">
-        <h4 className="text-sm font-semibold text-white break-words [overflow-wrap:anywhere] min-w-0 flex-1">
+        <h4 className="text-sm font-semibold text-app break-words [overflow-wrap:anywhere] min-w-0 flex-1">
           {department}
         </h4>
         <span
-          className={`inline-flex shrink-0 px-2 py-1 text-xs font-semibold rounded-full ${resolutionBadgeClass(stats.resolutionRate)}`}
+          className={`inline-flex shrink-0 px-2 py-1 text-[11px] font-semibold rounded-lg border ${resolutionBadgeClass(stats.resolutionRate)}`}
         >
           {stats.resolutionRate}%
         </span>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
         <div className="min-w-0">
-          <p className="text-gray-400 text-xs">Total Users</p>
-          <p className="text-white font-medium">{stats.totalUsers}</p>
+          <p className="text-app-muted text-xs">Total Users</p>
+          <p className="text-app font-medium">{stats.totalUsers}</p>
         </div>
         <div className="min-w-0">
-          <p className="text-gray-400 text-xs">Active Users</p>
-          <p className="text-white font-medium">{stats.activeUsers}</p>
+          <p className="text-app-muted text-xs">Active Users</p>
+          <p className="text-app font-medium">{stats.activeUsers}</p>
         </div>
         <div className="min-w-0">
-          <p className="text-gray-400 text-xs">Total Tickets</p>
-          <p className="text-white font-medium">{stats.totalTickets}</p>
+          <p className="text-app-muted text-xs">Total Tickets</p>
+          <p className="text-app font-medium">{stats.totalTickets}</p>
         </div>
         <div className="min-w-0">
-          <p className="text-gray-400 text-xs">Resolved</p>
-          <p className="text-white font-medium">{stats.resolvedTickets}</p>
+          <p className="text-app-muted text-xs">Resolved</p>
+          <p className="text-app font-medium">{stats.resolvedTickets}</p>
         </div>
         <div className="min-w-0 sm:col-span-2">
-          <p className="text-gray-400 text-xs">Avg Resolution Time</p>
-          <p className="text-white font-medium">
+          <p className="text-app-muted text-xs">Avg Resolution Time</p>
+          <p className="text-app font-medium">
             {stats.resolvedTickets > 0
               ? formatResolutionTime(stats.avgResolutionTime)
               : '—'}
@@ -248,14 +248,14 @@ const DepartmentAnalytics = ({ tickets, users }) => {
     return (
       <div className="space-y-4 sm:space-y-8 min-w-0 w-full max-w-full">
         <div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-4">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-app mb-2 sm:mb-4">
             Department Analytics
           </h2>
-          <p className="text-xs sm:text-sm md:text-base text-gray-400">
+          <p className="text-xs sm:text-sm md:text-base text-app-muted">
             Performance metrics and ticket distribution by department
           </p>
         </div>
-        <p className="text-sm text-gray-400 py-8 text-center">
+        <p className="text-sm text-app-muted py-8 text-center">
           No department data available. User department information is required to generate analytics.
         </p>
       </div>
@@ -265,10 +265,10 @@ const DepartmentAnalytics = ({ tickets, users }) => {
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8 min-w-0 w-full max-w-full">
       <div className="min-w-0">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-4 md:mb-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-app mb-2 sm:mb-4 md:mb-6">
           Department Analytics
         </h2>
-        <p className="text-xs sm:text-sm md:text-base text-gray-400 mb-4 sm:mb-6 md:mb-8">
+        <p className="text-xs sm:text-sm md:text-base text-app-muted mb-4 sm:mb-6 md:mb-8">
           Performance metrics and ticket distribution by department
         </p>
       </div>
@@ -284,8 +284,8 @@ const DepartmentAnalytics = ({ tickets, users }) => {
         <DepartmentComparison />
       </div>
 
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-5 md:p-6 min-w-0 overflow-hidden">
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+      <div className="app-card rounded-xl border p-4 sm:p-5 md:p-6 min-w-0 overflow-hidden">
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-4">
           Detailed Department Statistics
         </h3>
 
@@ -297,51 +297,37 @@ const DepartmentAnalytics = ({ tickets, users }) => {
         </div>
 
         {/* Table view: wide desktop only (1280px+) */}
-        <div className="hidden xl:block w-full max-w-full overflow-x-auto">
-          <table className="w-full table-fixed divide-y divide-gray-700">
-            <thead className="bg-gray-700/50">
-              <tr>
-                <th className="w-[28%] px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Department
-                </th>
-                <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Users
-                </th>
-                <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Active
-                </th>
-                <th className="w-[12%] px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Tickets
-                </th>
-                <th className="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Resolved
-                </th>
-                <th className="w-[14%] px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Rate
-                </th>
-                <th className="w-[16%] px-3 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Avg Time
-                </th>
+        <div className="hidden xl:block w-full max-w-full overflow-x-auto rounded-xl border border-app bg-app-panel">
+          <table className="w-full table-fixed text-sm">
+            <thead>
+              <tr className="border-b border-app bg-app-surface-2/60 text-left text-[11px] uppercase tracking-wide text-app-muted">
+                <th className="w-[28%] px-3 py-2.5 font-semibold">Department</th>
+                <th className="w-[10%] px-3 py-2.5 font-semibold">Users</th>
+                <th className="w-[10%] px-3 py-2.5 font-semibold">Active</th>
+                <th className="w-[12%] px-3 py-2.5 font-semibold">Tickets</th>
+                <th className="w-[10%] px-3 py-2.5 font-semibold">Resolved</th>
+                <th className="w-[14%] px-3 py-2.5 font-semibold">Rate</th>
+                <th className="w-[16%] px-3 py-2.5 font-semibold">Avg Time</th>
               </tr>
             </thead>
-            <tbody className="bg-gray-800/30 divide-y divide-gray-700">
+            <tbody className="divide-y divide-[color:var(--app-border-subtle)]">
               {departmentEntries.map(([department, stats]) => (
-                <tr key={department} className="hover:bg-gray-700/30 transition-colors duration-200">
-                  <td className="px-4 py-4 text-sm font-medium text-white align-top break-words [overflow-wrap:anywhere]">
+                <tr key={department} className="hover:bg-app-surface-2/50 transition-colors">
+                  <td className="px-3 py-2.5 font-medium text-app align-middle break-words [overflow-wrap:anywhere]">
                     {department}
                   </td>
-                  <td className="px-3 py-4 text-sm text-gray-400 align-top">{stats.totalUsers}</td>
-                  <td className="px-3 py-4 text-sm text-gray-400 align-top">{stats.activeUsers}</td>
-                  <td className="px-3 py-4 text-sm text-gray-400 align-top">{stats.totalTickets}</td>
-                  <td className="px-3 py-4 text-sm text-gray-400 align-top">{stats.resolvedTickets}</td>
-                  <td className="px-3 py-4 align-top">
+                  <td className="px-3 py-2.5 text-app-muted align-middle">{stats.totalUsers}</td>
+                  <td className="px-3 py-2.5 text-app-muted align-middle">{stats.activeUsers}</td>
+                  <td className="px-3 py-2.5 text-app-muted align-middle">{stats.totalTickets}</td>
+                  <td className="px-3 py-2.5 text-app-muted align-middle">{stats.resolvedTickets}</td>
+                  <td className="px-3 py-2.5 align-middle">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${resolutionBadgeClass(stats.resolutionRate)}`}
+                      className={`inline-flex px-2 py-1 text-[11px] font-semibold rounded-lg border ${resolutionBadgeClass(stats.resolutionRate)}`}
                     >
                       {stats.resolutionRate}%
                     </span>
                   </td>
-                  <td className="px-3 py-4 text-sm text-gray-400 align-top">
+                  <td className="px-3 py-2.5 text-[13px] text-app-muted align-middle">
                     {stats.resolvedTickets > 0
                       ? formatResolutionTime(stats.avgResolutionTime)
                       : '—'}

@@ -31,14 +31,14 @@ const MessageAvatar = ({ author, size = 'sm' }) => {
       <img
         src={photoUrl}
         alt={displayName}
-        className={`${sizeClass} rounded-full object-cover border border-gray-600/50 flex-shrink-0`}
+        className={`${sizeClass} rounded-full object-cover border border-app-subtle flex-shrink-0`}
       />
     );
   }
 
   return (
     <div
-      className={`${sizeClass} rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-semibold border border-gray-600/50 flex-shrink-0`}
+      className={`${sizeClass} rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-app-on-primary font-semibold border border-app-subtle flex-shrink-0`}
     >
       {displayName.charAt(0).toUpperCase()}
     </div>
@@ -62,7 +62,7 @@ const isStaffRole = (role) =>
 const ReadReceipt = ({ seen }) => (
   <span
     className={`inline-flex items-center gap-0.5 text-[10px] sm:text-xs ${
-      seen ? 'text-cyan-400' : 'text-gray-500'
+      seen ? 'text-cyan-400' : 'text-app-muted'
     }`}
     title={seen ? 'Seen' : 'Sent'}
   >
@@ -329,8 +329,8 @@ export default function TicketConversation({
 
   if (accessDenied) {
     return (
-      <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-700/50">
-        <p className="text-sm text-gray-400 text-center">
+      <div className="app-card rounded-lg sm:rounded-xl p-4 sm:p-6 border">
+        <p className="text-sm text-app-muted text-center">
           Only the ticket creator and IT support can view this conversation.
         </p>
       </div>
@@ -340,9 +340,9 @@ export default function TicketConversation({
   return (
     <div
       id="ticket-conversation"
-      className="bg-gray-800/30 rounded-lg sm:rounded-xl border border-gray-700/50 overflow-hidden"
+      className="app-card rounded-lg sm:rounded-xl border overflow-hidden"
     >
-      <div className="flex items-center gap-2 p-3 sm:p-4 border-b border-gray-700/50">
+      <div className="flex items-center gap-2 p-3 sm:p-4 border-b border-app-subtle">
         <svg
           className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400"
           fill="none"
@@ -356,11 +356,11 @@ export default function TicketConversation({
             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
           />
         </svg>
-        <h4 className="text-base sm:text-lg font-semibold text-white">
+        <h4 className="text-base sm:text-lg font-semibold text-app">
           Conversation
         </h4>
         {messages.length > 0 && (
-          <span className="text-xs text-gray-500 ml-auto">
+          <span className="text-xs text-app-muted ml-auto">
             {messages.length} {messages.length === 1 ? 'message' : 'messages'}
           </span>
         )}
@@ -371,10 +371,10 @@ export default function TicketConversation({
           <div className="space-y-3">
             {[1, 2].map((i) => (
               <div key={i} className="animate-pulse flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-700/50" />
+                <div className="w-8 h-8 rounded-full bg-app-surface-2/80" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-700/50 rounded w-1/4" />
-                  <div className="h-4 bg-gray-700/50 rounded w-3/4" />
+                  <div className="h-3 bg-app-surface-2/80 rounded w-1/4" />
+                  <div className="h-4 bg-app-surface-2/80 rounded w-3/4" />
                 </div>
               </div>
             ))}
@@ -391,7 +391,7 @@ export default function TicketConversation({
             </button>
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-6">
+          <p className="text-sm text-app-muted text-center py-6">
             No messages yet. Start the conversation below.
           </p>
         ) : (
@@ -411,7 +411,7 @@ export default function TicketConversation({
                   <div
                     className={`flex items-center gap-2 mb-1 flex-wrap ${isOwn ? 'justify-end' : ''}`}
                   >
-                    <span className="text-xs sm:text-sm font-medium text-gray-200">
+                    <span className="text-xs sm:text-sm font-medium text-app-soft">
                       {message.author?.name || message.author?.email}
                     </span>
                     {authorIsStaff && (
@@ -419,7 +419,7 @@ export default function TicketConversation({
                         IT Support
                       </span>
                     )}
-                    <span className="text-[10px] sm:text-xs text-gray-500">
+                    <span className="text-[10px] sm:text-xs text-app-muted">
                       {formatMessageTime(message.createdAt)}
                     </span>
                   </div>
@@ -427,8 +427,8 @@ export default function TicketConversation({
                     <div
                       className={`inline-block text-left rounded-lg sm:rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 ${
                         isOwn
-                          ? 'bg-emerald-600/20 border border-emerald-500/30 text-gray-100'
-                          : 'bg-gray-700/40 border border-gray-600/50 text-gray-200'
+                          ? 'bg-app-primary-soft border border-app-primary/30 text-app'
+                          : 'bg-app-surface-2/60 border border-app-subtle text-app-soft'
                       }`}
                     >
                       <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
@@ -447,7 +447,7 @@ export default function TicketConversation({
                           key={attachment.id}
                           type="button"
                           onClick={() => onImageClick?.(attachment)}
-                          className="group relative rounded-lg overflow-hidden border border-gray-600/50 bg-gray-900/50 aspect-square w-20 sm:w-24 hover:border-purple-500/50 transition-colors"
+                          className="group relative rounded-lg overflow-hidden border border-app-subtle bg-app-surface-2/80 aspect-square w-20 sm:w-24 hover:border-purple-500/50 transition-colors"
                         >
                           {attachment.url ? (
                             <img
@@ -456,7 +456,7 @@ export default function TicketConversation({
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-500 text-[10px] px-1">
+                            <div className="w-full h-full flex items-center justify-center text-app-muted text-[10px] px-1">
                               Unavailable
                             </div>
                           )}
@@ -478,7 +478,7 @@ export default function TicketConversation({
       </div>
 
       {canReply ? (
-        <div className="p-3 sm:p-4 border-t border-gray-700/50 space-y-3">
+        <div className="p-3 sm:p-4 border-t border-app-subtle space-y-3">
           {error && messages.length > 0 && (
             <p className="text-xs text-red-400">{error}</p>
           )}
@@ -490,7 +490,7 @@ export default function TicketConversation({
                   <img
                     src={preview}
                     alt={`Preview ${index + 1}`}
-                    className="w-16 h-16 object-cover rounded-lg border border-gray-600/50"
+                    className="w-16 h-16 object-cover rounded-lg border border-app-subtle"
                   />
                   <button
                     type="button"
@@ -516,7 +516,7 @@ export default function TicketConversation({
             placeholder="Type your message… (Enter to send, Shift+Enter for new line)"
             rows={2}
             disabled={sending}
-            className="w-full bg-gray-900/50 border border-gray-600/50 rounded-lg px-3 py-2 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none disabled:opacity-50"
+            className="app-field w-full border rounded-lg px-3 py-2 text-sm sm:text-base focus:outline-none resize-none disabled:opacity-50"
           />
 
           <div className="flex items-center justify-between gap-2">
@@ -534,7 +534,7 @@ export default function TicketConversation({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={sending || attachmentFiles.length >= MAX_ATTACHMENTS}
-                className="px-3 py-2 text-xs sm:text-sm text-gray-300 hover:text-white bg-gray-700/50 hover:bg-gray-700 rounded-lg border border-gray-600/50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                className="px-3 py-2 text-xs sm:text-sm text-app-soft hover:text-app bg-app-surface-2/80 hover:bg-app-surface-3 rounded-lg border border-app-subtle transition-colors disabled:opacity-50 flex items-center gap-1.5"
               >
                 <svg
                   className="w-4 h-4"
@@ -551,7 +551,7 @@ export default function TicketConversation({
                 </svg>
                 Attach
               </button>
-              <span className="text-[10px] text-gray-500 hidden sm:inline">
+              <span className="text-[10px] text-app-muted hidden sm:inline">
                 Up to {MAX_ATTACHMENTS} photos, 5MB each
               </span>
             </div>
@@ -560,7 +560,7 @@ export default function TicketConversation({
               type="button"
               onClick={handleSend}
               disabled={sending || !canSend}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-app-primary hover:opacity-90 text-app-on-primary rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {sending ? (
                 <>
@@ -607,8 +607,8 @@ export default function TicketConversation({
           </div>
         </div>
       ) : ticketStatus === 'closed' && canAccess ? (
-        <div className="p-3 sm:p-4 border-t border-gray-700/50">
-          <p className="text-xs sm:text-sm text-gray-500 text-center">
+        <div className="p-3 sm:p-4 border-t border-app-subtle">
+          <p className="text-xs sm:text-sm text-app-muted text-center">
             This ticket is closed. No new messages can be posted.
           </p>
         </div>

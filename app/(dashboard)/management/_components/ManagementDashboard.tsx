@@ -118,19 +118,19 @@ const ManagementDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+      <div className="min-h-screen bg-app-gradient py-8">
         <DashboardPageSkeleton tabCount={7} content="charts" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-app-gradient">
       <div className="w-full max-w-7xl mx-auto min-w-0 px-2 sm:px-4 lg:px-6 xl:px-8 overflow-x-hidden">
         {/* Page Title and Description */}
         <div className="pt-3 sm:pt-6 pb-3 sm:pb-6">
-          <h1 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight">Management Dashboard</h1>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-sm lg:text-base text-gray-400">Comprehensive analytics and insights for executive decision making</p>
+          <h1 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-app leading-tight">Management Dashboard</h1>
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm lg:text-base text-app-muted">Comprehensive analytics and insights for executive decision making</p>
         </div>
 
         {/* Mobile tab selector (iPhone SE and small phones) */}
@@ -140,7 +140,7 @@ const ManagementDashboard = () => {
             id="management-tab-select"
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3 py-2.5 app-field border rounded-lg text-sm focus:outline-none"
           >
             {TABS.map((tab) => (
               <option key={tab.id} value={tab.id}>{tab.label}</option>
@@ -150,15 +150,15 @@ const ManagementDashboard = () => {
 
         {/* Navigation Tabs — tablet and desktop */}
         <div className="hidden sm:block mb-6 sm:mb-8">
-          <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-gray-700 overflow-x-auto scrollbar-hide">
+          <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-app overflow-x-auto scrollbar-hide">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                    ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                    : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
                 }`}
               >
                 {tab.label}
