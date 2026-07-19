@@ -112,7 +112,7 @@ export default function TicketConversation({
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [accessDenied, setAccessDenied] = useState(false);
+  const [serverDenied, setServerDenied] = useState(false);
   const [body, setBody] = useState('');
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [attachmentPreviews, setAttachmentPreviews] = useState([]);
@@ -123,8 +123,12 @@ export default function TicketConversation({
   const markReadInFlight = useRef(false);
 
   const isStaff = isStaffRole(currentUserRole);
-  const canAccess =
-    createdBy === currentUserId || isStaff;
+  // Require real IDs — `undefined === undefined` must never grant access.
+  const canAccess = Boolean(
+    currentUserId &&
+      (isStaff || (Boolean(createdBy) && createdBy === currentUserId)),
+  );
+  const accessDenied = !canAccess || serverDenied;
   const canReply = canAccess && ticketStatus !== 'closed';
 
   const scrollToBottom = useCallback(() => {
@@ -165,21 +169,27 @@ export default function TicketConversation({
   const loadMessages = useCallback(async () => {
     if (!ticketId || !canAccess) {
       setLoading(false);
-      if (!canAccess) setAccessDenied(true);
+      setMessages([]);
       return;
     }
 
     setLoading(true);
     setError('');
-    setAccessDenied(false);
+    setServerDenied(false);
 
     try {
       const data = await getTicketMessages(ticketId);
-      setMessages(data);
+      setMessages(Array.isArray(data) ? data : []);
     } catch (err) {
+      const status = err?.status;
       const msg = err instanceof Error ? err.message : 'Failed to load conversation';
-      if (msg.toLowerCase().includes('access') || msg.includes('403')) {
-        setAccessDenied(true);
+      if (
+        status === 403 ||
+        msg.toLowerCase().includes('access') ||
+        msg.includes('403')
+      ) {
+        setServerDenied(true);
+        setMessages([]);
       } else {
         setError(msg);
       }
@@ -193,23 +203,23 @@ export default function TicketConversation({
   }, [loadMessages]);
 
   useEffect(() => {
-    if (scrollIntoViewOnMount) {
+    if (scrollIntoViewOnMount && canAccess) {
       setTimeout(() => {
         document
           .getElementById('ticket-conversation')
           ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 200);
     }
-  }, [scrollIntoViewOnMount, ticketId]);
+  }, [scrollIntoViewOnMount, ticketId, canAccess]);
 
   useEffect(() => {
-    if (!loading && messages.length > 0) {
+    if (!loading && messages.length > 0 && canAccess) {
       scrollToBottom();
     }
-  }, [loading, messages.length, scrollToBottom]);
+  }, [loading, messages.length, scrollToBottom, canAccess]);
 
   useEffect(() => {
-    if (!ticketId) return;
+    if (!ticketId || !canAccess) return;
 
     const unsubscribe = subscribeTicketMessageEvents((payload) => {
       if (payload?.ticketId !== ticketId || !payload?.message) return;
@@ -225,10 +235,10 @@ export default function TicketConversation({
     });
 
     return unsubscribe;
-  }, [ticketId, currentUserId, markAsRead]);
+  }, [ticketId, currentUserId, markAsRead, canAccess]);
 
   useEffect(() => {
-    if (!ticketId) return;
+    if (!ticketId || !canAccess) return;
 
     const unsubscribe = subscribeTicketMessagesReadEvents((payload) => {
       if (payload?.ticketId !== ticketId) return;
@@ -236,7 +246,7 @@ export default function TicketConversation({
     });
 
     return unsubscribe;
-  }, [ticketId, applyReadReceipt]);
+  }, [ticketId, applyReadReceipt, canAccess]);
 
   useEffect(() => {
     return () => {
@@ -329,10 +339,23 @@ export default function TicketConversation({
 
   if (accessDenied) {
     return (
-      <div className="app-card rounded-lg sm:rounded-xl p-4 sm:p-6 border">
-        <p className="text-sm text-app-muted text-center">
-          Only the ticket creator and IT support can view this conversation.
-        </p>
+      <div
+        id="ticket-conversation"
+        className="app-card rounded-lg sm:rounded-xl border p-4 sm:p-5"
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-app-surface-2 text-app-muted">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-semibold text-app">Conversation is private</h4>
+            <p className="mt-1 text-sm text-app-muted">
+              Only the person who created this ticket and IT support (Admin) can view or reply in this conversation. Ticket details remain visible.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

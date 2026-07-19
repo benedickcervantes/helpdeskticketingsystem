@@ -151,21 +151,129 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  /* Match NotificationBell: p-3 (12px) + 24px icon ≈ 48px hit target */
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
   border: none;
-  border-radius: 10px;
+  border-radius: 0.75rem;
   background: transparent;
   color: var(--app-text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.app-theme-icon-btn:hover {
+  transform: scale(1.05);
+}
+.app-theme-icon-btn:active {
+  transform: scale(0.95);
 }
 .app-theme-icon-btn:hover,
 .app-theme-icon-btn--active {
   background: var(--app-primary-soft);
   color: var(--app-primary);
+}
+.app-theme-icon-btn--tip {
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-primary) 28%, transparent);
+  animation: app-theme-tip-pulse 1.8s ease-in-out infinite;
+}
+@keyframes app-theme-tip-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-primary) 22%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--app-primary) 12%, transparent);
+  }
+}
+.app-theme-tip {
+  position: fixed;
+  z-index: 9998;
+  box-sizing: border-box;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+  color: var(--app-text);
+  text-align: left;
+}
+.app-theme-tip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: var(--tip-arrow-left, calc(100% - 28px));
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid var(--app-border);
+  border-top: 1px solid var(--app-border);
+  background: var(--app-surface);
+  transform: rotate(45deg);
+}
+.app-theme-tip--above::before {
+  top: auto;
+  bottom: -6px;
+  transform: rotate(225deg);
+}
+.app-theme-tip__badge {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.app-theme-tip__title {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--app-text);
+}
+.app-theme-tip__text {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--app-text-muted);
+}
+.app-theme-tip__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 0.45rem 0.75rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: var(--app-primary);
+  color: var(--app-on-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.app-theme-tip__btn:hover {
+  opacity: 0.92;
+}
+@media (max-width: 640px) {
+  .app-theme-tip {
+    padding: 0.75rem 0.8rem;
+  }
+  .app-theme-tip__title {
+    font-size: 0.8125rem;
+  }
+  .app-theme-tip__text {
+    font-size: 0.75rem;
+    margin-bottom: 0.65rem;
+  }
 }
 .app-theme-layer--mobile {
   position: fixed;

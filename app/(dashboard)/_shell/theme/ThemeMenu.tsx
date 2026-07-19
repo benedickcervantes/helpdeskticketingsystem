@@ -8,20 +8,33 @@ import {
   type ThemeMode,
 } from '@/contexts/ThemeContext';
 
-function PaletteIcon() {
+/** Half-filled circle — standard appearance / theme control mark. */
+function ThemeIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-      <path d="M12 2a10 10 0 0 0-7.35 16.76l.65.65a2 2 0 0 0 2.83 0l.35-.35a2 2 0 0 1 1.41-.59H12a6 6 0 0 0 0-12c1.1 0 2.12.3 3 .82" />
-      <circle cx="7.5" cy="10" r="1" fill="currentColor" stroke="none" />
-      <circle cx="10" cy="7" r="1" fill="currentColor" stroke="none" />
-      <circle cx="14.5" cy="8" r="1" fill="currentColor" stroke="none" />
+    <svg
+      className="w-6 h-6"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="8.25"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M12 3.75a8.25 8.25 0 0 0 0 16.5V3.75z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
 
 function SunIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
     </svg>
@@ -30,7 +43,7 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
   );
@@ -41,6 +54,16 @@ type PanelCoords = {
   left: number;
 };
 
+type TipCoords = {
+  top: number;
+  left: number;
+  width: number;
+  arrowLeft: number;
+  placement: 'above' | 'below';
+};
+
+const THEME_TIP_KEY = 'helpdesk-theme-tip-seen';
+
 export default function ThemeMenu() {
   const { theme, accentColor, setTheme, setAccentColor, resetToDefault, isDefault } =
     useTheme();
@@ -48,14 +71,84 @@ export default function ThemeMenu() {
   const [mounted, setMounted] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
   const [coords, setCoords] = useState<PanelCoords | null>(null);
+  const [showTip, setShowTip] = useState(false);
+  const [tipCoords, setTipCoords] = useState<TipCoords | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const tipTitleId = useId();
+
+  const dismissTip = () => {
+    setShowTip(false);
+    setTipCoords(null);
+    try {
+      localStorage.setItem(THEME_TIP_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // One-time coach mark after login so users discover the new theme feature.
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      if (localStorage.getItem(THEME_TIP_KEY) === '1') return;
+    } catch {
+      return;
+    }
+    const timer = window.setTimeout(() => setShowTip(true), 900);
+    return () => window.clearTimeout(timer);
+  }, [mounted]);
+
+  // Keep tip inside the viewport on small phones (fixed + clamped).
+  useLayoutEffect(() => {
+    if (!showTip || open) {
+      setTipCoords(null);
+      return;
+    }
+
+    const updateTipPosition = () => {
+      const btn = buttonRef.current;
+      if (!btn) return;
+
+      const rect = btn.getBoundingClientRect();
+      const pad = 12;
+      const width = Math.min(280, window.innerWidth - pad * 2);
+      let left = rect.right - width;
+      left = Math.max(pad, Math.min(left, window.innerWidth - width - pad));
+
+      const estimatedHeight = isNarrow ? 160 : 150;
+      let top = rect.bottom + 10;
+      let placement: TipCoords['placement'] = 'below';
+      if (top + estimatedHeight > window.innerHeight - pad) {
+        top = Math.max(pad, rect.top - estimatedHeight - 10);
+        placement = 'above';
+      }
+
+      // Offset from tip's left edge to the theme button center.
+      const buttonCenterX = rect.left + rect.width / 2;
+      const arrowLeft = Math.max(
+        14,
+        Math.min(buttonCenterX - left - 5, width - 18),
+      );
+
+      setTipCoords({ top, left, width, arrowLeft, placement });
+    };
+
+    updateTipPosition();
+    window.addEventListener('resize', updateTipPosition);
+    window.addEventListener('scroll', updateTipPosition, true);
+    return () => {
+      window.removeEventListener('resize', updateTipPosition);
+      window.removeEventListener('scroll', updateTipPosition, true);
+    };
+  }, [showTip, open, isNarrow]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -252,16 +345,58 @@ export default function ThemeMenu() {
       <button
         ref={buttonRef}
         type="button"
-        className={`app-theme-icon-btn ${open ? 'app-theme-icon-btn--active' : ''}`}
-        aria-label="Customize theme"
+        className={`app-theme-icon-btn ${open ? 'app-theme-icon-btn--active' : ''} ${
+          showTip && !open ? 'app-theme-icon-btn--tip' : ''
+        }`}
+        aria-label="Theme settings"
+        title="Theme"
         aria-expanded={open}
+        aria-describedby={showTip && !open ? tipTitleId : undefined}
         onClick={(event) => {
           event.stopPropagation();
+          if (showTip) dismissTip();
           setOpen((prev) => !prev);
         }}
       >
-        <PaletteIcon />
+        <ThemeIcon />
       </button>
+
+      {showTip && !open && mounted && tipCoords
+        ? createPortal(
+            <div
+              ref={tipRef}
+              className={`app-theme-tip ${
+                tipCoords.placement === 'above' ? 'app-theme-tip--above' : ''
+              }`}
+              role="status"
+              aria-labelledby={tipTitleId}
+              style={{
+                top: tipCoords.top,
+                left: tipCoords.left,
+                width: tipCoords.width,
+                ['--tip-arrow-left' as string]: `${tipCoords.arrowLeft}px`,
+              }}
+            >
+              <span className="app-theme-tip__badge">New</span>
+              <p className="app-theme-tip__title" id={tipTitleId}>
+                Customize your theme
+              </p>
+              <p className="app-theme-tip__text">
+                Switch Light or Dark mode and pick an accent color anytime from
+                this button.
+              </p>
+              <button
+                type="button"
+                className="app-theme-tip__btn"
+                onClick={dismissTip}
+              >
+                Got it
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
+
       {overlay}
     </div>
   );

@@ -1840,10 +1840,11 @@ const TicketList = ({
 
               <FeedbackRatingPanel ticket={selectedTicketDetails} />
 
+              {/* Conversation: creator + staff only (enforced in TicketConversation + API) */}
               <TicketConversation
                 ticketId={selectedTicketDetails.id}
                 ticketStatus={selectedTicketDetails.status}
-                createdBy={selectedTicketDetails.createdBy}
+                createdBy={selectedTicketDetails.createdBy || selectedTicketDetails.creatorInfo?.id}
                 currentUserId={currentUser?.uid}
                 currentUserRole={currentUser?.role || userProfile?.role}
                 onImageClick={(attachment) => setLightboxImage(attachment)}
