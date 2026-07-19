@@ -66,7 +66,7 @@ const PopupMenu = ({ isOpen, onClose }) => {
     }
     
     return (
-      <div className={`${size} bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center text-white font-semibold text-sm ${className}`}>
+      <div className={`${size} bg-app-primary rounded-lg flex items-center justify-center font-semibold text-sm ${className}`}>
         {userProfile?.name?.charAt(0)?.toUpperCase() || currentUser?.email?.charAt(0)?.toUpperCase() || 'U'}
       </div>
     );
@@ -88,10 +88,10 @@ const PopupMenu = ({ isOpen, onClose }) => {
       {/* Popup Menu */}
       <div 
         ref={popupRef}
-        className="fixed top-16 left-4 right-4 bg-gray-900/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700/50 z-[9999] transform transition-all duration-300 ease-out overflow-hidden max-h-[calc(100vh-5rem)]"
+        className="fixed top-16 left-4 right-4 bg-app-surface/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-app-subtle z-[9999] transform transition-all duration-300 ease-out overflow-hidden max-h-[calc(100vh-5rem)]"
       >
-        {/* Gradient border effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-2xl"></div>
+        {/* Accent wash */}
+        <div className="absolute inset-0 bg-app-primary-soft rounded-2xl"></div>
         
         <div className="relative p-6">
           {/* Header */}
@@ -99,17 +99,17 @@ const PopupMenu = ({ isOpen, onClose }) => {
             <div className="flex items-center space-x-3">
               <ProfilePhoto size="w-12 h-12" />
               <div>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-app">
                   {userProfile?.name || 'User'}
                 </h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-app-muted">
                   {userProfile?.role || 'User'} • {userProfile?.department || 'IT Department'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
+              className="p-2 rounded-xl text-app-muted hover:text-app hover:bg-app-surface-2 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -121,40 +121,40 @@ const PopupMenu = ({ isOpen, onClose }) => {
           <div className="space-y-2">
             <Link
               href={dashboardPath}
-              className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-cyan-500/10 hover:text-white transition-all duration-200 group"
+              className="flex items-center space-x-3 px-4 py-3 rounded-xl text-app-soft hover:bg-app-primary-soft hover:text-app transition-all duration-200 group"
               onClick={onClose}
             >
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors duration-200">
-                <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-xl bg-app-primary-soft flex items-center justify-center transition-colors duration-200">
+                <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                 </svg>
               </div>
               <div>
                 <span className="font-medium">Dashboard</span>
-                <p className="text-xs text-gray-500">View your tickets and activity</p>
+                <p className="text-xs text-app-muted">View your tickets and activity</p>
               </div>
             </Link>
 
             <Link
               href="/profile"
-              className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-cyan-500/10 hover:text-white transition-all duration-200 group"
+              className="flex items-center space-x-3 px-4 py-3 rounded-xl text-app-soft hover:bg-app-primary-soft hover:text-app transition-all duration-200 group"
               onClick={onClose}
             >
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors duration-200">
-                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-xl bg-app-primary-soft flex items-center justify-center transition-colors duration-200">
+                <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
               <div>
                 <span className="font-medium">Profile Settings</span>
-                <p className="text-xs text-gray-500">Manage your account</p>
+                <p className="text-xs text-app-muted">Manage your account</p>
               </div>
             </Link>
 
             {userProfile?.role === 'admin' && (
               <Link
                 href="/admin"
-                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-cyan-500/10 hover:text-white transition-all duration-200 group"
+                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-app-soft hover:bg-app-primary-soft hover:text-app transition-all duration-200 group"
                 onClick={onClose}
               >
                 <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors duration-200">
@@ -164,7 +164,7 @@ const PopupMenu = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <span className="font-medium">Admin Panel</span>
-                  <p className="text-xs text-gray-500">System administration</p>
+                  <p className="text-xs text-app-muted">System administration</p>
                 </div>
               </Link>
             )}
@@ -172,7 +172,7 @@ const PopupMenu = ({ isOpen, onClose }) => {
             {userProfile?.role === 'management' && (
               <Link
                 href="/management"
-                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-cyan-500/10 hover:text-white transition-all duration-200 group"
+                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-app-soft hover:bg-app-primary-soft hover:text-app transition-all duration-200 group"
                 onClick={onClose}
               >
                 <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors duration-200">
@@ -182,26 +182,26 @@ const PopupMenu = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <span className="font-medium">Management</span>
-                  <p className="text-xs text-gray-500">Team and analytics</p>
+                  <p className="text-xs text-app-muted">Team and analytics</p>
                 </div>
               </Link>
             )}
           </div>
 
           {/* Logout Button */}
-          <div className="mt-6 pt-4 border-t border-gray-700/50">
+          <div className="mt-6 pt-4 border-t border-app-subtle">
             <button
               onClick={handleLogout}
               className="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-red-400 hover:bg-gradient-to-r hover:from-red-500/10 hover:to-red-600/10 hover:text-red-300 transition-all duration-200 group"
             >
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors duration-200">
                 <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 713-3h4a3 3 0 713 3v1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </div>
               <div>
                 <span className="font-medium">Sign Out</span>
-                <p className="text-xs text-gray-500">End your session</p>
+                <p className="text-xs text-app-muted">End your session</p>
               </div>
             </button>
           </div>

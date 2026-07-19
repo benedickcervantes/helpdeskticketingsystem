@@ -115,21 +115,21 @@ const AdminDashboard = () => {
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
       <div className="pt-4 sm:pt-6 pb-4 sm:pb-6">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Admin Dashboard</h1>
-        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-400">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-app">Admin Dashboard</h1>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-app-muted">
           Manage tickets, users, and system settings
         </p>
       </div>
 
       {/* Enhanced Navigation Tabs - Mobile Optimized */}
       <div className="mb-6 sm:mb-8">
-        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-gray-700 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
+        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-app overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'overview'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -143,8 +143,8 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('tickets')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'tickets'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -158,8 +158,8 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('users')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'users'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -173,8 +173,8 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('feedback')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'feedback'
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500 hover:bg-gray-800/30'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
             }`}
           >
             <span className="flex items-center space-x-1 sm:space-x-2">
@@ -198,34 +198,34 @@ const AdminDashboard = () => {
           ) : (
             <>
               {/* Welcome + primary actions */}
-              <section className="relative overflow-hidden rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/70 to-gray-900/80 px-5 py-5 sm:px-7 sm:py-6">
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500" />
+              <section className="relative overflow-hidden rounded-2xl border border-app-subtle bg-app-panel px-5 py-5 sm:px-7 sm:py-6">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3.5 min-w-0">
                     {profilePhotoURL ? (
                       <img
                         src={profilePhotoURL}
                         alt={userProfile?.name || 'Admin'}
-                        className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl object-cover border border-emerald-500/30 shadow-lg shadow-emerald-950/30"
+                        className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl object-cover border border-app-primary shadow-lg"
                       />
                     ) : (
-                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-white font-semibold text-lg border border-emerald-500/30 shadow-lg shadow-emerald-950/30">
+                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-app-primary text-app-on-primary font-semibold text-lg border border-app-primary shadow-lg">
                         {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'A'}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-sm text-emerald-400/90 font-medium">Admin console</p>
-                      <h2 className="text-xl sm:text-2xl font-bold text-white mt-0.5 truncate">
+                      <p className="text-sm text-app-primary font-medium">Admin console</p>
+                      <h2 className="text-xl sm:text-2xl font-bold text-app mt-0.5 truncate">
                         Hi, {firstName}
                       </h2>
-                      <p className="text-sm text-gray-400 mt-1.5">
+                      <p className="text-sm text-app-muted mt-1.5">
                         {activeTickets > 0
                           ? `${activeTickets} active ticket${activeTickets === 1 ? '' : 's'} across the system.`
                           : stats.total > 0
                             ? 'No active tickets right now — queue is clear.'
                             : 'No tickets yet. Waiting for the first support request.'}
                         {unreadNotifications > 0 && (
-                          <span className="text-emerald-400/90">
+                          <span className="text-app-primary">
                             {' '}· {unreadNotifications} unread notification{unreadNotifications === 1 ? '' : 's'}
                           </span>
                         )}
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('tickets')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-app-primary text-app-on-primary text-sm font-semibold px-4 py-2.5 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -246,9 +246,9 @@ const AdminDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('users')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-600 bg-gray-800/60 hover:bg-gray-700/60 hover:border-gray-500 text-gray-200 text-sm font-medium px-4 py-2.5 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-app bg-app-surface-2 hover:bg-app-surface-3 hover:border-app-primary text-app-soft text-sm font-medium px-4 py-2.5 transition-colors"
                     >
-                      <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                       </svg>
                       Users
@@ -260,11 +260,11 @@ const AdminDashboard = () => {
               {/* Ticket Overview */}
               <section>
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <h3 className="text-base sm:text-lg font-semibold text-white">Ticket Overview</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-app">Ticket Overview</h3>
                   <button
                     type="button"
                     onClick={() => setActiveTab('tickets')}
-                    className="text-xs sm:text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                    className="text-xs sm:text-sm text-app-primary hover:opacity-80 font-medium transition-colors"
                   >
                     See all
                   </button>
@@ -274,7 +274,7 @@ const AdminDashboard = () => {
                     {
                       label: 'Total',
                       value: stats.total,
-                      accent: 'text-white',
+                      accent: 'text-app',
                       bar: 'bg-blue-500',
                       iconBg: 'bg-blue-500/20',
                       iconColor: 'text-blue-400',
@@ -316,10 +316,10 @@ const AdminDashboard = () => {
                     {
                       label: 'Resolved',
                       value: stats.resolved,
-                      accent: 'text-emerald-300',
-                      bar: 'bg-emerald-400',
-                      iconBg: 'bg-emerald-500/20',
-                      iconColor: 'text-emerald-400',
+                      accent: 'text-app-primary',
+                      bar: 'bg-app-primary',
+                      iconBg: 'bg-app-primary-soft',
+                      iconColor: 'text-app-primary',
                       hint: 'Completed tickets',
                       icon: (
                         <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,16 +332,16 @@ const AdminDashboard = () => {
                       key={stat.label}
                       type="button"
                       onClick={() => setActiveTab('tickets')}
-                      className="group text-left rounded-xl border border-gray-700/70 bg-gray-800/40 hover:bg-gray-800/70 hover:border-emerald-500/30 px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs text-gray-400 font-medium">{stat.label}</p>
+                          <p className="text-xs text-app-muted font-medium">{stat.label}</p>
                           <p className={`text-2xl sm:text-3xl font-bold mt-1.5 tabular-nums ${stat.accent}`}>
                             {stat.value}
                           </p>
-                          <p className="text-[11px] text-gray-500 mt-1">{stat.hint}</p>
+                          <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
                         </div>
                         <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
                           {stat.icon}
@@ -355,7 +355,7 @@ const AdminDashboard = () => {
               {/* System Metrics */}
               <section>
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <h3 className="text-base sm:text-lg font-semibold text-white">System Metrics</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-app">System Metrics</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
@@ -409,16 +409,16 @@ const AdminDashboard = () => {
                       key={stat.label}
                       type="button"
                       onClick={() => setActiveTab(stat.tab)}
-                      className="group text-left rounded-xl border border-gray-700/70 bg-gray-800/40 hover:bg-gray-800/70 hover:border-emerald-500/30 px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                      className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs text-gray-400 font-medium">{stat.label}</p>
+                          <p className="text-xs text-app-muted font-medium">{stat.label}</p>
                           <p className={`text-2xl sm:text-3xl font-bold mt-1.5 tabular-nums ${stat.accent}`}>
                             {stat.value}
                           </p>
-                          <p className="text-[11px] text-gray-500 mt-1">{stat.hint}</p>
+                          <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
                         </div>
                         <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
                           {stat.icon}
@@ -435,18 +435,18 @@ const AdminDashboard = () => {
 
       {displayTab === 'tickets' && (
         <div className="space-y-5 pb-4">
-          <div className="relative overflow-hidden rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/50 to-gray-900/60 px-4 py-4 sm:px-5 sm:py-5">
-            <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500" />
+          <div className="relative overflow-hidden rounded-2xl border border-app-subtle bg-app-panel px-4 py-4 sm:px-5 sm:py-5">
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3 min-w-0">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary border border-app-primary">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">All Support Tickets</h2>
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <h2 className="text-lg sm:text-xl font-semibold text-app">All Support Tickets</h2>
+                  <p className="text-sm text-app-muted mt-0.5">
                     Manage, assign, and resolve support requests
                   </p>
                 </div>
@@ -483,7 +483,7 @@ const AdminDashboard = () => {
       {displayTab === 'users' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">User Management</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-app mb-4 sm:mb-6">User Management</h2>
             <UserManagement />
           </div>
         </div>
@@ -492,7 +492,7 @@ const AdminDashboard = () => {
       {displayTab === 'feedback' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Feedback Analytics</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-app mb-4 sm:mb-6">Feedback Analytics</h2>
             <FeedbackAnalytics />
           </div>
         </div>

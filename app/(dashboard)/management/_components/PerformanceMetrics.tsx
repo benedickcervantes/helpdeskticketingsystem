@@ -128,17 +128,17 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
   };
 
   const MetricCard = ({ title, value, target, status, icon, color, subtitle }) => (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-emerald-500/30 transition-all duration-300">
+    <div className="app-card rounded-xl border p-4 sm:p-6 hover:border-app-primary transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-xl ${color} backdrop-blur-sm`}>
           {icon}
         </div>
         <div className="text-right">
-          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            status === 'excellent' ? 'bg-emerald-500/20 text-emerald-400' :
-            status === 'good' ? 'bg-blue-500/20 text-blue-400' :
-            status === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
-            'bg-red-500/20 text-red-400'
+          <span className={`inline-flex px-2 py-1 text-[11px] font-semibold rounded-lg border ${
+            status === 'excellent' ? 'bg-app-primary-soft text-app-primary border-app-primary/30' :
+            status === 'good' ? 'bg-sky-500/15 text-sky-700 border-sky-500/30' :
+            status === 'warning' ? 'bg-amber-500/15 text-amber-700 border-amber-500/30' :
+            'bg-rose-500/15 text-rose-600 border-rose-500/30'
           }`}>
             {status === 'excellent' ? 'Excellent' :
              status === 'good' ? 'Good' :
@@ -147,20 +147,20 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
         </div>
       </div>
       <div>
-        <h3 className="text-sm font-medium text-gray-400 mb-1">{title}</h3>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+        <h3 className="text-sm font-medium text-app-muted mb-1">{title}</h3>
+        <p className="text-2xl font-bold text-app">{value}</p>
+        {subtitle && <p className="text-xs text-app-muted mt-1">{subtitle}</p>}
         {target && (
           <div className="mt-2">
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <div className="flex justify-between text-xs text-app-muted mb-1">
               <span>Target: {target}</span>
               <span>{Math.round((value / target) * 100)}%</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-1">
+            <div className="w-full bg-app-surface-2 rounded-full h-1">
               <div 
                 className={`h-1 rounded-full ${
-                  (value / target) >= 1 ? 'bg-emerald-500' :
-                  (value / target) >= 0.8 ? 'bg-yellow-500' : 'bg-red-500'
+                  (value / target) >= 1 ? 'bg-app-primary' :
+                  (value / target) >= 0.8 ? 'bg-amber-500' : 'bg-rose-500'
                 }`}
                 style={{ width: `${Math.min(100, (value / target) * 100)}%` }}
               ></div>
@@ -182,8 +182,8 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
     <div className="space-y-4 sm:space-y-8 min-w-0">
       {/* Header */}
       <div className="text-center px-1">
-        <h2 className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">Performance Metrics</h2>
-        <p className="text-xs sm:text-sm text-gray-400">Real-time performance indicators and KPIs</p>
+        <h2 className="text-lg sm:text-2xl font-bold text-app mb-1 sm:mb-2">Performance Metrics</h2>
+        <p className="text-xs sm:text-sm text-app-muted">Real-time performance indicators and KPIs</p>
       </div>
 
       {/* Key Performance Indicators */}
@@ -193,7 +193,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
           value={`${performanceData.slaCompliance}%`}
           target={95}
           status={getStatus(performanceData.slaCompliance, { excellent: 95, good: 85, warning: 75 })}
-          color="bg-blue-500/20 text-blue-400"
+          color="bg-sky-500/15 text-sky-700"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -207,7 +207,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
           value={`${performanceData.resolutionRate}%`}
           target={90}
           status={getStatus(performanceData.resolutionRate, { excellent: 90, good: 80, warning: 70 })}
-          color="bg-emerald-500/20 text-emerald-400"
+          color="bg-app-primary-soft text-app-primary"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -221,7 +221,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
           value={`${performanceData.avgResolutionTime}h`}
           target={24}
           status={getStatus(24 - performanceData.avgResolutionTime, { excellent: 12, good: 6, warning: 0 })}
-          color="bg-yellow-500/20 text-yellow-400"
+          color="bg-amber-500/15 text-amber-700"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -238,7 +238,7 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
             getStatus(feedbackMetrics.averageRating, { excellent: 4.5, good: 4.0, warning: 3.5 }) : 
             'warning'
           }
-          color="bg-purple-500/20 text-purple-400"
+          color="bg-app-primary-soft text-app-primary"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -253,50 +253,50 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
 
       {/* Feedback Analysis Section */}
       {feedbackMetrics.totalFeedback > 0 && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Customer Feedback Analysis</h3>
+        <div className="app-card rounded-xl border p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Customer Feedback Analysis</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-emerald-400 mb-2">{feedbackMetrics.satisfactionRate}%</div>
-              <div className="text-sm text-gray-400">Satisfaction Rate</div>
-              <div className="text-xs text-gray-500 mt-1">High ratings (4-5 stars)</div>
+              <div className="text-3xl font-bold text-app-primary mb-2">{feedbackMetrics.satisfactionRate}%</div>
+              <div className="text-sm text-app-muted">Satisfaction Rate</div>
+              <div className="text-xs text-app-muted mt-1">High ratings (4-5 stars)</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400 mb-2">{feedbackMetrics.highRatings}</div>
-              <div className="text-sm text-gray-400">Positive Reviews</div>
-              <div className="text-xs text-gray-500 mt-1">4-5 star ratings</div>
+              <div className="text-3xl font-bold text-amber-600 mb-2">{feedbackMetrics.highRatings}</div>
+              <div className="text-sm text-app-muted">Positive Reviews</div>
+              <div className="text-xs text-app-muted mt-1">4-5 star ratings</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-400 mb-2">{feedbackMetrics.lowRatings}</div>
-              <div className="text-sm text-gray-400">Areas for Improvement</div>
-              <div className="text-xs text-gray-500 mt-1">1-2 star ratings</div>
+              <div className="text-3xl font-bold text-rose-600 mb-2">{feedbackMetrics.lowRatings}</div>
+              <div className="text-sm text-app-muted">Areas for Improvement</div>
+              <div className="text-xs text-app-muted mt-1">1-2 star ratings</div>
             </div>
           </div>
         </div>
       )}
 
       {/* Ticket Status Distribution */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Ticket Status Distribution</h3>
+      <div className="app-card rounded-xl border p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Ticket Status Distribution</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-cyan-400 mb-2">{openTickets}</div>
-            <div className="text-sm text-gray-400">Open Tickets</div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-cyan-600 mb-2">{openTickets}</div>
+            <div className="text-sm text-app-muted">Open Tickets</div>
+            <div className="text-xs text-app-muted mt-1">
               {totalTickets > 0 ? Math.round((openTickets / totalTickets) * 100) : 0}% of total
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-yellow-400 mb-2">{inProgressTickets}</div>
-            <div className="text-sm text-gray-400">In Progress</div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-amber-600 mb-2">{inProgressTickets}</div>
+            <div className="text-sm text-app-muted">In Progress</div>
+            <div className="text-xs text-app-muted mt-1">
               {totalTickets > 0 ? Math.round((inProgressTickets / totalTickets) * 100) : 0}% of total
             </div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-emerald-400 mb-2">{resolvedTickets}</div>
-            <div className="text-sm text-gray-400">Resolved</div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-app-primary mb-2">{resolvedTickets}</div>
+            <div className="text-sm text-app-muted">Resolved</div>
+            <div className="text-xs text-app-muted mt-1">
               {totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0}% of total
             </div>
           </div>
@@ -304,111 +304,111 @@ const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRan
       </div>
 
       {/* Performance Trends */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Performance Summary</h3>
+      <div className="app-card rounded-xl border p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Performance Summary</h3>
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-emerald-500/20 rounded-lg">
-                <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-app-primary-soft rounded-lg">
+                <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">Total Tickets Processed</p>
-                <p className="text-sm text-gray-400">Last {dateRange} days</p>
+                <p className="font-medium text-app">Total Tickets Processed</p>
+                <p className="text-sm text-app-muted">Last {dateRange} days</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white">{totalTickets}</p>
+              <p className="text-2xl font-bold text-app">{totalTickets}</p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-sky-500/15 rounded-lg">
+                <svg className="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">SLA Compliance</p>
-                <p className="text-sm text-gray-400">24-hour resolution target</p>
+                <p className="font-medium text-app">SLA Compliance</p>
+                <p className="text-sm text-app-muted">24-hour resolution target</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white">{performanceData.slaCompliance}%</p>
+              <p className="text-2xl font-bold text-app">{performanceData.slaCompliance}%</p>
             </div>
           </div>
 
           {feedbackMetrics.totalFeedback > 0 && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="p-2 bg-app-primary-soft rounded-lg">
+                  <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="font-medium text-white">Customer Satisfaction</p>
-                  <p className="text-sm text-gray-400">Based on user feedback</p>
+                  <p className="font-medium text-app">Customer Satisfaction</p>
+                  <p className="text-sm text-app-muted">Based on user feedback</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-white">{feedbackMetrics.averageRating}/5</p>
-                <p className="text-sm text-gray-400">{feedbackMetrics.satisfactionRate}% satisfied</p>
+                <p className="text-2xl font-bold text-app">{feedbackMetrics.averageRating}/5</p>
+                <p className="text-sm text-app-muted">{feedbackMetrics.satisfactionRate}% satisfied</p>
               </div>
             </div>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-cyan-500/20 rounded-lg">
-                <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-cyan-500/15 rounded-lg">
+                <svg className="w-5 h-5 text-cyan-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">First Contact Resolution</p>
-                <p className="text-sm text-gray-400">Resolved within 8 hours</p>
+                <p className="font-medium text-app">First Contact Resolution</p>
+                <p className="text-sm text-app-muted">Resolved within 8 hours</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white">{performanceData.firstContactResolution}%</p>
+              <p className="text-2xl font-bold text-app">{performanceData.firstContactResolution}%</p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-500/20 rounded-lg">
-                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-orange-500/15 rounded-lg">
+                <svg className="w-5 h-5 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">Escalation Rate</p>
-                <p className="text-sm text-gray-400">High or critical priority tickets</p>
+                <p className="font-medium text-app">Escalation Rate</p>
+                <p className="text-sm text-app-muted">High or critical priority tickets</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white">{performanceData.escalationRate}%</p>
+              <p className="text-2xl font-bold text-app">{performanceData.escalationRate}%</p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2/60 rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-2 bg-amber-500/15 rounded-lg">
+                <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">Avg Response Time</p>
-                <p className="text-sm text-gray-400">Time until first status update</p>
+                <p className="font-medium text-app">Avg Response Time</p>
+                <p className="text-sm text-app-muted">Time until first status update</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white">{performanceData.avgResponseTime}h</p>
+              <p className="text-2xl font-bold text-app">{performanceData.avgResponseTime}h</p>
             </div>
           </div>
         </div>

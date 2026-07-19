@@ -322,7 +322,7 @@ const ProfileSettings = () => {
 
   if (!userProfile) {
     return (
-      <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-3 sm:py-8">
+      <div className="min-h-screen overflow-x-hidden bg-app-gradient py-3 sm:py-8">
         <ProfileFormSkeleton />
       </div>
     );
@@ -333,33 +333,33 @@ const ProfileSettings = () => {
   const photoBusy = uploading || removingPhoto;
 
   const inputClass =
-    'w-full min-w-0 max-w-full box-border px-3 sm:px-4 py-2.5 sm:py-3 text-base bg-gray-700/40 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50 transition-all duration-200 disabled:opacity-60';
+    'app-field w-full min-w-0 max-w-full box-border px-3 sm:px-4 py-2.5 sm:py-3 text-base border rounded-xl focus:outline-none transition-all duration-200 disabled:opacity-60';
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-3 sm:py-8">
+    <div className="min-h-screen w-full overflow-x-hidden bg-app-gradient py-3 sm:py-8">
       <div className="w-full max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-5 pb-6">
         {/* Page header */}
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/70 to-gray-900/80 px-3.5 py-4 sm:px-6 sm:py-6">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500" />
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-app-subtle bg-app-panel px-3.5 py-4 sm:px-6 sm:py-6">
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div className="flex items-start gap-3 min-w-0">
-              <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary border border-app-primary/30">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight leading-tight">
+                <h1 className="text-lg sm:text-2xl font-bold text-app tracking-tight leading-tight">
                   Profile Settings
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-snug">
+                <p className="text-xs sm:text-sm text-app-muted mt-1 leading-snug">
                   Photo, details, and password
                 </p>
               </div>
             </div>
             <Link
               href={getDashboardPath(userProfile?.role)}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-600 bg-gray-800/60 hover:bg-gray-700/60 text-gray-200 text-sm font-medium transition-colors"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-app bg-app-surface-2 hover:bg-app-surface-3 hover:border-app-primary text-app-soft text-sm font-medium transition-colors"
             >
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -370,32 +370,32 @@ const ProfileSettings = () => {
         </div>
 
         {/* Profile form card */}
-        <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/60 to-gray-900/60 shadow-xl shadow-emerald-950/10">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500/60 via-cyan-400/60 to-emerald-500/60" />
+        <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl border border-app-subtle app-card shadow-xl">
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
 
           <form onSubmit={handleSubmit} className="p-3 sm:p-6 space-y-3 sm:space-y-5">
             {/* Photo */}
-            <section className="group w-full min-w-0 rounded-xl border border-gray-700/70 bg-gray-800/40 p-3 sm:p-5">
-              <div className="accent-hover-line bg-emerald-500" aria-hidden="true" />
+            <section className="group w-full min-w-0 rounded-xl border border-app-subtle bg-app-surface-2/50 p-3 sm:p-5">
+              <div className="accent-hover-line bg-app-primary" aria-hidden="true" />
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 shrink-0">
+                <div className="p-1.5 rounded-lg bg-app-primary-soft text-app-primary shrink-0">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h2 className="text-sm sm:text-base font-semibold text-white">Profile Photo</h2>
+                <h2 className="text-sm sm:text-base font-semibold text-app">Profile Photo</h2>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 min-w-0">
                 <div className="relative mx-auto sm:mx-0 shrink-0">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-emerald-500/30 bg-gray-700 flex items-center justify-center shadow-lg shadow-emerald-950/20">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-app-primary/30 bg-app-surface-3 flex items-center justify-center shadow-lg">
                     {photoPreview ? (
                       <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : photoUrl ? (
                       <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-                        <span className="text-white text-xl sm:text-2xl font-bold">
+                      <div className="w-full h-full bg-app-primary flex items-center justify-center">
+                        <span className="text-app-on-primary text-xl sm:text-2xl font-bold">
                           {formData.name?.charAt(0)?.toUpperCase() || 'U'}
                         </span>
                       </div>
@@ -414,7 +414,7 @@ const ProfileSettings = () => {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={photoBusy || loading}
-                      className="box-border h-10 w-full sm:w-auto inline-flex items-center justify-center px-4 rounded-xl border border-transparent bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold leading-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="box-border h-10 w-full sm:w-auto inline-flex items-center justify-center px-4 rounded-xl border border-transparent bg-app-primary text-app-on-primary text-sm font-semibold leading-none transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {hasPhoto ? 'Change Photo' : 'Upload Photo'}
                     </button>
@@ -423,7 +423,7 @@ const ProfileSettings = () => {
                         type="button"
                         onClick={removePhoto}
                         disabled={photoBusy || loading}
-                        className="box-border h-10 w-full sm:w-auto inline-flex items-center justify-center px-4 rounded-xl border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm font-semibold leading-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="box-border h-10 w-full sm:w-auto inline-flex items-center justify-center px-4 rounded-xl border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold leading-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {removingPhoto ? 'Removing…' : 'Remove'}
                       </button>
@@ -436,7 +436,7 @@ const ProfileSettings = () => {
                     onChange={handlePhotoChange}
                     className="hidden"
                   />
-                  <p className="text-xs text-gray-500 break-words">
+                  <p className="text-xs text-app-muted break-words">
                     JPG, PNG or GIF · max 5MB
                   </p>
                   {errors.photo && <p className="text-sm text-red-400 break-words">{errors.photo}</p>}
@@ -445,28 +445,28 @@ const ProfileSettings = () => {
             </section>
 
             {/* Personal info */}
-            <section className="group w-full min-w-0 rounded-xl border border-gray-700/70 bg-gray-800/40 p-3 sm:p-5">
+            <section className="group w-full min-w-0 rounded-xl border border-app-subtle bg-app-surface-2/50 p-3 sm:p-5">
               <div className="accent-hover-line bg-cyan-500" aria-hidden="true" />
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="p-1.5 rounded-lg bg-cyan-500/15 text-cyan-400 shrink-0">
+                  <div className="p-1.5 rounded-lg bg-cyan-500/15 text-cyan-500 shrink-0">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
-                  <h2 className="text-sm sm:text-base font-semibold text-white truncate">
+                  <h2 className="text-sm sm:text-base font-semibold text-app truncate">
                     Personal Information
                   </h2>
                 </div>
-                <span className="inline-flex items-center self-start px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                <span className="inline-flex items-center self-start px-2.5 py-1 rounded-lg text-xs font-medium bg-app-primary-soft text-app-primary border border-app-primary/30">
                   {roleLabel}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-w-0">
                 <div className="min-w-0">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1.5">
-                    Full Name <span className="text-emerald-400">*</span>
+                  <label htmlFor="name" className="block text-sm font-medium text-app-soft mb-1.5">
+                    Full Name <span className="text-app-primary">*</span>
                   </label>
                   <input
                     type="text"
@@ -483,7 +483,7 @@ const ProfileSettings = () => {
                 </div>
 
                 <div className="min-w-0">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  <label htmlFor="email" className="block text-sm font-medium text-app-soft mb-1.5">
                     Email Address
                   </label>
                   <input
@@ -492,13 +492,13 @@ const ProfileSettings = () => {
                     name="email"
                     value={formData.email}
                     disabled
-                    className={`${inputClass} text-gray-400 cursor-not-allowed`}
+                    className={`${inputClass} text-app-muted cursor-not-allowed`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Ask an admin to change email.</p>
+                  <p className="text-xs text-app-muted mt-1">Ask an admin to change email.</p>
                 </div>
 
                 <div className="min-w-0">
-                  <label htmlFor="department" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  <label htmlFor="department" className="block text-sm font-medium text-app-soft mb-1.5">
                     Department
                   </label>
                   <input
@@ -517,7 +517,7 @@ const ProfileSettings = () => {
                 </div>
 
                 <div className="min-w-0">
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  <label htmlFor="phone" className="block text-sm font-medium text-app-soft mb-1.5">
                     Phone Number
                   </label>
                   <input
@@ -535,13 +535,13 @@ const ProfileSettings = () => {
             </section>
 
             {successMessage && (
-              <div className="rounded-xl border border-emerald-600/40 bg-emerald-900/25 px-4 py-3 text-sm text-emerald-300 animate-slide-up-fade">
+              <div className="rounded-xl border border-app-primary/40 bg-app-primary-soft px-4 py-3 text-sm text-app-primary animate-slide-up-fade">
                 {successMessage}
               </div>
             )}
 
             {errors.submit && (
-              <div className="rounded-xl border border-red-700/40 bg-red-900/25 px-4 py-3 text-sm text-red-300">
+              <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                 {errors.submit}
               </div>
             )}
@@ -550,11 +550,11 @@ const ProfileSettings = () => {
               <button
                 type="submit"
                 disabled={loading || photoBusy}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-app-primary text-app-on-primary text-sm font-semibold transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-app-on-primary border-t-transparent rounded-full animate-spin" />
                     Saving…
                   </>
                 ) : (
@@ -568,20 +568,20 @@ const ProfileSettings = () => {
         {/* Password card */}
         <form
           onSubmit={handlePasswordSubmit}
-          className="group relative w-full min-w-0 overflow-hidden rounded-xl sm:rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/60 to-gray-900/60 p-3 sm:p-6 space-y-3 sm:space-y-4 shadow-xl shadow-emerald-950/10"
+          className="group relative w-full min-w-0 overflow-hidden rounded-xl sm:rounded-2xl border border-app-subtle app-card p-3 sm:p-6 space-y-3 sm:space-y-4 shadow-xl"
         >
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500/50 via-orange-400/40 to-amber-500/50" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500" />
           <div className="accent-hover-line bg-amber-500" aria-hidden="true" />
 
           <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
-            <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/20 shrink-0">
+            <div className="p-2 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/20 shrink-0">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-sm sm:text-base font-semibold text-white">Change Password</h2>
-              <p className="text-xs sm:text-sm text-gray-400 mt-0.5 leading-snug">
+              <h2 className="text-sm sm:text-base font-semibold text-app">Change Password</h2>
+              <p className="text-xs sm:text-sm text-app-muted mt-0.5 leading-snug">
                 Other devices will be signed out after you update.
               </p>
             </div>
@@ -589,7 +589,7 @@ const ProfileSettings = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-w-0">
             <div className="sm:col-span-2 min-w-0">
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-app-soft mb-1.5">
                 Current Password
               </label>
               <input
@@ -608,7 +608,7 @@ const ProfileSettings = () => {
             </div>
 
             <div className="min-w-0">
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-app-soft mb-1.5">
                 New Password
               </label>
               <input
@@ -627,7 +627,7 @@ const ProfileSettings = () => {
             </div>
 
             <div className="min-w-0">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-app-soft mb-1.5">
                 Confirm Password
               </label>
               <input
@@ -647,13 +647,13 @@ const ProfileSettings = () => {
           </div>
 
           {passwordSuccess && (
-            <div className="rounded-xl border border-emerald-600/40 bg-emerald-900/25 px-4 py-3 text-sm text-emerald-300">
+            <div className="rounded-xl border border-app-primary/40 bg-app-primary-soft px-4 py-3 text-sm text-app-primary">
               {passwordSuccess}
             </div>
           )}
 
           {passwordErrors.submit && (
-            <div className="rounded-xl border border-red-700/40 bg-red-900/25 px-4 py-3 text-sm text-red-300">
+            <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {passwordErrors.submit}
             </div>
           )}
@@ -662,11 +662,11 @@ const ProfileSettings = () => {
             <button
               type="submit"
               disabled={changingPassword}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-600 bg-gray-700/60 hover:bg-gray-600/60 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-app bg-app-surface-2 hover:bg-app-surface-3 hover:border-app-primary text-app text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {changingPassword ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-app-muted border-t-transparent rounded-full animate-spin" />
                   Updating…
                 </>
               ) : (

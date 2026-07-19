@@ -28,7 +28,7 @@ export default function AdminPage() {
 
   if (!mounted || loading || authLoading || !currentUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+      <div className="min-h-screen bg-app-gradient py-8">
         <DashboardPageSkeleton tabCount={4} content="mixed" />
       </div>
     );
@@ -36,7 +36,7 @@ export default function AdminPage() {
 
   if (userProfile?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+      <div className="min-h-screen bg-app-gradient py-8">
         <DashboardPageSkeleton tabCount={4} content="mixed" />
       </div>
     );
@@ -45,7 +45,7 @@ export default function AdminPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8">
+        <div className="min-h-screen bg-app-gradient py-8">
           <DashboardPageSkeleton tabCount={4} content="mixed" />
         </div>
       }
