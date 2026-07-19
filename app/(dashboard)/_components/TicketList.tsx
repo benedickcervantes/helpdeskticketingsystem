@@ -496,17 +496,17 @@ const TicketList = ({
   const openedTicketRef = useRef(null);
 
   const statusColors = {
-    open: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    'in-progress': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    resolved: 'bg-app-primary-soft text-app-primary border-app-primary/30',
-    closed: 'bg-app-surface-3/60 text-app-muted border-app/30'
+    open: 'bg-app-surface-3 text-cyan-400 border-cyan-500/40',
+    'in-progress': 'bg-app-surface-3 text-yellow-400 border-yellow-500/40',
+    resolved: 'bg-app-surface-3 text-app-primary border-app-primary/40',
+    closed: 'bg-app-surface-3 text-app-muted border-app'
   };
 
   const priorityColors = {
-    low: 'bg-app-primary-soft text-app-primary border-app-primary/30',
-    medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-    critical: 'bg-red-500/20 text-red-400 border-red-500/30'
+    low: 'bg-app-surface-3 text-app-primary border-app-primary/40',
+    medium: 'bg-app-surface-3 text-yellow-400 border-yellow-500/40',
+    high: 'bg-app-surface-3 text-orange-400 border-orange-500/40',
+    critical: 'bg-app-surface-3 text-red-400 border-red-500/40'
   };
 
   const renderStars = (rating) =>
@@ -522,7 +522,7 @@ const TicketList = ({
     const submitter = ticket.feedback.submittedBy;
 
     return (
-      <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+      <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-app-surface-3 text-yellow-400 border-yellow-500/40">
         <span className="flex items-center">{renderStars(ticket.feedback.rating)}</span>
         <span>{ticket.feedback.rating}/5</span>
         {showSubmitter && submitter && (
@@ -1009,7 +1009,7 @@ const TicketList = ({
   const renderCompactTableRow = (ticket) => (
     <div
       key={ticket.id}
-      className="app-card group relative overflow-hidden rounded-xl border p-4 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
+      className="app-card group relative rounded-xl border p-4"
     >
       <div className="accent-hover-line bg-app-primary" aria-hidden="true" />
       <div className="flex items-start justify-between gap-3 mb-2">
@@ -1374,7 +1374,7 @@ const TicketList = ({
           {filteredTickets.map((ticket) => (
             <div
               key={ticket.id}
-              className="app-card group relative overflow-hidden rounded-xl border p-4 sm:p-5 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
+              className="app-card group relative rounded-xl border p-4 sm:p-5"
             >
               <div className="accent-hover-line bg-app-primary" aria-hidden="true" />
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -1404,7 +1404,7 @@ const TicketList = ({
                         <span className="capitalize">{ticket.priority}</span>
                       </span>
                       {showAllTickets && ticket.assignedInfo && (
-                        <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 bg-blue-500/20 text-blue-400 border-blue-500/30">
+                        <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1.5 bg-app-surface-3 text-blue-400 border-blue-500/40">
                           <UserAvatar user={ticket.assignedInfo} size="xs" />
                           {ticket.assignedInfo.name || ticket.assignedInfo.email}
                         </span>
@@ -1416,7 +1416,7 @@ const TicketList = ({
                         <FeedbackRatingBadge ticket={ticket} />
                       )}
                       {ticket.attachments?.length > 0 && (
-                        <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                        <span className="px-2 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 bg-app-surface-3 text-purple-300 border-purple-500/40">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -1625,7 +1625,7 @@ const TicketList = ({
                     <span className="capitalize">{selectedTicketDetails.priority}</span>
                   </span>
                   {(adminMode || showAllTickets) && selectedTicketDetails.assignedInfo && (
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 bg-blue-500/20 text-blue-400 border-blue-500/30">
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 bg-app-surface-3 text-blue-400 border-blue-500/40">
                       <UserAvatar user={selectedTicketDetails.assignedInfo} size="xs" />
                       <span className="truncate max-w-[140px] sm:max-w-none">
                         {selectedTicketDetails.assignedInfo.name || selectedTicketDetails.assignedInfo.email}
