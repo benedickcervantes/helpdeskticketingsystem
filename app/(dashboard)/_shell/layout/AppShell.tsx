@@ -61,7 +61,7 @@ function AppShellContent({ children }) {
     return (
       <div className="min-h-screen bg-app-gradient text-app app-shell" style={shellStyle}>
         <Header />
-        <main className="pt-0 lg:pt-14 pb-6 overflow-x-hidden">{children}</main>
+        <main className="pt-0 lg:pt-14 pb-6 overflow-x-clip">{children}</main>
       </div>
     );
   }
@@ -79,7 +79,7 @@ function AppShellContent({ children }) {
         )}
 
         <main
-          className={`flex-1 min-w-0 pb-6 overflow-x-hidden transition-all duration-300 ease-in-out ${sidebarMainOffset}`}
+          className={`flex-1 min-w-0 pb-6 overflow-x-clip transition-all duration-300 ease-in-out ${sidebarMainOffset}`}
         >
           {children}
         </main>
