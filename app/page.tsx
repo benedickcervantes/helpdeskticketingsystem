@@ -4,7 +4,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { MainLoadingScreen } from '@/lib/ui/LoadingComponents';
 import { TechNewsSkeleton } from '@/lib/ui/DashboardSkeletons';
 import AppShell from '@/shell/layout/AppShell';
 import Footer from '@/shell/layout/Footer';
@@ -22,37 +21,12 @@ const TechNewsSection = dynamic(() => import('@/lib/ui/TechNewsSection'), {
 export default function HomePage() {
   const { currentUser, userProfile, loading } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
 
-    if (!loading) return;
-
-    const progressInterval = setInterval(() => {
-      setLoadingProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 200);
-
-    return () => clearInterval(progressInterval);
-  }, [loading]);
-
-  if (!mounted) return null;
-
-  if (loading) {
-    return (
-      <MainLoadingScreen 
-        message="Initializing FPDC System"
-        showProgress={true}
-        progress={loadingProgress}
-      />
-    );
-  }
+  if (!mounted || loading) return null;
 
   const dashboardPath = currentUser ? getDashboardPath(userProfile?.role) : '/auth';
 

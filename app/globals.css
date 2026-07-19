@@ -2580,4 +2580,130 @@ summary,
   .grid-pattern {
     animation: none !important;
   }
+
+  .blueprint-trace,
+  .blueprint-trace-delay,
+  .blueprint-ring,
+  .blueprint-ring-reverse,
+  .blueprint-hub-ring,
+  .blueprint-hub-ring-reverse,
+  .blueprint-node,
+  .blueprint-node-active,
+  .blueprint-pulse,
+  .blueprint-caret {
+    animation: none !important;
+  }
+}
+
+/* =====================================================================
+   System Loading Screen — Blueprint Schematic
+   ===================================================================== */
+
+.blueprint-grid {
+  background-image:
+    linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+}
+
+@media (min-width: 640px) {
+  .blueprint-grid {
+    background-size: 48px 48px;
+  }
+}
+
+.blueprint-grid-fine {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+  background-size: 12px 12px;
+  mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
+}
+
+@keyframes blueprint-trace-flow {
+  0% {
+    stroke-dashoffset: 40;
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.35;
+  }
+}
+
+@keyframes blueprint-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blueprint-spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes blueprint-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+@keyframes blueprint-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.blueprint-trace {
+  stroke-dasharray: 4 3;
+  animation: blueprint-trace-flow 2.8s linear infinite;
+}
+
+.blueprint-trace-delay {
+  animation-delay: 0.9s;
+}
+
+.blueprint-ring,
+.blueprint-hub-ring {
+  transform-origin: center;
+  animation: blueprint-spin 14s linear infinite;
+}
+
+.blueprint-ring-reverse,
+.blueprint-hub-ring-reverse {
+  transform-origin: center;
+  animation: blueprint-spin-reverse 10s linear infinite;
+}
+
+.blueprint-node {
+  opacity: 0.75;
+}
+
+.blueprint-node-active {
+  animation: blueprint-pulse 1.2s ease-in-out infinite;
+}
+
+.blueprint-pulse {
+  animation: blueprint-pulse 1.1s ease-in-out infinite;
+  display: inline-block;
+}
+
+.blueprint-caret {
+  animation: blueprint-caret 1s step-end infinite;
 }
