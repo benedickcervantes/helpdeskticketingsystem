@@ -69,21 +69,28 @@ const NotificationBell = ({ onClick, isActive = false }) => {
         </span>
       )}
 
-      {/* Notification Bell Icon */}
+      {/* Notification Bell Icon — modern outline */}
       <div className={`relative origin-top ${isAnimating || isClicking ? 'animate-bell-ring' : ''}`}>
-        <svg 
+        <svg
           className={`w-6 h-6 transition-all duration-300 ${
-            unreadCount > 0 ? 'drop-shadow-lg' : ''
-          }`} 
-          fill="none" 
-          stroke="currentColor" 
+            unreadCount > 0 ? 'drop-shadow-sm' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M15 17h5l-3.595-3.598A9.969 9.969 0 0118 9.5V7a6 6 0 10-12 0v2.5a9.969 9.969 0 001.595 3.902L5 17h5m5 0v1a3 3 0 11-6 0v-1m6 0H9" 
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.75}
+            d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.75}
+            d="M10.3 21a1.94 1.94 0 0 0 3.4 0"
           />
         </svg>
 
