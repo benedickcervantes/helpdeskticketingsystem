@@ -6,7 +6,10 @@ import { SkeletonTable, LoadingDots } from '@/lib/ui/LoadingComponents';
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/api/client';
-import { subscribeUserProfileEvents } from '@/lib/realtime/socketClient';
+import {
+  subscribeDepartmentEvents,
+  subscribeUserProfileEvents,
+} from '@/lib/realtime/socketClient';
 
 const roleBadgeClass = (role) => {
   switch (role) {
@@ -265,20 +268,7 @@ const UserManagement = () => {
     isActive: true,
   });
 
-  const departments = [
-    "CRG (Customer Relation Group)",
-    "TG (Takeout Group)",
-    "Billing and Collection Group",
-    "Treasury Group",
-    "Finance and Tax Group",
-    "Disbursement Group",
-    "RSD (Real Estate Services Department)",
-    "Engineering Department",
-    "IT Group",
-    "HR Group",
-    "Sales and Marketing Group",
-    "Leasing Group"
-  ];
+  const [departments, setDepartments] = useState([]);
   const roles = ['user', 'admin', 'manager'];
 
   const loadUsers = useCallback(async () => {
@@ -294,9 +284,30 @@ const UserManagement = () => {
     }
   }, []);
 
+  const loadDepartments = useCallback(async () => {
+    try {
+      const data = await api.get('/api/v1/departments');
+      const names = (Array.isArray(data) ? data : [])
+        .map((d) => (typeof d === 'string' ? d : d?.name))
+        .filter(Boolean);
+      setDepartments(names);
+    } catch (err) {
+      console.error('Error fetching departments:', err);
+      setDepartments([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+    loadDepartments();
+  }, [loadUsers, loadDepartments]);
+
+  useEffect(() => {
+    return subscribeDepartmentEvents((items) => {
+      const names = (items || []).map((d) => d.name).filter(Boolean);
+      setDepartments(names);
+    });
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeUserProfileEvents((updatedUser) => {
@@ -315,6 +326,13 @@ const UserManagement = () => {
     });
     return unsubscribe;
   }, []);
+
+  const departmentOptions = Array.from(
+    new Set([
+      ...departments,
+      ...users.map((u) => u.department).filter(Boolean),
+    ]),
+  ).sort((a, b) => a.localeCompare(b));
 
   // Filter and sort users
   const filteredAndSortedUsers = users
@@ -638,7 +656,7 @@ const UserManagement = () => {
             >
               <option value="all">All Departments</option>
               <option value="none">No Department</option>
-              {departments.map((dept) => (
+              {departmentOptions.map((dept) => (
                 <option key={dept} value={dept}>
                   {dept}
                 </option>
@@ -905,6 +923,12 @@ const UserManagement = () => {
             className="mt-1 block w-full app-field border rounded-xl shadow-sm py-2.5 px-3 focus:outline-none text-sm"
           >
             <option value="">Select Department</option>
+            {editFormData.department &&
+              !departments.includes(editFormData.department) && (
+                <option value={editFormData.department} className="bg-app-panel">
+                  {editFormData.department}
+                </option>
+              )}
             {departments.map(dept => (
               <option key={dept} value={dept} className="bg-app-panel">{dept}</option>
             ))}
