@@ -418,6 +418,28 @@ svg {
   animation: bell-ring 0.8s ease-in-out;
 }
 
+/*
+  Accent line on cards:
+  - Always visible
+  - Expands on hover (mouse) and active/tap (touch)
+*/
+.accent-hover-line {
+  display: block;
+  flex-shrink: 0;
+  height: 0.125rem;
+  width: 2.5rem;
+  border-radius: 9999px;
+  opacity: 0.9;
+  margin-bottom: 0.75rem;
+  transition: width 0.3s ease;
+}
+
+.group:hover .accent-hover-line,
+.group:active .accent-hover-line,
+.group:focus-within .accent-hover-line {
+  width: 3.5rem;
+}
+
 /* Notification badge pulse */
 @keyframes notification-pulse {
   0% {

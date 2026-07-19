@@ -1,7 +1,8 @@
 // @ts-nocheck
 'use client';
 
-import { SkeletonCard, LoadingDots } from '@/lib/ui/LoadingComponents';
+import { LoadingDots } from '@/lib/ui/LoadingComponents';
+import { TicketListSkeleton } from '@/lib/ui/DashboardSkeletons';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -673,6 +674,15 @@ const TicketList = ({
   }, [clearTicketUrlParams, onTicketModalClose]);
 
   useEffect(() => {
+    if (!showTicketDetails) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeTicketDetailsModal();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showTicketDetails, closeTicketDetailsModal]);
+
+  useEffect(() => {
     if (!openTicketId) return;
 
     const sessionKey = `${openTicketId}:${openKey ?? ''}`;
@@ -813,11 +823,11 @@ const TicketList = ({
 
       <button
         onClick={() => handleViewDetails(ticket)}
-        className={`px-3 sm:px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+        className={`px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${
           layout === 'compact-table' ? 'w-full' : layout === 'card' ? 'w-full lg:w-auto' : ''
         }`}
       >
-        View Details
+        {layout === 'desktop-table' ? 'View' : 'View Details'}
       </button>
     </div>
   );
@@ -825,8 +835,9 @@ const TicketList = ({
   const renderCompactTableRow = (ticket) => (
     <div
       key={ticket.id}
-      className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 hover:border-emerald-500/30 transition-all duration-300"
+      className="group relative overflow-hidden bg-gray-800/40 rounded-xl border border-gray-700/70 p-4 hover:bg-gray-800/70 hover:border-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5"
     >
+      <div className="accent-hover-line bg-emerald-500" aria-hidden="true" />
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0 flex-1">
           {ticket.ticketNumber && (
@@ -984,43 +995,21 @@ const TicketList = ({
   if (!mounted) return null;
 
   if (loading && !modalOnly) {
-    return (
-      <div className="space-y-4">
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-      </div>
-    );
+    return <TicketListSkeleton />;
   }
 
   if (loading && modalOnly) {
     return null;
   }
 
-  if (filteredTickets.length === 0 && !modalOnly && !openTicketId) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto w-24 h-24 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-medium text-white mb-2">No tickets found</h3>
-        <p className="text-gray-400">
-          {searchTerm ? 'No tickets match your search criteria.' : 
-           showAllTickets ? 'No tickets have been created yet.' : 'You haven\'t created any tickets yet.'}
-        </p>
-        {searchTerm && (
-          <button
-            onClick={() => setSearchTerm('')}
-            className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            Clear Search
-          </button>
-        )}
-      </div>
-    );
-  }
+  const hasActiveFilters =
+    !!searchTerm || filter !== 'all' || priorityFilter !== 'all';
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setFilter('all');
+    setPriorityFilter('all');
+  };
 
   return (
     <div className={modalOnly ? undefined : 'space-y-6'}>
@@ -1037,7 +1026,7 @@ const TicketList = ({
           </div>
           <input
             type="text"
-            placeholder={adminMode ? "Search by ticket number, title, description, creator, or assignee..." : "Search by ticket number, title, description, or creator..."}
+            placeholder={adminMode ? 'Search tickets, users…' : 'Search tickets…'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-colors"
@@ -1180,14 +1169,40 @@ const TicketList = ({
         </div>
       </div>
 
-      {/* Responsive Tickets List */}
-      {isCardView ? (
+      {/* Empty state — filters stay visible above */}
+      {filteredTickets.length === 0 && !openTicketId ? (
+        <div className="rounded-xl border border-dashed border-gray-600/70 bg-gray-800/20 px-5 py-10 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gray-700/40 text-gray-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="text-base font-semibold text-white mb-1">No tickets found</h3>
+          <p className="text-sm text-gray-400 max-w-md mx-auto">
+            {hasActiveFilters
+              ? 'No tickets match your current filters.'
+              : showAllTickets
+                ? 'No tickets have been created yet.'
+                : "You haven't created any tickets yet."}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+      ) : isCardView ? (
         <div className="space-y-3 sm:space-y-4">
           {filteredTickets.map((ticket) => (
             <div
               key={ticket.id}
-              className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-emerald-500/30 transition-all duration-300"
+              className="group relative overflow-hidden bg-gray-800/40 rounded-xl border border-gray-700/70 p-4 sm:p-5 hover:bg-gray-800/70 hover:border-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5"
             >
+              <div className="accent-hover-line bg-emerald-500" aria-hidden="true" />
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
@@ -1241,14 +1256,6 @@ const TicketList = ({
 
                   <div className="flex flex-col gap-3">
                     <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                      {ticket.ticketNumber && (
-                        <span className="flex items-center gap-1 text-cyan-400/90 font-medium">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                          </svg>
-                          Ref: {ticket.ticketNumber}
-                        </span>
-                      )}
                       <span>Created: {formatDate(ticket.createdAt)}</span>
                       {getCompletedDate(ticket) && (
                         <span className="text-emerald-400/90 font-medium">
@@ -1371,287 +1378,306 @@ const TicketList = ({
       </>
       )}
 
-      {/* Enhanced Ticket Details Modal - FIXED RESPONSIVENESS */}
+      {/* Ticket Details Modal */}
       {showTicketDetails && selectedTicketDetails && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-1 sm:p-2 md:p-4">
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-lg sm:rounded-2xl border border-gray-700/50 w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-[98vh] sm:max-h-[95vh] overflow-hidden shadow-2xl mx-1 sm:mx-2">
-            {/* Modal Header - RESPONSIVE */}
-            <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border-b border-gray-700/50 p-3 sm:p-4 md:p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg flex-shrink-0">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white truncate">Ticket Details</h2>
-                    {selectedTicketDetails.ticketNumber ? (
-                      <p className="text-xs sm:text-sm flex items-center gap-1.5 flex-wrap">
-                        <span className="text-gray-400">Ticket No.</span>
-                        <span className="text-cyan-300 font-mono font-semibold">{selectedTicketDetails.ticketNumber}</span>
-                      </p>
-                    ) : (
-                      <p className="text-xs sm:text-sm text-gray-400">#{selectedTicketDetails.id}</p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={closeTicketDetailsModal}
-                  className="text-gray-400 hover:text-white transition-colors p-1.5 sm:p-2 hover:bg-gray-800/50 rounded-lg flex-shrink-0"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-gray-900/80 backdrop-blur-sm animate-slide-up-fade"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeTicketDetailsModal();
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Ticket Details"
+            className="relative w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden rounded-2xl border border-gray-700/80 bg-gray-800/95 shadow-2xl shadow-emerald-950/40 animate-scale-in"
+          >
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500 z-10" />
+
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-gray-700/80 bg-gradient-to-b from-gray-800 to-gray-800/80 shrink-0">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                </button>
-              </div>
-            </div>
-            
-            {/* Modal Content - RESPONSIVE */}
-            <div className="p-3 sm:p-4 md:p-6 overflow-y-auto max-h-[calc(98vh-80px)] sm:max-h-[calc(95vh-120px)]">
-              <div className="space-y-4 sm:space-y-6">
-                {/* Ticket Header - RESPONSIVE */}
-                <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
-                  <div className="space-y-3 sm:space-y-4">
-                    <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white leading-tight break-words">{selectedTicketDetails.title}</h3>
-                    
-                    {/* Status and Priority Badges - RESPONSIVE */}
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-3">
-                      <span className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 ${statusColors[selectedTicketDetails.status]}`}>
-                        {getStatusIcon(selectedTicketDetails.status)}
-                        <span className="capitalize">{selectedTicketDetails.status}</span>
-                      </span>
-                      <span className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 ${priorityColors[selectedTicketDetails.priority]}`}>
-                        {getPriorityIcon(selectedTicketDetails.priority)}
-                        <span className="capitalize">{selectedTicketDetails.priority}</span>
-                      </span>
-                      {(adminMode || showAllTickets) && selectedTicketDetails.assignedInfo && (
-                        <span className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border flex items-center gap-1.5 sm:gap-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
-                          <UserAvatar user={selectedTicketDetails.assignedInfo} size="xs" />
-                          <span className="hidden sm:inline">Assigned to: </span>
-                          <span className="truncate max-w-[120px] sm:max-w-none">{selectedTicketDetails.assignedInfo.name || selectedTicketDetails.assignedInfo.email}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
+                <div className="min-w-0">
+                  <h2 className="text-base sm:text-xl font-bold text-white truncate">Ticket Details</h2>
+                  {selectedTicketDetails.ticketNumber ? (
+                    <p className="mt-0.5 text-xs sm:text-sm flex items-center gap-1.5 flex-wrap">
+                      <span className="text-gray-400">Ticket No.</span>
+                      <span className="text-cyan-300 font-mono font-semibold">{selectedTicketDetails.ticketNumber}</span>
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-xs text-gray-400 truncate">#{selectedTicketDetails.id}</p>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeTicketDetailsModal}
+                className="p-2 text-gray-400 hover:text-white transition-all duration-200 rounded-lg hover:bg-gray-700 hover:rotate-90 shrink-0"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-                {/* Main Content Grid - RESPONSIVE */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                  {/* Description - Takes 2 columns on large screens */}
-                  <div className="lg:col-span-2 bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
-                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 sm:space-y-5">
+              {/* Title + badges */}
+              <section className="group relative overflow-hidden rounded-xl border border-gray-700/70 bg-gray-800/40 p-4 sm:p-5">
+                <div className="accent-hover-line bg-emerald-500" aria-hidden="true" />
+                <h3 className="text-base sm:text-lg font-bold text-white leading-snug break-words">
+                  {selectedTicketDetails.title}
+                </h3>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 ${statusColors[selectedTicketDetails.status]}`}>
+                    {getStatusIcon(selectedTicketDetails.status)}
+                    <span className="capitalize">{selectedTicketDetails.status}</span>
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 ${priorityColors[selectedTicketDetails.priority]}`}>
+                    {getPriorityIcon(selectedTicketDetails.priority)}
+                    <span className="capitalize">{selectedTicketDetails.priority}</span>
+                  </span>
+                  {(adminMode || showAllTickets) && selectedTicketDetails.assignedInfo && (
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 bg-blue-500/20 text-blue-400 border-blue-500/30">
+                      <UserAvatar user={selectedTicketDetails.assignedInfo} size="xs" />
+                      <span className="truncate max-w-[140px] sm:max-w-none">
+                        {selectedTicketDetails.assignedInfo.name || selectedTicketDetails.assignedInfo.email}
+                      </span>
+                    </span>
+                  )}
+                </div>
+              </section>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Description */}
+                <section className="lg:col-span-2 rounded-xl border border-gray-700/70 bg-gray-800/40 p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h10" />
                       </svg>
-                      <h4 className="text-base sm:text-lg font-semibold text-white">Description</h4>
                     </div>
-                    <p className="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap break-words">{selectedTicketDetails.description}</p>
+                    <h4 className="text-sm sm:text-base font-semibold text-white">Description</h4>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
+                    {selectedTicketDetails.description}
+                  </p>
 
-                    {selectedTicketDetails.attachments?.length > 0 && (
-                      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-700/50">
-                        <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {selectedTicketDetails.attachments?.length > 0 && (
+                    <div className="mt-5 pt-4 border-t border-gray-700/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="p-1.5 rounded-lg bg-purple-500/15 text-purple-400">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          <h4 className="text-sm sm:text-base font-semibold text-white">
-                            Attachments ({selectedTicketDetails.attachments.length})
-                          </h4>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          {selectedTicketDetails.attachments.map((attachment) => (
-                            <button
-                              key={attachment.id}
-                              type="button"
-                              onClick={() => setLightboxImage(attachment)}
-                              className="group relative rounded-lg overflow-hidden border border-gray-600/50 bg-gray-900/50 aspect-square hover:border-purple-500/50 transition-colors"
-                            >
-                              {attachment.url ? (
-                                <img
-                                  src={attachment.url}
-                                  alt={attachment.fileName || 'Ticket attachment'}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs px-2 text-center">
-                                  Image unavailable
-                                </div>
-                              )}
-                              <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
-                                <p className="text-xs text-gray-200 truncate">
-                                  {attachment.fileName || 'Screenshot'}
-                                </p>
+                        <h4 className="text-sm font-semibold text-white">
+                          Screenshots ({selectedTicketDetails.attachments.length})
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {selectedTicketDetails.attachments.map((attachment) => (
+                          <button
+                            key={attachment.id}
+                            type="button"
+                            onClick={() => setLightboxImage(attachment)}
+                            className="group relative rounded-xl overflow-hidden border border-gray-600/50 bg-gray-900/50 aspect-square hover:border-emerald-500/40 transition-colors"
+                          >
+                            {attachment.url ? (
+                              <img
+                                src={attachment.url}
+                                alt={attachment.fileName || 'Ticket attachment'}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs px-2 text-center">
+                                Unavailable
                               </div>
-                            </button>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+                              <p className="text-[10px] sm:text-xs text-gray-200 truncate">
+                                {attachment.fileName || 'Screenshot'}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                {/* Information */}
+                <section className="rounded-xl border border-gray-700/70 bg-gray-800/40 p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 rounded-lg bg-cyan-500/15 text-cyan-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-sm sm:text-base font-semibold text-white">Information</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-gray-400 text-xs block mb-1">Ticket Number</span>
+                      <span className="text-cyan-300 font-mono text-sm font-semibold bg-gray-700/40 px-2 py-1 rounded-lg inline-block">
+                        {selectedTicketDetails.ticketNumber || 'N/A'}
+                      </span>
+                    </div>
+                    {adminMode && (
+                      <div>
+                        <span className="text-gray-400 text-xs block mb-1">Internal ID</span>
+                        <span className="text-gray-400 font-mono text-[10px] bg-gray-700/30 px-2 py-1 rounded-lg break-all inline-block">
+                          {selectedTicketDetails.id}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-gray-400 text-xs block mb-1">Created</span>
+                      <span className="text-white text-sm">{formatDate(selectedTicketDetails.createdAt)}</span>
+                    </div>
+                    {getCompletedDate(selectedTicketDetails) ? (
+                      <div>
+                        <span className="text-gray-400 text-xs block mb-1">Completed</span>
+                        <span className="text-emerald-300 text-sm">
+                          {formatDate(getCompletedDate(selectedTicketDetails))}
+                        </span>
+                      </div>
+                    ) : hasMeaningfulUpdate(selectedTicketDetails) ? (
+                      <div>
+                        <span className="text-gray-400 text-xs block mb-1">Last Updated</span>
+                        <span className="text-white text-sm">{formatDate(selectedTicketDetails.updatedAt)}</span>
+                      </div>
+                    ) : null}
+                    {showAllTickets && selectedTicketDetails.creatorInfo && (
+                      <div>
+                        <span className="text-gray-400 text-xs block mb-1.5">Created by</span>
+                        <UserChip user={selectedTicketDetails.creatorInfo} />
+                      </div>
+                    )}
+                    {adminMode && selectedTicketDetails.status !== 'closed' && (
+                      <div>
+                        <span className="text-gray-400 text-xs block mb-1.5">Assign to</span>
+                        <select
+                          value={selectedTicketDetails.assignedTo || ''}
+                          onChange={(e) => {
+                            const value = e.target.value || null;
+                            handleAssignTicket(selectedTicketDetails.id, value);
+                            setSelectedTicketDetails((prev) => {
+                              if (!prev) return prev;
+                              const assignee = assignableUsers.find((u) => u.id === value) || null;
+                              return {
+                                ...prev,
+                                assignedTo: value,
+                                assignedInfo: assignee
+                                  ? {
+                                      id: assignee.id,
+                                      name: assignee.name,
+                                      email: assignee.email,
+                                      photoURL: assignee.photoURL || assignee.photo_url || null,
+                                    }
+                                  : null,
+                              };
+                            });
+                          }}
+                          disabled={assigningTicketId === selectedTicketDetails.id}
+                          className="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-50"
+                        >
+                          <option value="">Unassigned</option>
+                          {assignableUsers.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.name || user.email}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              </div>
+
+              {(selectedTicketDetails.category || selectedTicketDetails.department || selectedTicketDetails.tags) && (
+                <section className="rounded-xl border border-gray-700/70 bg-gray-800/40 p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 rounded-lg bg-amber-500/15 text-amber-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-sm sm:text-base font-semibold text-white">Additional Details</h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {selectedTicketDetails.category && (
+                      <div className="rounded-xl bg-gray-700/30 border border-gray-600/40 px-3 py-2.5">
+                        <span className="text-gray-400 text-xs block mb-0.5">Category</span>
+                        <span className="text-white font-medium text-sm capitalize break-words">{selectedTicketDetails.category}</span>
+                      </div>
+                    )}
+                    {selectedTicketDetails.department && (
+                      <div className="rounded-xl bg-gray-700/30 border border-gray-600/40 px-3 py-2.5">
+                        <span className="text-gray-400 text-xs block mb-0.5">Department</span>
+                        <span className="text-white font-medium text-sm break-words">{selectedTicketDetails.department}</span>
+                      </div>
+                    )}
+                    {selectedTicketDetails.tags && selectedTicketDetails.tags.length > 0 && (
+                      <div className="sm:col-span-2 lg:col-span-3">
+                        <span className="text-gray-400 text-xs block mb-2">Tags</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedTicketDetails.tags.map((tag, index) => (
+                            <span key={index} className="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 rounded-lg text-xs border border-emerald-500/30">
+                              {tag}
+                            </span>
                           ))}
                         </div>
                       </div>
                     )}
                   </div>
+                </section>
+              )}
 
-                  {/* Ticket Information - Takes 1 column on large screens */}
-                  <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
-                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h4 className="text-base sm:text-lg font-semibold text-white">Information</h4>
-                    </div>
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div>
-                        <span className="text-gray-400 text-xs sm:text-sm block">Ticket Number</span>
-                        <span className="text-cyan-300 font-mono text-sm sm:text-base font-semibold bg-gray-700/50 px-2 py-1 rounded inline-block">
-                          {selectedTicketDetails.ticketNumber || 'N/A'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-xs sm:text-sm block">Internal ID</span>
-                        <span className="text-gray-400 font-mono text-[10px] sm:text-xs bg-gray-700/30 px-2 py-1 rounded break-all">{selectedTicketDetails.id}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-xs sm:text-sm block">Created</span>
-                        <span className="text-white text-sm sm:text-base">{formatDate(selectedTicketDetails.createdAt)}</span>
-                      </div>
-                      {getCompletedDate(selectedTicketDetails) ? (
-                        <div>
-                          <span className="text-gray-400 text-xs sm:text-sm block">Completed</span>
-                          <span className="text-emerald-300 text-sm sm:text-base">
-                            {formatDate(getCompletedDate(selectedTicketDetails))}
-                          </span>
-                        </div>
-                      ) : hasMeaningfulUpdate(selectedTicketDetails) ? (
-                        <div>
-                          <span className="text-gray-400 text-xs sm:text-sm block">Last Updated</span>
-                          <span className="text-white text-sm sm:text-base">{formatDate(selectedTicketDetails.updatedAt)}</span>
-                        </div>
-                      ) : null}
-                      {showAllTickets && selectedTicketDetails.creatorInfo && (
-                        <div>
-                          <span className="text-gray-400 text-xs sm:text-sm block mb-1.5">Created by</span>
-                          <UserChip user={selectedTicketDetails.creatorInfo} />
-                        </div>
-                      )}
-                      {adminMode && selectedTicketDetails.status !== 'closed' && (
-                        <div>
-                          <span className="text-gray-400 text-xs sm:text-sm block mb-1">Assign to</span>
-                          <select
-                            value={selectedTicketDetails.assignedTo || ''}
-                            onChange={(e) => {
-                              const value = e.target.value || null;
-                              handleAssignTicket(selectedTicketDetails.id, value);
-                              setSelectedTicketDetails((prev) => {
-                                if (!prev) return prev;
-                                const assignee = assignableUsers.find((u) => u.id === value) || null;
-                                return {
-                                  ...prev,
-                                  assignedTo: value,
-                                  assignedInfo: assignee
-                                    ? {
-                                        id: assignee.id,
-                                        name: assignee.name,
-                                        email: assignee.email,
-                                        photoURL: assignee.photoURL || assignee.photo_url || null,
-                                      }
-                                    : null,
-                                };
-                              });
-                            }}
-                            disabled={assigningTicketId === selectedTicketDetails.id}
-                            className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
-                          >
-                            <option value="">Unassigned</option>
-                            {assignableUsers.map((user) => (
-                              <option key={user.id} value={user.id}>
-                                {user.name || user.email}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+              <FeedbackRatingPanel ticket={selectedTicketDetails} />
 
-                {/* Additional Information - RESPONSIVE */}
-                {(selectedTicketDetails.category || selectedTicketDetails.department || selectedTicketDetails.tags) && (
-                  <div className="bg-gray-800/30 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-gray-700/50">
-                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                      <h4 className="text-base sm:text-lg font-semibold text-white">Additional Details</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                      {selectedTicketDetails.category && (
-                        <div className="bg-gray-700/30 rounded-lg p-2.5 sm:p-3">
-                          <span className="text-gray-400 text-xs sm:text-sm block mb-1">Category</span>
-                          <span className="text-white font-medium text-sm sm:text-base break-words">{selectedTicketDetails.category}</span>
-                        </div>
-                      )}
-                      {selectedTicketDetails.department && (
-                        <div className="bg-gray-700/30 rounded-lg p-2.5 sm:p-3">
-                          <span className="text-gray-400 text-xs sm:text-sm block mb-1">Department</span>
-                          <span className="text-white font-medium text-sm sm:text-base break-words">{selectedTicketDetails.department}</span>
-                        </div>
-                      )}
-                      {selectedTicketDetails.tags && selectedTicketDetails.tags.length > 0 && (
-                        <div className="sm:col-span-2 lg:col-span-3">
-                          <span className="text-gray-400 text-xs sm:text-sm block mb-2">Tags</span>
-                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                            {selectedTicketDetails.tags.map((tag, index) => (
-                              <span key={index} className="px-2 sm:px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs sm:text-sm border border-emerald-500/30">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+              <TicketConversation
+                ticketId={selectedTicketDetails.id}
+                ticketStatus={selectedTicketDetails.status}
+                createdBy={selectedTicketDetails.createdBy}
+                currentUserId={currentUser?.uid}
+                currentUserRole={currentUser?.role || userProfile?.role}
+                onImageClick={(attachment) => setLightboxImage(attachment)}
+                scrollIntoViewOnMount={focusConversation}
+              />
+            </div>
 
-                <FeedbackRatingPanel ticket={selectedTicketDetails} />
-
-                <TicketConversation
-                  ticketId={selectedTicketDetails.id}
-                  ticketStatus={selectedTicketDetails.status}
-                  createdBy={selectedTicketDetails.createdBy}
-                  currentUserId={currentUser?.uid}
-                  currentUserRole={currentUser?.role || userProfile?.role}
-                  onImageClick={(attachment) => setLightboxImage(attachment)}
-                  scrollIntoViewOnMount={focusConversation}
-                />
-
-                {/* Actions - RESPONSIVE */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end pt-3 sm:pt-4 border-t border-gray-700/50">
-                  {/* Request Feedback button - only show for non-admin mode when status is resolved */}
-                  {!adminMode && selectedTicketDetails.status === 'resolved' && selectedTicketDetails.createdBy === currentUser?.uid && !selectedTicketDetails.feedbackSubmitted && (
-                    <button
-                      onClick={() => {
-                        const ticket = selectedTicketDetails;
-                        closeTicketDetailsModal();
-                        handleFeedbackRequest(ticket);
-                      }}
-                      className="px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-                    >
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                      <span className="hidden sm:inline">Request Feedback</span>
-                      <span className="sm:hidden">Feedback</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={closeTicketDetailsModal}
-                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-                  >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Close
-                  </button>
-                </div>
-              </div>
+            {/* Footer */}
+            <div className="shrink-0 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end p-4 sm:p-5 border-t border-gray-700/80 bg-gray-900/40">
+              {!adminMode && selectedTicketDetails.status === 'resolved' && selectedTicketDetails.createdBy === currentUser?.uid && !selectedTicketDetails.feedbackSubmitted && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ticket = selectedTicketDetails;
+                    closeTicketDetailsModal();
+                    handleFeedbackRequest(ticket);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Give Feedback
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={closeTicketDetailsModal}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
