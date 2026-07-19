@@ -295,107 +295,194 @@ const DepartmentManagement = () => {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-app-subtle bg-app-panel">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-app-subtle bg-app-surface-2/60">
-              <tr className="text-[11px] uppercase tracking-wide text-app-muted">
-                <th className="px-3 py-2.5 font-semibold">Department</th>
-                <th className="px-3 py-2.5 font-semibold w-[100px]">Status</th>
-                <th className="px-3 py-2.5 font-semibold w-[80px]">Order</th>
-                <th className="px-3 py-2.5 font-semibold text-right w-[180px]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-app-subtle">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-3 py-10 text-center text-app-muted">
-                    No departments found.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((dept) => (
-                  <tr key={dept.id} className="hover:bg-app-surface-2/40 transition-colors">
-                    <td className="px-3 py-2.5">
-                      {editingId === dept.id ? (
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          maxLength={120}
-                          className="app-field w-full max-w-md rounded-lg border px-2.5 py-1.5 text-sm"
-                          autoFocus
-                        />
-                      ) : (
-                        <span className="font-medium text-app">{dept.name}</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span
-                        className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(dept.isActive)}`}
-                      >
-                        {dept.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 tabular-nums text-app-soft">{dept.sortOrder}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {editingId === dept.id ? (
-                          <>
-                            <button
-                              type="button"
-                              disabled={saving}
-                              onClick={() => saveEdit(dept)}
-                              className="rounded-lg border border-app-primary/40 bg-app-primary-soft px-2.5 py-1.5 text-xs font-semibold text-app-primary disabled:opacity-50"
-                            >
-                              Save
-                            </button>
-                            <button
-                              type="button"
-                              disabled={saving}
-                              onClick={cancelEdit}
-                              className="rounded-lg border border-app px-2.5 py-1.5 text-xs font-medium text-app-soft disabled:opacity-50"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              disabled={saving}
-                              onClick={() => startEdit(dept)}
-                              className="rounded-lg border border-app px-2.5 py-1.5 text-xs font-medium text-app-soft hover:border-app-primary/40 disabled:opacity-50"
-                            >
-                              Rename
-                            </button>
-                            <button
-                              type="button"
-                              disabled={saving}
-                              onClick={() =>
-                                dept.isActive
-                                  ? setDeactivateTarget(dept)
-                                  : toggleActive(dept)
-                              }
-                              className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 ${
-                                dept.isActive
-                                  ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
-                                  : 'border-app-primary/30 text-app-primary hover:bg-app-primary-soft'
-                              }`}
-                            >
-                              {dept.isActive ? 'Deactivate' : 'Activate'}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {filtered.length === 0 ? (
+        <div className="rounded-xl border border-app-subtle bg-app-panel px-4 py-10 text-center text-sm text-app-muted">
+          No departments found.
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {filtered.map((dept) => (
+              <div
+                key={dept.id}
+                className="rounded-xl border border-app-subtle bg-app-panel p-3.5"
+              >
+                {editingId === dept.id ? (
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    maxLength={120}
+                    className="app-field mb-3 w-full rounded-lg border px-2.5 py-2 text-sm"
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-sm font-semibold text-app break-words leading-snug">
+                    {dept.name}
+                  </p>
+                )}
+
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(dept.isActive)}`}
+                  >
+                    {dept.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                  <span className="text-[11px] text-app-muted tabular-nums">
+                    Order {dept.sortOrder}
+                  </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {editingId === dept.id ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => saveEdit(dept)}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-app-primary/40 bg-app-primary-soft text-xs font-semibold text-app-primary disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={cancelEdit}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-app text-xs font-medium text-app-soft disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => startEdit(dept)}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-app text-xs font-medium text-app-soft hover:border-app-primary/40 disabled:opacity-50"
+                      >
+                        Rename
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() =>
+                          dept.isActive
+                            ? setDeactivateTarget(dept)
+                            : toggleActive(dept)
+                        }
+                        className={`inline-flex h-9 items-center justify-center rounded-lg border text-xs font-medium disabled:opacity-50 ${
+                          dept.isActive
+                            ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
+                            : 'border-app-primary/30 text-app-primary hover:bg-app-primary-soft'
+                        }`}
+                      >
+                        {dept.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop / tablet table */}
+          <div className="hidden md:block overflow-hidden rounded-xl border border-app-subtle bg-app-panel">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-app-subtle bg-app-surface-2/60">
+                  <tr className="text-[11px] uppercase tracking-wide text-app-muted">
+                    <th className="px-3 py-2.5 font-semibold">Department</th>
+                    <th className="px-3 py-2.5 font-semibold w-[100px]">Status</th>
+                    <th className="px-3 py-2.5 font-semibold w-[80px]">Order</th>
+                    <th className="px-3 py-2.5 font-semibold text-right w-[180px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-app-subtle">
+                  {filtered.map((dept) => (
+                    <tr key={dept.id} className="hover:bg-app-surface-2/40 transition-colors">
+                      <td className="px-3 py-2.5">
+                        {editingId === dept.id ? (
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            maxLength={120}
+                            className="app-field w-full max-w-md rounded-lg border px-2.5 py-1.5 text-sm"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="font-medium text-app">{dept.name}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span
+                          className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(dept.isActive)}`}
+                        >
+                          {dept.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 tabular-nums text-app-soft">{dept.sortOrder}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {editingId === dept.id ? (
+                            <>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={() => saveEdit(dept)}
+                                className="rounded-lg border border-app-primary/40 bg-app-primary-soft px-2.5 py-1.5 text-xs font-semibold text-app-primary disabled:opacity-50"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={cancelEdit}
+                                className="rounded-lg border border-app px-2.5 py-1.5 text-xs font-medium text-app-soft disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={() => startEdit(dept)}
+                                className="rounded-lg border border-app px-2.5 py-1.5 text-xs font-medium text-app-soft hover:border-app-primary/40 disabled:opacity-50"
+                              >
+                                Rename
+                              </button>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                onClick={() =>
+                                  dept.isActive
+                                    ? setDeactivateTarget(dept)
+                                    : toggleActive(dept)
+                                }
+                                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                                  dept.isActive
+                                    ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
+                                    : 'border-app-primary/30 text-app-primary hover:bg-app-primary-soft'
+                                }`}
+                              >
+                                {dept.isActive ? 'Deactivate' : 'Activate'}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       <ConfirmModal
         open={!!deactivateTarget}

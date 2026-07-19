@@ -229,64 +229,103 @@ const AdminLogs = () => {
         </span>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-app-subtle bg-app-panel">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-app-surface-2/60 border-b border-app-subtle">
-              <tr className="text-[11px] uppercase tracking-wide text-app-muted">
-                <th className="px-3 py-2.5 font-medium whitespace-nowrap">Time</th>
-                <th className="px-3 py-2.5 font-medium whitespace-nowrap">Actor</th>
-                <th className="px-3 py-2.5 font-medium whitespace-nowrap">Action</th>
-                <th className="px-3 py-2.5 font-medium whitespace-nowrap">Entity</th>
-                <th className="px-3 py-2.5 font-medium min-w-[220px]">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-app-subtle">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-3 py-10 text-center text-app-muted">
-                    No activity logs found for the selected filters.
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => (
-                  <tr key={item.id} className="hover:bg-app-surface-2/40 transition-colors">
-                    <td className="px-3 py-2.5 text-app-soft whitespace-nowrap tabular-nums">
-                      {formatDateTime(item.createdAt)}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex flex-col gap-1 min-w-[120px]">
-                        <span className="font-medium text-app truncate">{item.actorName}</span>
-                        <span
-                          className={`inline-flex w-fit items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${roleBadgeClass(item.actorRole)}`}
-                        >
-                          {roleLabel(item.actorRole)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className="inline-flex items-center rounded-md border border-app bg-app-surface-2 px-2 py-0.5 text-xs font-medium text-app-soft">
-                        {actionLabel(item.action)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className="font-mono text-xs text-app-primary">
-                        {entityLabel(item)}
-                      </span>
-                      <div className="text-[11px] text-app-muted capitalize mt-0.5">
-                        {item.entityType || '—'}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-app-soft">
-                      <p className="leading-snug">{item.summary}</p>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {items.length === 0 ? (
+        <div className="rounded-xl border border-app-subtle bg-app-panel px-4 py-10 text-center text-sm text-app-muted">
+          No activity logs found for the selected filters.
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-xl border border-app-subtle bg-app-panel p-3.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-app truncate">{item.actorName}</p>
+                    <span
+                      className={`mt-1 inline-flex w-fit items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${roleBadgeClass(item.actorRole)}`}
+                    >
+                      {roleLabel(item.actorRole)}
+                    </span>
+                  </div>
+                  <time className="shrink-0 text-[11px] tabular-nums text-app-muted text-right">
+                    {formatDateTime(item.createdAt)}
+                  </time>
+                </div>
+
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center rounded-md border border-app bg-app-surface-2 px-2 py-0.5 text-xs font-medium text-app-soft">
+                    {actionLabel(item.action)}
+                  </span>
+                  <span className="font-mono text-xs text-app-primary">{entityLabel(item)}</span>
+                  {item.entityType && (
+                    <span className="text-[11px] capitalize text-app-muted">{item.entityType}</span>
+                  )}
+                </div>
+
+                <p className="mt-2.5 text-sm leading-snug text-app-soft break-words">
+                  {item.summary}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop / tablet table */}
+          <div className="hidden md:block overflow-hidden rounded-xl border border-app-subtle bg-app-panel">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-app-surface-2/60 border-b border-app-subtle">
+                  <tr className="text-[11px] uppercase tracking-wide text-app-muted">
+                    <th className="px-3 py-2.5 font-medium whitespace-nowrap">Time</th>
+                    <th className="px-3 py-2.5 font-medium whitespace-nowrap">Actor</th>
+                    <th className="px-3 py-2.5 font-medium whitespace-nowrap">Action</th>
+                    <th className="px-3 py-2.5 font-medium whitespace-nowrap">Entity</th>
+                    <th className="px-3 py-2.5 font-medium min-w-[220px]">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-app-subtle">
+                  {items.map((item) => (
+                    <tr key={item.id} className="hover:bg-app-surface-2/40 transition-colors">
+                      <td className="px-3 py-2.5 text-app-soft whitespace-nowrap tabular-nums">
+                        {formatDateTime(item.createdAt)}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex flex-col gap-1 min-w-[120px]">
+                          <span className="font-medium text-app truncate">{item.actorName}</span>
+                          <span
+                            className={`inline-flex w-fit items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${roleBadgeClass(item.actorRole)}`}
+                          >
+                            {roleLabel(item.actorRole)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <span className="inline-flex items-center rounded-md border border-app bg-app-surface-2 px-2 py-0.5 text-xs font-medium text-app-soft">
+                          {actionLabel(item.action)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <span className="font-mono text-xs text-app-primary">
+                          {entityLabel(item)}
+                        </span>
+                        <div className="text-[11px] text-app-muted capitalize mt-0.5">
+                          {item.entityType || '—'}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 text-app-soft">
+                        <p className="leading-snug">{item.summary}</p>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="flex items-center justify-between gap-3">
         <button
