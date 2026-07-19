@@ -278,7 +278,7 @@ const ExecutiveSummary = ({
           <button
             type="button"
             onClick={() => onNavigateToTab?.('reports')}
-            className="p-3 sm:p-4 bg-app-surface-2 hover:bg-app-surface-3 border border-app-primary/40 rounded-lg transition-colors text-left"
+            className="p-3 sm:p-4 bg-app-surface-3 hover:bg-app-surface-2 border border-app rounded-lg transition-colors text-left"
           >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-app-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,10 +294,10 @@ const ExecutiveSummary = ({
           <button
             type="button"
             onClick={() => onNavigateToTab?.('analytics')}
-            className="p-3 sm:p-4 bg-app-surface-2 hover:bg-app-surface-3 border border-sky-500/40 rounded-lg transition-colors text-left"
+            className="p-3 sm:p-4 bg-app-surface-3 hover:bg-app-surface-2 border border-app rounded-lg transition-colors text-left"
           >
             <div className="flex items-center space-x-3">
-              <svg className="w-5 h-5 text-sky-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-sky-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
               </svg>
               <div>
@@ -310,7 +310,7 @@ const ExecutiveSummary = ({
           <button
             type="button"
             onClick={() => onNavigateToTab?.('feedback')}
-            className="p-3 sm:p-4 bg-app-surface-2 hover:bg-app-surface-3 border border-amber-500/40 rounded-lg transition-colors text-left"
+            className="p-3 sm:p-4 bg-app-surface-3 hover:bg-app-surface-2 border border-app rounded-lg transition-colors text-left"
           >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

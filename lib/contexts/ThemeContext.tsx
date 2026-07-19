@@ -56,8 +56,10 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function accentSoft(color: string) {
-  return `color-mix(in srgb, ${color} 14%, transparent)`;
+/** Soft accent fill — mix with opaque surface (never transparent; Android Chrome paint trails). */
+function accentSoft(color: string, theme: ThemeMode) {
+  const base = theme === 'dark' ? '#1f2937' : '#e3e8ef';
+  return `color-mix(in srgb, ${color} 22%, ${base})`;
 }
 
 function parseHexColor(hex: string): [number, number, number] | null {
@@ -111,7 +113,7 @@ function brandTokens(resolvedAccent: string, theme: ThemeMode): React.CSSPropert
   const isSystemAccent = resolvedAccent === DEFAULT_ACCENT;
   return {
     ['--app-primary' as string]: resolvedAccent,
-    ['--app-primary-soft' as string]: accentSoft(resolvedAccent),
+    ['--app-primary-soft' as string]: accentSoft(resolvedAccent, theme),
     // Original system used emerald-700 (#047857) for primary hover
     ['--app-primary-hover' as string]: isSystemAccent
       ? '#047857'

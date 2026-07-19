@@ -38,7 +38,7 @@ const UserAvatar = ({ user, size = 'sm', className = '' }) => {
 
   return (
     <div
-      className={`${sizeClass} rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-app-on-primary font-semibold border border-app-subtle flex-shrink-0 ${className}`}
+      className={`${sizeClass} rounded-full bg-app-primary flex items-center justify-center text-app-on-primary font-semibold border border-app-subtle flex-shrink-0 ${className}`}
       aria-hidden="true"
     >
       {displayName.charAt(0).toUpperCase()}
@@ -685,7 +685,21 @@ const TicketList = ({
   useEffect(() => {
     setTickets((prev) => {
       if (!prev.length) return prev;
-      return sortTickets(prev.map((ticket) => normalizeTicket(ticket, userCache)));
+      let changed = false;
+      const next = prev.map((ticket) => {
+        const normalized = normalizeTicket(ticket, userCache);
+        if (
+          normalized.creatorInfo?.photoURL !== ticket.creatorInfo?.photoURL ||
+          normalized.creatorInfo?.name !== ticket.creatorInfo?.name ||
+          normalized.assignedInfo?.photoURL !== ticket.assignedInfo?.photoURL ||
+          normalized.assignedInfo?.name !== ticket.assignedInfo?.name
+        ) {
+          changed = true;
+          return normalized;
+        }
+        return ticket;
+      });
+      return changed ? sortTickets(next) : prev;
     });
 
     setSelectedTicketDetails((prev) => (prev ? normalizeTicket(prev, userCache) : prev));
@@ -1409,8 +1423,11 @@ const TicketList = ({
                           {ticket.assignedInfo.name || ticket.assignedInfo.email}
                         </span>
                       )}
-                      {(showAllTickets || adminMode) && (
-                        <FeedbackRatingBadge ticket={ticket} showSubmitter={showAllTickets && ticket.createdBy !== currentUser?.uid} />
+                      {(showAllTickets || adminMode) && ticket.feedback?.rating && (
+                        <FeedbackRatingBadge
+                          ticket={ticket}
+                          showSubmitter={showAllTickets && ticket.createdBy !== currentUser?.uid}
+                        />
                       )}
                       {!showAllTickets && !adminMode && ticket.feedback?.rating && (
                         <FeedbackRatingBadge ticket={ticket} />
