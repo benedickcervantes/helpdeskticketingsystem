@@ -12,19 +12,19 @@
   --app-surface-2: #1f2937;
   --app-surface-3: #374151;
   --app-border: #374151;
-  --app-border-subtle: color-mix(in srgb, #374151 50%, transparent);
+  --app-border-subtle: #2d3748;
   --app-text: #f3f4f6;
   --app-text-muted: #9ca3af;
   --app-text-soft: #d1d5db;
   --app-primary: #059669;
-  --app-primary-soft: color-mix(in srgb, var(--app-primary) 14%, transparent);
+  --app-primary-soft: #1a3d36;
   --app-primary-hover: #047857;
-  --app-primary-border: color-mix(in srgb, var(--app-primary) 28%, var(--app-border));
+  --app-primary-border: #1f6b54;
   --app-on-primary: #ffffff;
-  --app-header-bg: color-mix(in srgb, #111827 95%, transparent);
-  --app-panel-bg: color-mix(in srgb, #1f2937 70%, transparent);
-  --app-panel-bg-2: color-mix(in srgb, #111827 80%, transparent);
-  --app-shadow: 0 12px 32px color-mix(in srgb, black 35%, transparent);
+  --app-header-bg: #111827;
+  --app-panel-bg: #1f2937;
+  --app-panel-bg-2: #1f2937;
+  --app-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 /* Soft light mode — muted blue-gray, no pure white (easier on eyes) */
@@ -38,14 +38,15 @@
   --app-surface-2: #e3e8ef;
   --app-surface-3: #d5dce6;
   --app-border: #c5ceda;
-  --app-border-subtle: color-mix(in srgb, #a8b4c4 55%, transparent);
+  --app-border-subtle: #d0d7e2;
   --app-text: #243044;
   --app-text-muted: #5b6b7f;
   --app-text-soft: #3d4f66;
-  --app-header-bg: color-mix(in srgb, #eef2f6 88%, #d8dee7);
-  --app-panel-bg: color-mix(in srgb, #eef2f6 82%, #d8dee7);
-  --app-panel-bg-2: color-mix(in srgb, #e3e8ef 90%, #d0d8e3);
-  --app-shadow: 0 10px 28px color-mix(in srgb, #243044 8%, transparent);
+  --app-primary-soft: #d7ebe3;
+  --app-header-bg: #eef2f6;
+  --app-panel-bg: #eef2f6;
+  --app-panel-bg-2: #e3e8ef;
+  --app-shadow: 0 10px 28px rgba(36, 48, 68, 0.08);
 }
 
 @theme inline {
@@ -372,13 +373,13 @@ body {
   }
 }
 
-/* Ticket / form surfaces that blend in light + dark */
+/* Ticket / form surfaces — keep opaque (translucent glass breaks Android Chrome scroll paint) */
 .app-card {
-  background-color: color-mix(in srgb, var(--app-surface-2) 55%, transparent);
+  background-color: var(--app-surface-2);
   border-color: var(--app-border-subtle);
 }
 [data-theme="light"] .app-card {
-  background-color: color-mix(in srgb, var(--app-surface) 94%, var(--app-bg));
+  background-color: var(--app-surface);
   border-color: var(--app-border);
   box-shadow: 0 1px 2px color-mix(in srgb, #243044 4%, transparent);
 }
@@ -468,8 +469,9 @@ body {
     filter: none !important;
     transition: none !important;
     animation: none !important;
-    /* overflow:hidden + radius is a known Android paint-trail combo */
-    overflow: visible !important;
+    /* Isolate paint so Android clears layers while scrolling */
+    contain: paint;
+    isolation: isolate;
   }
 
   [data-theme="light"] .app-card,
@@ -526,17 +528,6 @@ body {
     backdrop-filter: none !important;
   }
 
-  .accent-hover-line {
-    transition: none !important;
-    width: 2.5rem !important;
-  }
-
-  .group:hover .accent-hover-line,
-  .group:active .accent-hover-line,
-  .group:focus-within .accent-hover-line {
-    width: 2.5rem !important;
-  }
-
   /* -webkit-line-clamp / -webkit-box often leaves paint trails on Android */
   .line-clamp-1,
   .line-clamp-2,
@@ -563,12 +554,6 @@ body {
 }
 
 @media (hover: none) {
-  .group:hover .accent-hover-line,
-  .group:active .accent-hover-line,
-  .group:focus-within .accent-hover-line {
-    width: 2.5rem;
-  }
-
   .app-card,
   .group {
     transform: none !important;
