@@ -18,7 +18,7 @@ export default function ProfilePage() {
 
   if (loading || !currentUser) {
     return (
-      <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-3 sm:py-8">
+      <div className="min-h-screen overflow-x-hidden bg-app-gradient py-3 sm:py-8">
         <ProfileFormSkeleton />
       </div>
     );

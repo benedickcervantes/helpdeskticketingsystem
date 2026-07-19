@@ -120,21 +120,21 @@ const UserDashboard = () => {
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
       {/* Page Title and Description - FINE-TUNED SPACING FROM HEADER */}
       <div className="pt-4 sm:pt-6 pb-4 sm:pb-6">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Support Hub</h1>
-        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-400">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-app">Support Hub</h1>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-app-muted">
           Create tickets, track progress, and follow up with IT support
         </p>
       </div>
 
       {/* Navigation Tabs */}
       <div className="mb-6 sm:mb-8">
-        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-gray-700 overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
+        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-app overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap ${
               displayTab === 'overview'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
+                ? 'border-app-primary text-app-primary'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app'
             }`}
           >
             Overview
@@ -143,8 +143,8 @@ const UserDashboard = () => {
             onClick={() => setActiveTab('tickets')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap ${
               displayTab === 'tickets'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
+                ? 'border-app-primary text-app-primary'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app'
             }`}
           >
             All Tickets
@@ -153,8 +153,8 @@ const UserDashboard = () => {
             onClick={() => setActiveTab('create')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap ${
               displayTab === 'create'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-500'
+                ? 'border-app-primary text-app-primary'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app'
             }`}
           >
             Create Ticket
@@ -173,27 +173,27 @@ const UserDashboard = () => {
           ) : (
             <>
               {/* Welcome + primary actions */}
-              <section className="relative overflow-hidden rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/70 to-gray-900/80 px-5 py-5 sm:px-7 sm:py-6">
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500" />
+              <section className="relative overflow-hidden rounded-2xl border border-app-subtle bg-app-panel px-5 py-5 sm:px-7 sm:py-6">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3.5 min-w-0">
                     {profilePhotoURL ? (
                       <img
                         src={profilePhotoURL}
                         alt={userProfile?.name || 'Profile'}
-                        className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl object-cover border border-emerald-500/30 shadow-lg shadow-emerald-950/30"
+                        className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl object-cover border border-app-primary shadow-lg"
                       />
                     ) : (
-                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-white font-semibold text-lg border border-emerald-500/30 shadow-lg shadow-emerald-950/30">
+                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-app-primary font-semibold text-lg border border-app-primary shadow-lg">
                         {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-sm text-emerald-400/90 font-medium">Welcome back</p>
-                      <h2 className="text-xl sm:text-2xl font-bold text-white mt-0.5 truncate">
+                      <p className="text-sm text-app-primary font-medium">Welcome back</p>
+                      <h2 className="text-xl sm:text-2xl font-bold text-app mt-0.5 truncate">
                         Hi, {firstName}
                       </h2>
-                      <p className="text-sm text-gray-400 mt-1.5">
+                      <p className="text-sm text-app-muted mt-1.5">
                         {myActive > 0
                           ? `You have ${myActive} active ticket${myActive === 1 ? '' : 's'} right now.`
                           : myTicketsStats.total > 0
@@ -206,7 +206,7 @@ const UserDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('create')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-app-primary text-sm font-semibold px-4 py-2.5 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -216,9 +216,9 @@ const UserDashboard = () => {
                     <button
                       type="button"
                       onClick={() => goToTickets('my')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-600 bg-gray-800/60 hover:bg-gray-700/60 hover:border-gray-500 text-gray-200 text-sm font-medium px-4 py-2.5 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-app bg-app-surface-2 hover:bg-app-surface-3 hover:border-app-primary text-app-soft text-sm font-medium px-4 py-2.5 transition-colors"
                     >
-                      <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       View my tickets
@@ -230,11 +230,11 @@ const UserDashboard = () => {
               {/* My ticket status */}
               <section>
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <h3 className="text-base sm:text-lg font-semibold text-white">My tickets</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-app">My tickets</h3>
                   <button
                     type="button"
                     onClick={() => goToTickets('my')}
-                    className="text-xs sm:text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                    className="text-xs sm:text-sm text-app-primary hover:opacity-80 font-medium transition-colors"
                   >
                     See all
                   </button>
@@ -244,7 +244,7 @@ const UserDashboard = () => {
                     {
                       label: 'Total',
                       value: myTicketsStats.total,
-                      accent: 'text-white',
+                      accent: 'text-app',
                       bar: 'bg-blue-500',
                       iconBg: 'bg-blue-500/20',
                       iconColor: 'text-blue-400',
@@ -286,10 +286,10 @@ const UserDashboard = () => {
                     {
                       label: 'Resolved',
                       value: myTicketsStats.resolved,
-                      accent: 'text-emerald-300',
-                      bar: 'bg-emerald-400',
-                      iconBg: 'bg-emerald-500/20',
-                      iconColor: 'text-emerald-400',
+                      accent: 'text-app-primary',
+                      bar: 'bg-app-primary',
+                      iconBg: 'bg-app-primary-soft',
+                      iconColor: 'text-app-primary',
                       hint: 'My completed tickets',
                       icon: (
                         <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,16 +302,16 @@ const UserDashboard = () => {
                       key={stat.label}
                       type="button"
                       onClick={() => goToTickets('my')}
-                      className="group text-left rounded-xl border border-gray-700/70 bg-gray-800/40 hover:bg-gray-800/70 hover:border-emerald-500/30 px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
+                      className="group text-left rounded-xl border border-app-subtle bg-app-surface-2/40 hover:bg-app-surface-2 hover:border-app-primary px-4 py-3.5 sm:p-4 transition-all duration-200 hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs text-gray-400 font-medium">{stat.label}</p>
+                          <p className="text-xs text-app-muted font-medium">{stat.label}</p>
                           <p className={`text-2xl sm:text-3xl font-bold mt-1.5 tabular-nums ${stat.accent}`}>
                             {stat.value}
                           </p>
-                          <p className="text-[11px] text-gray-500 mt-1">{stat.hint}</p>
+                          <p className="text-[11px] text-app-muted mt-1">{stat.hint}</p>
                         </div>
                         <div className={`p-2.5 sm:p-3 rounded-xl ${stat.iconBg} ${stat.iconColor} group-hover:scale-105 transition-transform`}>
                           {stat.icon}
@@ -325,11 +325,11 @@ const UserDashboard = () => {
               {/* System snapshot */}
               <section>
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <h3 className="text-base sm:text-lg font-semibold text-white">System Overview</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-app">System Overview</h3>
                   <button
                     type="button"
                     onClick={() => goToTickets('all')}
-                    className="text-xs sm:text-sm text-gray-400 hover:text-emerald-400 font-medium transition-colors"
+                    className="text-xs sm:text-sm text-app-muted hover:text-app-primary font-medium transition-colors"
                   >
                     Browse all
                   </button>
@@ -339,7 +339,7 @@ const UserDashboard = () => {
                     {
                       label: 'All tickets',
                       value: allTicketsStats.total,
-                      color: 'text-white',
+                      color: 'text-app',
                       bar: 'bg-cyan-500',
                       iconBg: 'bg-cyan-500/20',
                       iconColor: 'text-cyan-400',
@@ -378,10 +378,10 @@ const UserDashboard = () => {
                     {
                       label: 'Resolved',
                       value: allTicketsStats.resolved,
-                      color: 'text-emerald-300',
-                      bar: 'bg-emerald-400',
-                      iconBg: 'bg-emerald-500/20',
-                      iconColor: 'text-emerald-400',
+                      color: 'text-app-primary',
+                      bar: 'bg-app-primary',
+                      iconBg: 'bg-app-primary-soft',
+                      iconColor: 'text-app-primary',
                       icon: (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -393,7 +393,7 @@ const UserDashboard = () => {
                       key={item.label}
                       type="button"
                       onClick={() => goToTickets('all')}
-                      className="group flex flex-col rounded-xl border border-gray-700/60 bg-gray-800/30 hover:bg-gray-800/60 hover:border-emerald-500/25 px-3.5 py-3.5 transition-all duration-200 text-left"
+                      className="group flex flex-col rounded-xl border border-app-subtle bg-app-surface-2/30 hover:bg-app-surface-2 hover:border-app-primary px-3.5 py-3.5 transition-all duration-200 text-left"
                     >
                       <div className={`accent-hover-line ${item.bar}`} aria-hidden="true" />
                       <div className="flex items-center gap-3">
@@ -401,7 +401,7 @@ const UserDashboard = () => {
                           {item.icon}
                         </div>
                         <div className="min-w-0">
-                          <span className="block text-xs text-gray-400">{item.label}</span>
+                          <span className="block text-xs text-app-muted">{item.label}</span>
                           <span className={`block text-xl font-bold tabular-nums ${item.color}`}>{item.value}</span>
                         </div>
                       </div>
@@ -412,20 +412,20 @@ const UserDashboard = () => {
 
               {/* Empty state nudge */}
               {myTicketsStats.total === 0 && (
-                <section className="rounded-xl border border-dashed border-gray-600/70 bg-gray-800/20 px-5 py-8 text-center">
-                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                <section className="rounded-xl border border-dashed border-app bg-app-surface-2/20 px-5 py-8 text-center">
+                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                   </div>
-                  <h3 className="text-base font-semibold text-white">No tickets yet</h3>
-                  <p className="text-sm text-gray-400 mt-1 max-w-md mx-auto">
+                  <h3 className="text-base font-semibold text-app">No tickets yet</h3>
+                  <p className="text-sm text-app-muted mt-1 max-w-md mx-auto">
                     When something breaks or you need IT help, submit a ticket and track it here.
                   </p>
                   <button
                     type="button"
                     onClick={() => setActiveTab('create')}
-                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
+                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-app-primary text-sm font-semibold px-4 py-2.5 transition-colors"
                   >
                     Create your first ticket
                   </button>
@@ -438,30 +438,30 @@ const UserDashboard = () => {
 
       {displayTab === 'tickets' && (
         <div className="space-y-5 pb-4">
-          <div className="relative overflow-hidden rounded-2xl border border-gray-700/60 bg-gradient-to-br from-gray-800/50 to-gray-900/60 px-4 py-4 sm:px-5 sm:py-5">
-            <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500" />
+          <div className="relative overflow-hidden rounded-2xl border border-app-subtle bg-app-panel px-4 py-4 sm:px-5 sm:py-5">
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
               <div className="flex items-start gap-3 min-w-0">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-app-primary-soft text-app-primary border border-app-primary">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">Support Tickets</h2>
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <h2 className="text-lg sm:text-xl font-semibold text-app">Support Tickets</h2>
+                  <p className="text-sm text-app-muted mt-0.5">
                     Track and follow up on support requests
                   </p>
                 </div>
               </div>
-              <div className="inline-flex rounded-xl border border-gray-700/70 bg-gray-900/40 p-1 self-start sm:self-auto">
+              <div className="inline-flex rounded-xl border border-app-subtle bg-app-surface/40 p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setTicketFilter('all')}
                   className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
                     ticketFilter === 'all'
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'text-gray-400 hover:text-gray-200'
+                      ? 'bg-app-primary-soft text-app-primary'
+                      : 'text-app-muted hover:text-app'
                   }`}
                 >
                   All ({allTicketsStats.total})
@@ -471,8 +471,8 @@ const UserDashboard = () => {
                   onClick={() => setTicketFilter('my')}
                   className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
                     ticketFilter === 'my'
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'text-gray-400 hover:text-gray-200'
+                      ? 'bg-app-primary-soft text-app-primary'
+                      : 'text-app-muted hover:text-app'
                   }`}
                 >
                   My ({myTicketsStats.total})

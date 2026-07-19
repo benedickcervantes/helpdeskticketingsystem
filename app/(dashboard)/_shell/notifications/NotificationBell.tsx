@@ -54,10 +54,10 @@ const NotificationBell = ({ onClick, isActive = false }) => {
   return (
     <button
       onClick={handleClick}
-      className={`relative group p-3 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 notification-bell ${
+      className={`relative group p-3 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-90 focus:outline-none focus:ring-2 focus:ring-app-primary/50 notification-bell ${
         isActive || isClicking
-          ? 'bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 text-emerald-400 shadow-lg shadow-emerald-500/20'
-          : 'text-gray-400 hover:text-white hover:bg-gradient-to-br hover:from-gray-700/50 hover:to-gray-600/50'
+          ? 'bg-app-primary-soft text-app-primary shadow-lg'
+          : 'text-app-muted hover:text-app hover:bg-app-surface-2'
       }`}
       title={`${isStaffRole(userProfile?.role) ? 'Staff ' : ''}Notifications`}
       aria-label={`${isStaffRole(userProfile?.role) ? 'Staff ' : ''}Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
@@ -65,7 +65,7 @@ const NotificationBell = ({ onClick, isActive = false }) => {
       {/* Click ripple */}
       {isClicking && (
         <span className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden">
-          <span className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-400/40 animate-ripple" />
+          <span className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-app-primary/40 animate-ripple" />
         </span>
       )}
 
@@ -95,7 +95,7 @@ const NotificationBell = ({ onClick, isActive = false }) => {
               min-w-[1.125rem] h-[1.125rem] px-1
               bg-rose-500 text-white
               text-[10px] font-semibold tabular-nums leading-none
-              rounded-full ring-2 ring-gray-900
+              rounded-full ring-2 ring-[var(--app-header-bg)]
               flex items-center justify-center
               transition-all duration-300
               ${isActive ? 'opacity-90' : 'opacity-100'}
@@ -109,12 +109,12 @@ const NotificationBell = ({ onClick, isActive = false }) => {
 
       {/* Hover Effect Ring */}
       <div className={`absolute inset-0 rounded-xl ring-2 transition-all duration-300 ${
-        isClicking ? 'ring-emerald-400/50' : 'ring-transparent group-hover:ring-emerald-500/30'
+        isClicking ? 'ring-app-primary/50' : 'ring-transparent group-hover:ring-app-primary/30'
       }`} />
       
       {/* Background Glow Effect */}
       {(unreadCount > 0 || isClicking) && (
-        <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 transition-opacity duration-300 ${
+        <div className={`absolute inset-0 rounded-xl bg-app-primary-soft transition-opacity duration-300 ${
           isClicking ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
         }`} />
       )}

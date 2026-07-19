@@ -2,6 +2,7 @@
 'use client';
 
 import { SkeletonChart, LoadingDots } from '@/lib/ui/LoadingComponents';
+import { useTheme } from '@/lib/contexts/ThemeContext';
 
 import { useState, useEffect } from 'react';
 import {
@@ -29,6 +30,9 @@ import {
 } from 'recharts';
 
 const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
+  const { theme } = useTheme();
+  const chartAxis = theme === 'light' ? '#5b6b7f' : '#9CA3AF';
+  const chartGrid = theme === 'light' ? '#c5ceda' : '#4B5563';
   const [trendData, setTrendData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState('volume');
@@ -298,10 +302,10 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-gray-800 border border-gray-700 p-2 sm:p-3 rounded-lg shadow-lg max-w-[200px] sm:max-w-none">
-          <p className="font-semibold text-white text-xs sm:text-sm">{label}</p>
+        <div className="bg-app-panel border border-app p-2 sm:p-3 rounded-lg shadow-lg max-w-[200px] sm:max-w-none">
+          <p className="font-semibold text-app text-xs sm:text-sm">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} className="text-gray-200 text-xs sm:text-sm">
+            <p key={index} className="text-app-soft text-xs sm:text-sm">
               {entry.dataKey}: <span style={{ color: entry.color }}>{entry.value}</span>
             </p>
           ))}
@@ -311,9 +315,9 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
     return null;
   };
 
-  const axisTick = { fontSize: 10 };
+  const axisTick = { fontSize: 10, fill: chartAxis };
   const chartHeight = 250;
-  const legendProps = { wrapperStyle: { fontSize: '11px', paddingTop: '8px' } };
+  const legendProps = { wrapperStyle: { fontSize: '11px', paddingTop: '8px', color: chartAxis } };
 
   const ChartWrapper = ({ children }) => (
     <div className="w-full min-h-[250px] overflow-x-auto">
@@ -335,7 +339,7 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       <div className="space-y-8">
         <div className="flex items-center justify-between mb-6">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/4"></div>
+            <div className="h-8 bg-app-surface-2 rounded w-1/4"></div>
           </div>
           <LoadingDots />
         </div>
@@ -350,8 +354,8 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
   return (
     <div className="space-y-4 sm:space-y-8 min-w-0">
       <div className="text-center mb-4 sm:mb-8 px-1">
-        <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">Trend Analysis</h2>
-        <p className="text-xs sm:text-sm text-gray-400">Historical patterns and predictive insights</p>
+        <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-app mb-1 sm:mb-2">Trend Analysis</h2>
+        <p className="text-xs sm:text-sm text-app-muted">Historical patterns and predictive insights</p>
       </div>
 
       {/* Metric Selection */}
@@ -363,7 +367,7 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
             id="trend-metric-select"
             value={selectedMetric}
             onChange={(e) => setSelectedMetric(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-600 rounded-lg bg-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3 py-2.5 app-field border rounded-lg text-sm focus:outline-none"
           >
             {METRICS.map((metric) => (
               <option key={metric.id} value={metric.id}>{metric.fullName}</option>
@@ -372,15 +376,15 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
         </div>
         {/* Tablet+ */}
         <div className="hidden sm:flex justify-center overflow-x-auto scrollbar-hide">
-          <div className="bg-gray-700 rounded-lg p-1 flex flex-nowrap">
+          <div className="bg-app-surface-2 rounded-lg p-1 flex flex-nowrap">
             {METRICS.map((metric) => (
               <button
                 key={metric.id}
                 onClick={() => setSelectedMetric(metric.id)}
                 className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   selectedMetric === metric.id
-                    ? 'bg-gray-600 text-emerald-400 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-300'
+                    ? 'bg-app-primary-soft text-app-primary shadow-sm'
+                    : 'text-app-muted hover:text-app-soft'
                 }`}
               >
                 <span className="sm:hidden">{metric.name}</span>
@@ -393,15 +397,15 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
 
       {/* Volume Trends - Composed Chart */}
       {selectedMetric === 'volume' && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-          <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">Ticket Volume Trends</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+          <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">Ticket Volume Trends</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={trendData.volumeTrends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                <XAxis dataKey="date" stroke="#9CA3AF" tick={axisTick} interval="preserveStartEnd" />
-                <YAxis yAxisId="left" stroke="#9CA3AF" tick={axisTick} width={30} />
-                <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" tick={axisTick} width={30} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                <XAxis dataKey="date" stroke={chartAxis} tick={axisTick} interval="preserveStartEnd" />
+                <YAxis yAxisId="left" stroke={chartAxis} tick={axisTick} width={30} />
+                <YAxis yAxisId="right" orientation="right" stroke={chartAxis} tick={axisTick} width={30} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend {...legendProps} />
                 <Bar yAxisId="left" dataKey="daily" fill="#3b82f6" name="Daily Tickets" />
@@ -414,15 +418,15 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       )}
 
       {selectedMetric === 'resolution' && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-          <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">Resolution Performance Trends</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+          <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">Resolution Performance Trends</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData.resolutionTrends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                <XAxis dataKey="date" stroke="#9CA3AF" tick={axisTick} interval="preserveStartEnd" />
-                <YAxis yAxisId="left" stroke="#9CA3AF" tick={axisTick} width={35} />
-                <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" tick={axisTick} width={35} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                <XAxis dataKey="date" stroke={chartAxis} tick={axisTick} interval="preserveStartEnd" />
+                <YAxis yAxisId="left" stroke={chartAxis} tick={axisTick} width={35} />
+                <YAxis yAxisId="right" orientation="right" stroke={chartAxis} tick={axisTick} width={35} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend {...legendProps} />
                 <Area yAxisId="left" type="monotone" dataKey="avgResolutionTime" stackId="1" stroke="#ef4444" fill="#ef4444" fillOpacity={0.3} name="Avg Resolution Time (h)" />
@@ -434,14 +438,14 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       )}
 
       {selectedMetric === 'satisfaction' && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-          <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">Customer Satisfaction vs Response Time</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+          <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">Customer Satisfaction vs Response Time</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart data={trendData.satisfactionTrends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                <XAxis dataKey="responseTime" name="Response Time (h)" stroke="#9CA3AF" tick={axisTick} />
-                <YAxis dataKey="satisfaction" name="Satisfaction (%)" stroke="#9CA3AF" tick={axisTick} width={30} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                <XAxis dataKey="responseTime" name="Response Time (h)" stroke={chartAxis} tick={axisTick} />
+                <YAxis dataKey="satisfaction" name="Satisfaction (%)" stroke={chartAxis} tick={axisTick} width={30} />
                 <Tooltip content={<CustomTooltip />} />
                 <Scatter dataKey="satisfaction" fill="#10b981" />
               </ScatterChart>
@@ -451,14 +455,14 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       )}
 
       {selectedMetric === 'performance' && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-          <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">Performance Metrics Trends</h3>
+        <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+          <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">Performance Metrics Trends</h3>
           <ChartWrapper>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData.performanceTrends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                <XAxis dataKey="date" stroke="#9CA3AF" tick={axisTick} interval="preserveStartEnd" />
-                <YAxis stroke="#9CA3AF" tick={axisTick} width={35} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                <XAxis dataKey="date" stroke={chartAxis} tick={axisTick} interval="preserveStartEnd" />
+                <YAxis stroke={chartAxis} tick={axisTick} width={35} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend {...legendProps} />
                 <Line type="monotone" dataKey="slaCompliance" stroke="#10b981" strokeWidth={2} name="SLA Compliance (%)" />
@@ -471,14 +475,14 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       )}
 
       {/* Department Trends */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-        <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">Department Volume Trends</h3>
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+        <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">Department Volume Trends</h3>
         <ChartWrapper>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData.departmentTrends?.data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-              <XAxis dataKey="date" stroke="#9CA3AF" tick={axisTick} interval="preserveStartEnd" />
-              <YAxis stroke="#9CA3AF" tick={axisTick} width={30} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+              <XAxis dataKey="date" stroke={chartAxis} tick={axisTick} interval="preserveStartEnd" />
+              <YAxis stroke={chartAxis} tick={axisTick} width={30} />
               <Tooltip content={<CustomTooltip />} />
               <Legend {...legendProps} />
               {(trendData.departmentTrends?.departments || []).map((dept, index) => (
@@ -498,15 +502,15 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       </div>
 
       {/* Seasonal Trends */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-        <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">Seasonal Patterns</h3>
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+        <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">Seasonal Patterns</h3>
         <ChartWrapper>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={trendData.seasonalTrends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-              <XAxis dataKey="month" stroke="#9CA3AF" tick={axisTick} />
-              <YAxis yAxisId="left" stroke="#9CA3AF" tick={axisTick} width={35} />
-              <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" tick={axisTick} width={35} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+              <XAxis dataKey="month" stroke={chartAxis} tick={axisTick} />
+              <YAxis yAxisId="left" stroke={chartAxis} tick={axisTick} width={35} />
+              <YAxis yAxisId="right" orientation="right" stroke={chartAxis} tick={axisTick} width={35} />
               <Tooltip content={<CustomTooltip />} />
               <Legend {...legendProps} />
               <Bar yAxisId="left" dataKey="tickets" fill="#3b82f6" name="Total Tickets" />
@@ -518,33 +522,33 @@ const TrendAnalysis = ({ tickets, users, feedback = [], dateRange }) => {
       </div>
 
       {/* Forecast */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-3 sm:p-4 md:p-6 min-w-0">
-        <h3 className="text-base sm:text-xl font-bold text-white mb-3 sm:mb-4">7-Day Forecast</h3>
+      <div className="app-card rounded-xl border p-3 sm:p-4 md:p-6 min-w-0">
+        <h3 className="text-base sm:text-xl font-bold text-app mb-3 sm:mb-4">7-Day Forecast</h3>
         <ChartWrapper>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData.forecastData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-              <XAxis dataKey="date" stroke="#9CA3AF" tick={axisTick} interval="preserveStartEnd" />
-              <YAxis stroke="#9CA3AF" tick={axisTick} width={35} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+              <XAxis dataKey="date" stroke={chartAxis} tick={axisTick} interval="preserveStartEnd" />
+              <YAxis stroke={chartAxis} tick={axisTick} width={35} />
               <Tooltip content={<CustomTooltip />} />
               <Legend {...legendProps} />
-              <Line type="monotone" dataKey="forecast" stroke="#8b5cf6" strokeWidth={2} name="Predicted Volume" strokeDasharray="5 5" />
+              <Line type="monotone" dataKey="forecast" stroke="#059669" strokeWidth={2} name="Predicted Volume" strokeDasharray="5 5" />
               <Line type="monotone" dataKey="confidence" stroke="#6b7280" strokeWidth={2} name="Confidence Level (%)" />
             </LineChart>
           </ResponsiveContainer>
         </ChartWrapper>
-        <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-purple-500/10 rounded-lg">
-          <p className="text-xs sm:text-sm text-purple-400">
+        <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-app-primary-soft border border-app-primary/25 rounded-lg">
+          <p className="text-xs sm:text-sm text-app-primary">
             <strong>Forecast Note:</strong> Predictions are based on recent trends and may vary based on business conditions.
           </p>
         </div>
       </div>
 
       {/* Real-time Update Indicator */}
-      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 sm:p-4">
+      <div className="bg-app-primary-soft border border-app-primary/30 rounded-xl p-3 sm:p-4">
         <div className="flex items-center">
-          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 rounded-full mr-2 sm:mr-3 animate-pulse flex-shrink-0"></div>
-          <p className="text-xs sm:text-sm text-emerald-400 font-medium">Trend analysis updates in real-time with new data</p>
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-app-primary rounded-full mr-2 sm:mr-3 animate-pulse flex-shrink-0"></div>
+          <p className="text-xs sm:text-sm text-app-primary font-medium">Trend analysis updates in real-time with new data</p>
         </div>
       </div>
     </div>

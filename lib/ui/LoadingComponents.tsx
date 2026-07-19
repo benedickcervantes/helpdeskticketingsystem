@@ -93,17 +93,17 @@ export const MorphingSpinner = ({ size = 'md', className = '' }) => {
 
 // Enhanced Skeleton Components with better animations
 export const SkeletonCard = ({ className = '', animated = true }) => (
-  <div className={`bg-gray-700/50 backdrop-blur-sm rounded-xl border border-gray-600 p-4 md:p-6 ${animated ? 'skeleton-shimmer' : ''} ${className}`}>
+  <div className={`bg-app-surface-2/80 backdrop-blur-sm rounded-xl border border-app p-4 md:p-6 ${animated ? 'skeleton-shimmer' : ''} ${className}`}>
     <div className="animate-pulse">
-      <div className="h-4 bg-gray-600 rounded w-3/4 mb-4"></div>
+      <div className="h-4 bg-app-surface-3 rounded w-3/4 mb-4"></div>
       <div className="space-y-3">
-        <div className="h-3 bg-gray-600 rounded w-full"></div>
-        <div className="h-3 bg-gray-600 rounded w-5/6"></div>
-        <div className="h-3 bg-gray-600 rounded w-4/6"></div>
+        <div className="h-3 bg-app-surface-3 rounded w-full"></div>
+        <div className="h-3 bg-app-surface-3 rounded w-5/6"></div>
+        <div className="h-3 bg-app-surface-3 rounded w-4/6"></div>
       </div>
       <div className="mt-4 flex space-x-2">
-        <div className="h-6 bg-gray-600 rounded-full w-16"></div>
-        <div className="h-6 bg-gray-600 rounded-full w-20"></div>
+        <div className="h-6 bg-app-surface-3 rounded-full w-16"></div>
+        <div className="h-6 bg-app-surface-3 rounded-full w-20"></div>
       </div>
     </div>
   </div>
@@ -115,7 +115,7 @@ export const SkeletonChart = ({ height = 250, className = '', type = 'line' }) =
       case 'pie':
         return (
           <div className="flex items-center justify-center h-full">
-            <div className="w-32 h-32 bg-gray-600 rounded-full animate-pulse-glow"></div>
+            <div className="w-32 h-32 bg-app-surface-3 rounded-full animate-pulse-glow"></div>
           </div>
         );
       case 'bar':
@@ -124,7 +124,7 @@ export const SkeletonChart = ({ height = 250, className = '', type = 'line' }) =
             {Array.from({ length: 6 }).map((_, i) => (
               <div 
                 key={i}
-                className="bg-gray-600 rounded-t animate-fade-in-up"
+                className="bg-app-surface-3 rounded-t animate-fade-in-up"
                 style={{ 
                   height: `${Math.random() * 80 + 20}%`,
                   width: '12%',
@@ -159,9 +159,9 @@ export const SkeletonChart = ({ height = 250, className = '', type = 'line' }) =
   };
 
   return (
-    <div className={`bg-gray-700/50 backdrop-blur-sm rounded-xl border border-gray-600 p-4 md:p-6 skeleton-shimmer ${className}`}>
+    <div className={`bg-app-surface-2/80 backdrop-blur-sm rounded-xl border border-app p-4 md:p-6 skeleton-shimmer ${className}`}>
       <div className="animate-pulse">
-        <div className="h-6 bg-gray-600 rounded w-1/3 mb-4"></div>
+        <div className="h-6 bg-app-surface-3 rounded w-1/3 mb-4"></div>
         <div style={{ height: `${height}px` }}>
           {renderSkeleton()}
         </div>
@@ -171,16 +171,16 @@ export const SkeletonChart = ({ height = 250, className = '', type = 'line' }) =
 };
 
 export const SkeletonTable = ({ rows = 5, className = '' }) => (
-  <div className={`bg-gray-700/50 backdrop-blur-sm rounded-xl border border-gray-600 p-4 md:p-6 skeleton-shimmer ${className}`}>
+  <div className={`bg-app-surface-2/80 backdrop-blur-sm rounded-xl border border-app p-4 md:p-6 skeleton-shimmer ${className}`}>
     <div className="animate-pulse">
-      <div className="h-6 bg-gray-600 rounded w-1/4 mb-4"></div>
+      <div className="h-6 bg-app-surface-3 rounded w-1/4 mb-4"></div>
       <div className="space-y-3">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="flex space-x-4 animate-fade-in-up" style={{animationDelay: `${i * 0.1}s`}}>
-            <div className="h-4 bg-gray-600 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-600 rounded w-1/3"></div>
-            <div className="h-4 bg-gray-600 rounded w-1/6"></div>
-            <div className="h-4 bg-gray-600 rounded w-1/5"></div>
+            <div className="h-4 bg-app-surface-3 rounded w-1/4"></div>
+            <div className="h-4 bg-app-surface-3 rounded w-1/3"></div>
+            <div className="h-4 bg-app-surface-3 rounded w-1/6"></div>
+            <div className="h-4 bg-app-surface-3 rounded w-1/5"></div>
           </div>
         ))}
       </div>
@@ -218,16 +218,16 @@ export const MainLoadingScreen = ({ message = 'Loading...', showProgress = false
         </div>
       </div>
       
-      <h2 className="text-2xl font-bold text-white mb-2 animate-slide-in-right">{message}</h2>
-      <p className="text-gray-400 mb-6 animate-slide-in-right animate-stagger-1">Please wait while we prepare everything for you</p>
+      <h2 className="text-2xl font-bold text-app mb-2 animate-slide-in-right">{message}</h2>
+      <p className="text-app-muted mb-6 animate-slide-in-right animate-stagger-1">Please wait while we prepare everything for you</p>
       
       {showProgress && (
         <div className="w-64 mx-auto animate-scale-in animate-stagger-2">
-          <div className="flex justify-between text-sm text-gray-400 mb-2">
+          <div className="flex justify-between text-sm text-app-muted mb-2">
             <span>Loading</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-app-surface-2 rounded-full h-2 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out relative"
               style={{ width: `${progress}%` }}
@@ -280,7 +280,7 @@ export const ButtonLoading = ({
       className={`relative overflow-hidden loading-transition ${className}`}
     >
       {loading && (
-        <div className="absolute inset-0 bg-gray-600/50 backdrop-blur-sm flex items-center justify-center">
+        <div className="absolute inset-0 bg-app-surface-3/50 backdrop-blur-sm flex items-center justify-center">
           <ModernSpinner size="sm" color="white" variant={spinnerVariant} />
         </div>
       )}
@@ -316,11 +316,11 @@ export const SmartButton = ({
   };
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl focus:ring-emerald-500 hover:-translate-y-0.5',
-    secondary: 'bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-emerald-500/30 text-white shadow-lg hover:shadow-xl focus:ring-gray-500 hover:-translate-y-0.5',
-    danger: 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl focus:ring-red-500 hover:-translate-y-0.5',
-    ghost: 'bg-transparent hover:bg-gray-700/50 border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white focus:ring-gray-500',
-    success: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl focus:ring-green-500 hover:-translate-y-0.5'
+    primary: 'bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-app shadow-lg hover:shadow-xl focus:ring-emerald-500 hover:-translate-y-0.5',
+    secondary: 'bg-gray-800/50 hover:bg-app-surface-2/80 border border-app hover:border-emerald-500/30 text-app shadow-lg hover:shadow-xl focus:ring-gray-500 hover:-translate-y-0.5',
+    danger: 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-app shadow-lg hover:shadow-xl focus:ring-red-500 hover:-translate-y-0.5',
+    ghost: 'bg-transparent hover:bg-app-surface-2/80 border border-app hover:border-gray-500 text-app-soft hover:text-app focus:ring-gray-500',
+    success: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-app shadow-lg hover:shadow-xl focus:ring-green-500 hover:-translate-y-0.5'
   };
 
   const isDisabled = disabled || loading;
@@ -401,7 +401,7 @@ export const ChartSkeleton = ({ type = 'line', height = 250, className = '' }) =
       case 'pie':
         return (
           <div className="flex items-center justify-center h-full">
-            <div className="w-32 h-32 bg-gray-600 rounded-full animate-pulse-glow"></div>
+            <div className="w-32 h-32 bg-app-surface-3 rounded-full animate-pulse-glow"></div>
           </div>
         );
       case 'bar':
@@ -410,7 +410,7 @@ export const ChartSkeleton = ({ type = 'line', height = 250, className = '' }) =
             {Array.from({ length: 6 }).map((_, i) => (
               <div 
                 key={i}
-                className="bg-gray-600 rounded-t animate-fade-in-up"
+                className="bg-app-surface-3 rounded-t animate-fade-in-up"
                 style={{ 
                   height: `${Math.random() * 80 + 20}%`,
                   width: '12%',
@@ -445,9 +445,9 @@ export const ChartSkeleton = ({ type = 'line', height = 250, className = '' }) =
   };
 
   return (
-    <div className={`bg-gray-700/50 backdrop-blur-sm rounded-xl border border-gray-600 p-4 md:p-6 skeleton-shimmer ${className}`}>
+    <div className={`bg-app-surface-2/80 backdrop-blur-sm rounded-xl border border-app p-4 md:p-6 skeleton-shimmer ${className}`}>
       <div className="animate-pulse">
-        <div className="h-6 bg-gray-600 rounded w-1/3 mb-4"></div>
+        <div className="h-6 bg-app-surface-3 rounded w-1/3 mb-4"></div>
         <div style={{ height: `${height}px` }}>
           {renderSkeleton()}
         </div>
@@ -493,7 +493,7 @@ export const LoadingStateManager = ({
         {skeleton || <SkeletonCard />}
         {showProgress && (
           <div className="mt-4">
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-app-surface-2 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out relative"
                 style={{ width: `${progress}%` }}
@@ -526,7 +526,7 @@ export const PageTransitionLoader = ({ isVisible, children }) => (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
         <MorphingSpinner size="xl" />
-        <p className="mt-4 text-white text-lg">Loading...</p>
+        <p className="mt-4 text-app text-lg">Loading...</p>
       </div>
     </div>
   </div>
@@ -549,7 +549,7 @@ export const RefreshButton = ({
     <button
       onClick={onRefresh}
       disabled={loading}
-      className={`${sizeClasses[size]} rounded-full bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-emerald-500/30 text-gray-400 hover:text-emerald-400 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`${sizeClasses[size]} rounded-full bg-gray-800/50 hover:bg-app-surface-2/80 border border-app hover:border-emerald-500/30 text-app-muted hover:text-emerald-400 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {loading ? (
         <ModernSpinner size="sm" color="emerald" variant="spinner" />
@@ -674,12 +674,12 @@ export const IntelligentLoadingManager = ({
 
         {/* Context-aware messaging */}
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-app">
             {getContextualMessage()}
           </h3>
           
           {elapsedTime > 3000 && (
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-400">
+            <div className="flex items-center justify-center space-x-2 text-sm text-app-muted">
               <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
               <span>Processing... ({Math.floor(elapsedTime / 1000)}s)</span>
             </div>
@@ -687,7 +687,7 @@ export const IntelligentLoadingManager = ({
 
           {/* Progress estimation */}
           {elapsedTime > 2000 && (
-            <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-app-surface-2 rounded-full h-1.5 overflow-hidden">
               <div 
                 className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-1.5 rounded-full transition-all duration-1000 ease-out relative"
                 style={{ width: `${Math.min((elapsedTime / timeout) * 100, 90)}%` }}
@@ -706,7 +706,7 @@ export const IntelligentLoadingManager = ({
             </p>
             <button
               onClick={retryFunction}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 text-sm"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-app rounded-lg transition-colors duration-200 text-sm"
             >
               Try Again
             </button>
@@ -731,17 +731,17 @@ export const StageProgressIndicator = ({
       {/* Stage Progress Bar */}
       <div className="relative mb-6">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-300">
+          <span className="text-sm font-medium text-app-soft">
             {isLoading ? stages[currentStage]?.name || 'Processing...' : 'Complete'}
           </span>
           {showPercentage && (
-            <span className="text-sm text-emerald-400 font-mono">
+            <span className="text-sm text-app-primary font-mono">
               {Math.round(progress)}%
             </span>
           )}
         </div>
         
-        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-app-surface-2 rounded-full h-2 overflow-hidden">
           <div 
             className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out relative"
             style={{ width: `${progress}%` }}
@@ -758,14 +758,14 @@ export const StageProgressIndicator = ({
             <div 
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
                 index <= currentStage 
-                  ? 'bg-emerald-500 text-white' 
-                  : 'bg-gray-700 text-gray-400'
+                  ? 'bg-emerald-500 text-app' 
+                  : 'bg-app-surface-2 text-app-muted'
               } ${index === currentStage && isLoading ? 'animate-pulse-glow' : ''}`}
             >
               {index < currentStage ? '✓' : index + 1}
             </div>
             <span className={`text-xs mt-1 text-center ${
-              index <= currentStage ? 'text-emerald-400' : 'text-gray-500'
+              index <= currentStage ? 'text-app-primary' : 'text-app-muted'
             }`}>
               {stage.label}
             </span>
@@ -799,13 +799,13 @@ export const SmartLoadingOverlay = ({
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-900/80 ${blur ? 'backdrop-blur-sm' : ''} transition-all duration-300`}>
-      <div className="bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-2xl p-8 max-w-md mx-4 text-center">
+      <div className="bg-gray-800/90 backdrop-blur-md border border-app rounded-2xl p-8 max-w-md mx-4 text-center">
         <div className="mb-6">
           <MorphingSpinner size="xl" />
         </div>
         
-        <h3 className="text-xl font-semibold text-white mb-2">{message}</h3>
-        <p className="text-gray-400 text-sm mb-6">
+        <h3 className="text-xl font-semibold text-app mb-2">{message}</h3>
+        <p className="text-app-muted text-sm mb-6">
           Please wait while we process your request
         </p>
 
@@ -818,7 +818,7 @@ export const SmartLoadingOverlay = ({
         {showCancelOption && onCancel && (
           <button
             onClick={onCancel}
-            className="text-gray-400 hover:text-white text-sm transition-colors duration-200"
+            className="text-app-muted hover:text-app text-sm transition-colors duration-200"
           >
             Cancel
           </button>
@@ -840,16 +840,16 @@ export const OptimizedListLoader = ({
       {Array.from({ length: itemCount }).map((_, index) => (
         <div
           key={index}
-          className="relative overflow-hidden bg-gray-800/50 border border-gray-700 rounded-lg"
+          className="relative overflow-hidden bg-gray-800/50 border border-app rounded-lg"
           style={{ height: `${itemHeight}px` }}
         >
           <div className="animate-pulse p-4 h-full flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gray-600 rounded-full flex-shrink-0"></div>
+            <div className="w-10 h-10 bg-app-surface-3 rounded-full flex-shrink-0"></div>
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-600 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-600 rounded w-1/2"></div>
+              <div className="h-4 bg-app-surface-3 rounded w-3/4"></div>
+              <div className="h-3 bg-app-surface-3 rounded w-1/2"></div>
             </div>
-            <div className="w-20 h-6 bg-gray-600 rounded"></div>
+            <div className="w-20 h-6 bg-app-surface-3 rounded"></div>
           </div>
           
           {showGradient && (
@@ -934,7 +934,7 @@ export const StateTransitionLoader = ({
       <div className={`flex items-center justify-center p-8 text-center ${className}`}>
         <div className="animate-scale-bounce">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 mx-auto">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-app" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -949,7 +949,7 @@ export const StateTransitionLoader = ({
       <div className={`flex items-center justify-center p-8 text-center ${className}`}>
         <div className="animate-scale-bounce">
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4 mx-auto">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-app" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
@@ -957,7 +957,7 @@ export const StateTransitionLoader = ({
           {onRetry && (
             <button
               onClick={onRetry}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-app rounded-lg transition-colors duration-200"
             >
               Try Again
             </button>
@@ -1015,7 +1015,7 @@ export const AccessibleLoader = ({
         {showVisualLoader && (
           <div className="text-center">
             <ModernSpinner size="lg" color="emerald" />
-            <p className="mt-4 text-gray-400 sr-only">{loadingMessage}</p>
+            <p className="mt-4 text-app-muted sr-only">{loadingMessage}</p>
           </div>
         )}
         <span className="sr-only">{loadingMessage}</span>
@@ -1113,17 +1113,17 @@ export const FuturisticLoadingScreen = ({
         </div>
 
         {/* Message */}
-        <h2 className="text-3xl font-bold text-white mb-4 animate-text-glow">
+        <h2 className="text-3xl font-bold text-app mb-4 animate-text-glow">
           {message}
         </h2>
-        <p className="text-gray-300 mb-8 text-lg">
+        <p className="text-app-soft mb-8 text-lg">
           Please wait while we prepare everything for you
         </p>
 
         {/* Progress Bar */}
         {showProgress && (
           <div className="w-full max-w-sm mx-auto mb-8">
-            <div className="flex justify-between text-sm text-gray-400 mb-3">
+            <div className="flex justify-between text-sm text-app-muted mb-3">
               <span>Loading</span>
               <span className="font-mono">{Math.round(progress)}%</span>
             </div>
@@ -1166,8 +1166,8 @@ export const MinimalistLoadingScreen = ({
 }) => {
   const isDark = theme === 'dark';
   const bgClass = isDark ? 'bg-gray-900' : 'bg-white';
-  const textClass = isDark ? 'text-white' : 'text-gray-900';
-  const subtextClass = isDark ? 'text-gray-400' : 'text-gray-600';
+  const textClass = isDark ? 'text-app' : 'text-gray-900';
+  const subtextClass = isDark ? 'text-app-muted' : 'text-gray-600';
   const accentClass = isDark ? 'border-emerald-500' : 'border-blue-500';
 
   return (
@@ -1175,7 +1175,7 @@ export const MinimalistLoadingScreen = ({
       <div className="text-center max-w-sm mx-auto px-6">
         {/* Minimalist Spinner */}
         <div className="relative mb-8">
-          <div className={`w-16 h-16 border-4 border-gray-200 ${isDark ? 'border-gray-700' : 'border-gray-200'} rounded-full`}>
+          <div className={`w-16 h-16 border-4 border-gray-200 ${isDark ? 'border-app' : 'border-gray-200'} rounded-full`}>
             <div className={`w-16 h-16 border-4 border-transparent ${accentClass} rounded-full animate-spin`}></div>
           </div>
         </div>
@@ -1253,17 +1253,17 @@ export const GlassmorphismLoadingScreen = ({
         </div>
 
         {/* Message */}
-        <h2 className="text-3xl font-bold text-white dark:text-white mb-4 text-center">
+        <h2 className="text-3xl font-bold text-app dark:text-app mb-4 text-center">
           {message}
         </h2>
-        <p className="text-white/80 dark:text-white/80 mb-8 text-center text-lg">
+        <p className="text-app/80 dark:text-app/80 mb-8 text-center text-lg">
           Please wait while we process your request
         </p>
 
         {/* Progress Bar */}
         {showProgress && (
           <div className="w-full mb-8">
-            <div className="flex justify-between text-sm text-white/70 mb-3">
+            <div className="flex justify-between text-sm text-app/70 mb-3">
               <span>Loading</span>
               <span className="font-mono">{Math.round(progress)}%</span>
             </div>
@@ -1335,22 +1335,22 @@ export const LogoLoadingScreen = ({
         </div>
 
         {/* Message */}
-        <h2 className="text-2xl font-bold text-white mb-4 animate-fade-in-up">
+        <h2 className="text-2xl font-bold text-app mb-4 animate-fade-in-up">
           {message}
         </h2>
-        <p className="text-gray-400 mb-8 animate-fade-in-up animation-delay-200">
+        <p className="text-app-muted mb-8 animate-fade-in-up animation-delay-200">
           Initializing your workspace
         </p>
 
         {/* Progress Bar */}
         {showProgress && (
           <div className="w-full max-w-sm mx-auto mb-8 animate-fade-in-up animation-delay-400">
-            <div className="flex justify-between text-sm text-gray-400 mb-3">
+            <div className="flex justify-between text-sm text-app-muted mb-3">
               <span>Loading</span>
               <span className="font-mono">{Math.round(progress)}%</span>
             </div>
             <div className="relative">
-              <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+              <div className="w-full bg-app-surface-2/80 rounded-full h-2 overflow-hidden backdrop-blur-sm">
                 <div 
                   className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out relative"
                   style={{ width: `${progress}%` }}
@@ -1416,10 +1416,10 @@ export const CardLoadingScreen = ({
 
         {/* Main Message */}
         <div className="mb-8">
-          <h2 className="text-4xl font-bold text-white mb-4 animate-text-reveal">
+          <h2 className="text-4xl font-bold text-app mb-4 animate-text-reveal">
             {message}
           </h2>
-          <p className="text-gray-400 text-lg animate-text-reveal animation-delay-300">
+          <p className="text-app-muted text-lg animate-text-reveal animation-delay-300">
             Preparing your dashboard
           </p>
         </div>
@@ -1427,12 +1427,12 @@ export const CardLoadingScreen = ({
         {/* Progress Bar */}
         {showProgress && (
           <div className="w-full max-w-md mx-auto mb-8 animate-fade-in-up animation-delay-600">
-            <div className="flex justify-between text-sm text-gray-400 mb-3">
+            <div className="flex justify-between text-sm text-app-muted mb-3">
               <span>Progress</span>
               <span className="font-mono">{Math.round(progress)}%</span>
             </div>
             <div className="relative">
-              <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+              <div className="w-full bg-app-surface-2/80 rounded-full h-3 overflow-hidden backdrop-blur-sm">
                 <div 
                   className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out relative"
                   style={{ width: `${progress}%` }}
@@ -1447,7 +1447,7 @@ export const CardLoadingScreen = ({
         {/* Status Indicator */}
         <div className="flex justify-center items-center space-x-4 animate-fade-in-up animation-delay-800">
           <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
-          <span className="text-gray-400 text-sm">Initializing components</span>
+          <span className="text-app-muted text-sm">Initializing components</span>
           <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse animation-delay-200"></div>
         </div>
       </div>

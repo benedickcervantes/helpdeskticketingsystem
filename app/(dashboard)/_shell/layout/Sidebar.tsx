@@ -38,15 +38,15 @@ const SidebarNavLinks = ({ filteredNavigation, pathname, showCollapsed, onMobile
               flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative
               ${showCollapsed ? 'justify-center' : ''}
               ${isActive
-                ? 'bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 text-emerald-400 border border-emerald-500/30'
-                : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                ? 'bg-app-primary-soft text-app-primary border border-app-primary'
+                : 'text-app-soft hover:text-app hover:bg-app-surface-2'
               }
             `}
             title={showCollapsed ? item.name : ''}
           >
             <div className={`
               flex items-center justify-center w-5 h-5 flex-shrink-0 transition-colors duration-200
-              ${isActive ? 'text-emerald-400' : 'text-gray-400 group-hover:text-white'}
+              ${isActive ? 'text-app-primary' : 'text-app-muted group-hover:text-app'}
             `}>
               {item.icon}
             </div>
@@ -58,11 +58,11 @@ const SidebarNavLinks = ({ filteredNavigation, pathname, showCollapsed, onMobile
             )}
 
             {isActive && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-emerald-400 to-cyan-400 rounded-r-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-app-primary rounded-r-full" />
             )}
 
             {!isActive && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              <div className="absolute inset-0 rounded-xl bg-app-primary-soft opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             )}
           </Link>
         );
@@ -201,7 +201,7 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
       <aside
         className={`
           fixed top-12 sm:top-14 left-0 bottom-0
-          bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50 z-40
+          bg-app-header backdrop-blur-xl border-r border-app-subtle z-40
           flex flex-col sidebar-transition shadow-2xl
           transition-transform duration-300 ease-in-out
           ${showCollapsed ? 'w-16' : 'w-64 max-w-[85vw]'}
@@ -210,7 +210,7 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
         `}
         aria-label="Main navigation"
       >
-        <div className={`flex items-center border-b border-gray-700/50 flex-shrink-0 ${showCollapsed ? 'justify-center p-3' : 'justify-between p-4'}`}>
+        <div className={`flex items-center border-b border-app-subtle flex-shrink-0 ${showCollapsed ? 'justify-center p-3' : 'justify-between p-4'}`}>
           {!showCollapsed && (
             <Link href="/" className="flex items-center space-x-3 group min-w-0" onClick={onMobileClose}>
               <FpdcLogo
@@ -218,15 +218,15 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
                 className="group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 flex-shrink-0"
               />
               <div className="min-w-0">
-                <span className="text-lg font-bold text-white">FPDC</span>
-                <p className="text-xs text-gray-400 -mt-1 truncate">FPDC Enterprise IT</p>
+                <span className="text-lg font-bold text-app">FPDC</span>
+                <p className="text-xs text-app-muted -mt-1 truncate">FPDC Enterprise IT</p>
               </div>
             </Link>
           )}
 
           <button
             onClick={onMobileClose}
-            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-lg text-app-muted hover:text-app hover:bg-app-surface-2 transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Close navigation menu"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +236,7 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
 
           <button
             onClick={toggleSidebarCollapsed}
-            className={`hidden lg:flex p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors duration-200 ${showCollapsed ? '' : 'ml-auto'}`}
+            className={`hidden lg:flex p-2 rounded-lg text-app-muted hover:text-app hover:bg-app-surface-2 transition-colors duration-200 ${showCollapsed ? '' : 'ml-auto'}`}
             aria-label={showCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <svg className={`w-5 h-5 transition-transform duration-200 ${showCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,13 +257,13 @@ const Sidebar = ({ isMobileOpen, onMobileClose }) => {
         </nav>
 
         {currentUser && (
-          <div className="p-3 border-t border-gray-700/50 flex-shrink-0">
+          <div className="p-3 border-t border-app-subtle flex-shrink-0">
             <Link
               href="/profile"
               onClick={onMobileClose}
               className={`
-                flex items-center w-full p-3 mb-3 rounded-xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/30
-                hover:bg-gray-700/50 transition-colors duration-200 text-gray-300 hover:text-white
+                flex items-center w-full p-3 mb-3 rounded-xl bg-app-surface-2/50 backdrop-blur-sm border border-app-subtle
+                hover:bg-app-surface-3 transition-colors duration-200 text-app-soft hover:text-app
                 ${showCollapsed ? 'justify-center' : 'space-x-3'}
               `}
               title={showCollapsed ? 'Profile Settings' : ''}
