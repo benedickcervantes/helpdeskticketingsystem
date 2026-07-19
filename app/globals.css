@@ -430,8 +430,8 @@ body {
 
 /*
   Mobile Android Chrome: translucent surfaces + fixed header backdrop-filter
-  leave compositor paint trails (ghosted/flickering cards). Use opaque fills
-  and skip transform/accent animations unless a real hover pointer is present.
+  leave compositor paint trails (ghosted/flickering cards). Use opaque fills,
+  sticky header (not fixed), and disable GPU-heavy effects on small screens.
 */
 @media (max-width: 1023px) {
   :root,
@@ -440,22 +440,44 @@ body {
     --app-header-bg: var(--app-surface);
     --app-panel-bg: var(--app-surface-2);
     --app-panel-bg-2: var(--app-surface-2);
+    --app-primary-soft: var(--app-surface-3);
+    --app-border-subtle: var(--app-border);
+  }
+
+  html,
+  body {
+    background: var(--app-bg) !important;
+    background-image: none !important;
+  }
+
+  .bg-app-gradient,
+  .app-shell {
+    background-color: var(--app-bg) !important;
+    background-image: none !important;
   }
 
   .app-card,
   .app-chip,
   .app-select-toolbar,
   .bg-app-panel {
-    background-color: var(--app-surface-2);
-    background-image: none;
+    background-color: var(--app-surface-2) !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+    animation: none !important;
+    /* overflow:hidden + radius is a known Android paint-trail combo */
+    overflow: visible !important;
   }
 
   [data-theme="light"] .app-card,
   [data-theme="light"] .app-chip,
   [data-theme="light"] .app-select-toolbar,
   [data-theme="light"] .bg-app-panel {
-    background-color: var(--app-surface);
-    background-image: none;
+    background-color: var(--app-surface) !important;
+    background-image: none !important;
   }
 
   .app-field {
@@ -495,13 +517,48 @@ body {
     background-color: var(--app-surface) !important;
   }
 
-  /* Fixed-header blur + scrolling translucent layers = paint trails on Android */
   .backdrop-blur-sm,
   .backdrop-blur,
   .backdrop-blur-md,
-  .backdrop-blur-lg {
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+  }
+
+  .accent-hover-line {
+    transition: none !important;
+    width: 2.5rem !important;
+  }
+
+  .group:hover .accent-hover-line,
+  .group:active .accent-hover-line,
+  .group:focus-within .accent-hover-line {
+    width: 2.5rem !important;
+  }
+
+  /* -webkit-line-clamp / -webkit-box often leaves paint trails on Android */
+  .line-clamp-1,
+  .line-clamp-2,
+  .line-clamp-3 {
+    display: block !important;
+    -webkit-box-orient: unset !important;
+    -webkit-line-clamp: unset !important;
+    overflow: hidden !important;
+    max-height: 3.2em;
+  }
+
+  .line-clamp-1 {
+    max-height: 1.4em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .gpu-accelerated,
+  .will-change-transform,
+  .will-change-opacity {
+    transform: none !important;
+    will-change: auto !important;
   }
 }
 
@@ -512,7 +569,6 @@ body {
     width: 2.5rem;
   }
 
-  /* Kill card/icon transforms on touch — sticky :hover leaves paint trails on Android */
   .app-card,
   .group {
     transform: none !important;
