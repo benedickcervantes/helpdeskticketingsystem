@@ -8,6 +8,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import {
+  disconnectPublicSocket,
+  subscribeDepartmentEvents,
+} from '@/lib/realtime/socketClient';
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,6 +32,7 @@ const AuthForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [departments, setDepartments] = useState([]);
   
   const { signin, signup, authLoading, currentUser, userProfile } = useAuth();
   const router = useRouter();
@@ -55,20 +60,35 @@ const AuthForm = () => {
     }
   }, [searchParams]);
 
-  const departments = [
-    "CRG (Customer Relation Group)",
-    "TG (Takeout Group)",
-    "Billing and Collection Group",
-    "Treasury Group",
-    "Finance and Tax Group",
-    "Disbursement Group",
-    "RSD (Real Estate Services Department)",
-    "Engineering Department",
-    "IT Group",
-    "HR Group",
-    "Sales and Marketing Group",
-    "Leasing Group"
-  ];
+  useEffect(() => {
+    let cancelled = false;
+
+    const applyNames = (data) => {
+      if (cancelled) return;
+      const names = (Array.isArray(data) ? data : [])
+        .map((d) => (typeof d === 'string' ? d : d?.name))
+        .filter(Boolean);
+      setDepartments(names);
+    };
+
+    api
+      .get('/api/v1/departments')
+      .then(applyNames)
+      .catch(() => {
+        if (!cancelled) setDepartments([]);
+      });
+
+    const unsubscribe = subscribeDepartmentEvents(
+      (items) => applyNames(items),
+      { publicOnly: true },
+    );
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+      disconnectPublicSocket();
+    };
+  }, []);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({

@@ -1,9 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, apiFetch, setTokens } from '@/lib/api/client';
+import { subscribeDepartmentEvents } from '@/lib/realtime/socketClient';
 import { getDashboardPath } from '@/lib/utils/roles';
 import { ProfileFormSkeleton } from '@/lib/ui/DashboardSkeletons';
 import type { UserProfile } from '@/types/user';
@@ -22,12 +31,180 @@ const ROLE_LABELS: Record<string, string> = {
   user: 'User',
 };
 
+type DepartmentPickerModalProps = {
+  open: boolean;
+  departments: string[];
+  selected: string;
+  onClose: () => void;
+  onSelect: (department: string) => void;
+};
+
+const DepartmentPickerModal = ({
+  open,
+  departments,
+  selected,
+  onClose,
+  onSelect,
+}: DepartmentPickerModalProps) => {
+  const [mounted, setMounted] = useState(false);
+  const [search, setSearch] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setSearch('');
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const timer = window.setTimeout(() => searchRef.current?.focus(), 50);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.clearTimeout(timer);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open, onClose]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = [...departments];
+    if (selected && !list.includes(selected)) {
+      list.unshift(selected);
+    }
+    if (!q) return list;
+    return list.filter((name) => name.toLowerCase().includes(q));
+  }, [departments, search, selected]);
+
+  if (!mounted || !open) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/55 backdrop-blur-[1px]"
+        aria-label="Close department picker"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="department-picker-title"
+        className="relative flex w-full max-w-md max-h-[85vh] flex-col overflow-hidden rounded-t-2xl border border-app-subtle bg-app-panel shadow-2xl sm:rounded-2xl"
+      >
+        <div className="flex-shrink-0 border-b border-app-subtle px-4 py-3.5 sm:px-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 id="department-picker-title" className="text-base sm:text-lg font-semibold text-app">
+              Select department
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-app-muted hover:bg-app-surface-2 hover:text-app transition-colors"
+              aria-label="Close"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">
+              <svg className="h-4 w-4 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              ref={searchRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search departments…"
+              className="app-field block w-full rounded-xl border py-2.5 pl-8 pr-3 text-sm focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 sm:px-3">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-8 text-center text-sm text-app-muted">
+              No departments match your search.
+            </p>
+          ) : (
+            <ul className="space-y-0.5" role="listbox" aria-label="Departments">
+              {filtered.map((dept) => {
+                const isSelected = dept === selected;
+                return (
+                  <li key={dept}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        onSelect(dept);
+                        onClose();
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
+                        isSelected
+                          ? 'bg-app-primary-soft text-app-primary'
+                          : 'text-app-soft hover:bg-app-surface-2 hover:text-app'
+                      }`}
+                    >
+                      <span
+                        className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border ${
+                          isSelected
+                            ? 'border-app-primary bg-app-primary text-app-on-primary'
+                            : 'border-app'
+                        }`}
+                      >
+                        {isSelected && (
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-medium">{dept}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        <div className="flex-shrink-0 border-t border-app-subtle px-4 py-3 sm:px-5">
+          <button
+            type="button"
+            onClick={() => {
+              onSelect('');
+              onClose();
+            }}
+            className="w-full rounded-xl border border-app bg-app-surface-2 px-3 py-2.5 text-sm font-medium text-app-soft hover:bg-app-surface-3 transition-colors"
+          >
+            Clear selection
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+};
+
 const ProfileSettings = () => {
   const { currentUser, userProfile, setUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [removingPhoto, setRemovingPhoto] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [deptModalOpen, setDeptModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -61,6 +238,34 @@ const ProfileSettings = () => {
       setPhotoUrl(userProfile.photoURL || userProfile.photo_url || '');
     }
   }, [userProfile, currentUser]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const applyNames = (data: unknown) => {
+      if (cancelled) return;
+      const names = (Array.isArray(data) ? data : [])
+        .map((d: { name?: string } | string) =>
+          typeof d === 'string' ? d : d?.name,
+        )
+        .filter((name): name is string => Boolean(name));
+      setDepartments(names);
+    };
+
+    api
+      .get('/api/v1/departments')
+      .then(applyNames)
+      .catch(() => {
+        if (!cancelled) setDepartments([]);
+      });
+
+    const unsubscribe = subscribeDepartmentEvents((items) => applyNames(items));
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -99,6 +304,13 @@ const ProfileSettings = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleDepartmentSelect = (department: string) => {
+    setFormData((prev) => ({ ...prev, department }));
+    if (errors.department) {
+      setErrors((prev) => ({ ...prev, department: '' }));
     }
   };
 
@@ -501,16 +713,31 @@ const ProfileSettings = () => {
                   <label htmlFor="department" className="block text-sm font-medium text-app-soft mb-1.5">
                     Department
                   </label>
-                  <input
-                    type="text"
+                  <button
+                    type="button"
                     id="department"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    maxLength={100}
-                    className={inputClass}
-                    placeholder="e.g. IT, Accounting"
-                  />
+                    onClick={() => setDeptModalOpen(true)}
+                    className={`${inputClass} flex items-center justify-between gap-2 text-left`}
+                    aria-haspopup="dialog"
+                    aria-expanded={deptModalOpen}
+                  >
+                    <span
+                      className={`min-w-0 truncate ${
+                        formData.department ? 'text-app' : 'text-app-muted'
+                      }`}
+                    >
+                      {formData.department || 'Select department'}
+                    </span>
+                    <svg
+                      className="h-4 w-4 flex-shrink-0 text-app-muted"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                   {errors.department && (
                     <p className="text-sm text-red-400 mt-1 break-words">{errors.department}</p>
                   )}
@@ -676,6 +903,14 @@ const ProfileSettings = () => {
           </div>
         </form>
       </div>
+
+      <DepartmentPickerModal
+        open={deptModalOpen}
+        departments={departments}
+        selected={formData.department}
+        onClose={() => setDeptModalOpen(false)}
+        onSelect={handleDepartmentSelect}
+      />
     </div>
   );
 };

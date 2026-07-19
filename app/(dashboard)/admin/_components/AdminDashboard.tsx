@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { api } from '@/lib/api/client';
 import { subscribeTicketEvents, subscribeNotificationEvents } from '@/lib/realtime/socketClient';
@@ -13,6 +13,8 @@ import {
   TablePanelSkeleton,
   ChartGridSkeleton,
 } from '@/lib/ui/DashboardSkeletons';
+
+const ADMIN_TABS = ['overview', 'tickets', 'users', 'departments', 'feedback', 'logs'];
 
 const TicketList = dynamic(
   () => import('@/app/(dashboard)/_components/TicketList'),
@@ -29,9 +31,18 @@ const FeedbackAnalytics = dynamic(
   () => import('@/app/(dashboard)/admin/_components/FeedbackAnalytics'),
   { loading: () => <ChartGridSkeleton /> },
 );
+const AdminLogs = dynamic(
+  () => import('@/app/(dashboard)/admin/_components/AdminLogs'),
+  { loading: () => <TablePanelSkeleton rows={8} /> },
+);
+const DepartmentManagement = dynamic(
+  () => import('@/app/(dashboard)/admin/_components/DepartmentManagement'),
+  { loading: () => <TablePanelSkeleton rows={6} /> },
+);
 
 const AdminDashboard = () => {
   const { currentUser, userProfile } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const ticketParam = searchParams.get('ticket');
@@ -51,15 +62,39 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const validTabs = ['overview', 'tickets', 'users', 'feedback'];
     if (ticketParam) {
       setActiveTab('tickets');
-    } else if (tabParam && validTabs.includes(tabParam)) {
+      // Keep sidebar in sync when deep-linking into a ticket.
+      if (tabParam !== 'tickets') {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('tab', 'tickets');
+        router.replace(`/admin?${params.toString()}`, { scroll: false });
+      }
+    } else if (tabParam && ADMIN_TABS.includes(tabParam)) {
       setActiveTab(tabParam);
     } else if (!tabParam) {
       setActiveTab('overview');
     }
-  }, [tabParam, ticketParam]);
+  }, [tabParam, ticketParam, searchParams, router]);
+
+  const goToTab = useCallback(
+    (tab) => {
+      if (!ADMIN_TABS.includes(tab)) return;
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', tab);
+
+      if (tab !== 'tickets') {
+        params.delete('ticket');
+        params.delete('open');
+        params.delete('focus');
+      }
+
+      router.replace(`/admin?${params.toString()}`, { scroll: false });
+      setActiveTab(tab);
+    },
+    [router, searchParams],
+  );
 
   const displayTab = activeTab;
 
@@ -125,7 +160,7 @@ const AdminDashboard = () => {
       <div className="mb-6 sm:mb-8">
         <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-app overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
           <button
-            onClick={() => setActiveTab('overview')}
+            onClick={() => goToTab('overview')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'overview'
                 ? 'border-app-primary text-app-primary bg-app-primary-soft'
@@ -140,7 +175,7 @@ const AdminDashboard = () => {
             </span>
           </button>
           <button
-            onClick={() => setActiveTab('tickets')}
+            onClick={() => goToTab('tickets')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'tickets'
                 ? 'border-app-primary text-app-primary bg-app-primary-soft'
@@ -155,7 +190,7 @@ const AdminDashboard = () => {
             </span>
           </button>
           <button
-            onClick={() => setActiveTab('users')}
+            onClick={() => goToTab('users')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'users'
                 ? 'border-app-primary text-app-primary bg-app-primary-soft'
@@ -170,7 +205,22 @@ const AdminDashboard = () => {
             </span>
           </button>
           <button
-            onClick={() => setActiveTab('feedback')}
+            onClick={() => goToTab('departments')}
+            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
+              displayTab === 'departments'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+            }`}
+          >
+            <span className="flex items-center space-x-1 sm:space-x-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span className="hidden sm:inline">Departments</span>
+            </span>
+          </button>
+          <button
+            onClick={() => goToTab('feedback')}
             className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
               displayTab === 'feedback'
                 ? 'border-app-primary text-app-primary bg-app-primary-soft'
@@ -182,6 +232,21 @@ const AdminDashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               <span className="hidden sm:inline">Feedback Analytics</span>
+            </span>
+          </button>
+          <button
+            onClick={() => goToTab('logs')}
+            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
+              displayTab === 'logs'
+                ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+            }`}
+          >
+            <span className="flex items-center space-x-1 sm:space-x-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span className="hidden sm:inline">Admin Logs</span>
             </span>
           </button>
         </nav>
@@ -232,23 +297,23 @@ const AdminDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 shrink-0">
                     <button
                       type="button"
-                      onClick={() => setActiveTab('tickets')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-app-primary text-app-on-primary text-sm font-semibold px-4 py-2.5 transition-colors"
+                      onClick={() => goToTab('tickets')}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-app-primary bg-app-primary px-4 text-sm font-semibold leading-none text-app-on-primary transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       Manage Tickets
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveTab('users')}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-app bg-app-surface-2 hover:bg-app-surface-3 hover:border-app-primary text-app-soft text-sm font-medium px-4 py-2.5 transition-colors"
+                      onClick={() => goToTab('users')}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-app bg-app-surface-2 px-4 text-sm font-semibold leading-none text-app-soft transition-colors hover:border-app-primary hover:bg-app-surface-3"
                     >
-                      <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 shrink-0 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                       </svg>
                       Users
@@ -263,7 +328,7 @@ const AdminDashboard = () => {
                   <h3 className="text-base sm:text-lg font-semibold text-app">Ticket Overview</h3>
                   <button
                     type="button"
-                    onClick={() => setActiveTab('tickets')}
+                    onClick={() => goToTab('tickets')}
                     className="text-xs sm:text-sm text-app-primary hover:opacity-80 font-medium transition-colors"
                   >
                     See all
@@ -331,7 +396,7 @@ const AdminDashboard = () => {
                     <button
                       key={stat.label}
                       type="button"
-                      onClick={() => setActiveTab('tickets')}
+                      onClick={() => goToTab('tickets')}
                       className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
@@ -408,7 +473,7 @@ const AdminDashboard = () => {
                     <button
                       key={stat.label}
                       type="button"
-                      onClick={() => setActiveTab(stat.tab)}
+                      onClick={() => goToTab(stat.tab)}
                       className="app-card group text-left rounded-xl border px-4 py-3.5 sm:p-4 transition-colors duration-200 [@media(hover:hover)]:hover:-translate-y-0.5"
                     >
                       <div className={`accent-hover-line ${stat.bar}`} aria-hidden="true" />
@@ -489,12 +554,24 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {displayTab === 'departments' && (
+        <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
+          <DepartmentManagement />
+        </div>
+      )}
+
       {displayTab === 'feedback' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-app mb-4 sm:mb-6">Feedback Analytics</h2>
             <FeedbackAnalytics />
           </div>
+        </div>
+      )}
+
+      {displayTab === 'logs' && (
+        <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
+          <AdminLogs />
         </div>
       )}
     </div>

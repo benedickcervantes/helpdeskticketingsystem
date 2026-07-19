@@ -53,8 +53,8 @@ function AppShellContent({ children }) {
 
   const sidebarMainOffset = shouldShowSidebar
     ? isSidebarCollapsed
-      ? 'lg:ml-16'
-      : 'lg:ml-64'
+      ? 'lg:ml-[4.5rem]'
+      : 'lg:ml-72'
     : 'ml-0';
 
   if (!currentUser || isLandingPage) {
@@ -87,7 +87,7 @@ function AppShellContent({ children }) {
 
       {shouldShowSidebar && isSidebarOpen && (
         <div
-          className="fixed inset-0 top-12 sm:top-14 bg-black/60 z-30 lg:hidden"
+          className="fixed inset-0 top-12 sm:top-14 z-30 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden"
           onClick={closeSidebar}
           aria-hidden="true"
         />

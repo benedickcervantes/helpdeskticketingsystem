@@ -3,6 +3,7 @@
 import { io, type Socket } from 'socket.io-client';
 import { API_URL, getAccessToken } from '@/lib/api/client';
 import {
+  DEPARTMENT_CHANGED_EVENT,
   NOTIFICATION_ALL_READ_EVENT,
   NOTIFICATION_NEW_EVENT,
   NOTIFICATION_READ_EVENT,
@@ -16,7 +17,17 @@ import type { Notification } from '@/types/notification';
 import type { Ticket, TicketMessage } from '@/types/ticket';
 import type { UserProfile } from '@/types/user';
 
+export type DepartmentRealtimeItem = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 let socket: Socket | null = null;
+let publicSocket: Socket | null = null;
 
 export function getSocket(): Socket | null {
   if (typeof window === 'undefined') return null;
@@ -40,10 +51,30 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
+/** Unauthenticated socket for public pages (Register department list). */
+export function getPublicSocket(): Socket | null {
+  if (typeof window === 'undefined') return null;
+
+  if (publicSocket?.connected) return publicSocket;
+
+  publicSocket = io(`${API_URL}/realtime`, {
+    transports: ['websocket', 'polling'],
+  });
+
+  return publicSocket;
+}
+
 export function disconnectSocket(): void {
   if (socket) {
     socket.disconnect();
     socket = null;
+  }
+}
+
+export function disconnectPublicSocket(): void {
+  if (publicSocket) {
+    publicSocket.disconnect();
+    publicSocket = null;
   }
 }
 
@@ -146,4 +177,24 @@ export function subscribeUserProfileEvents(
   const handler = (payload: { user?: UserProfile }) => onUpdated?.(payload?.user);
   s.on(USER_PROFILE_UPDATED_EVENT, handler);
   return () => s.off(USER_PROFILE_UPDATED_EVENT, handler);
+}
+
+export function subscribeDepartmentEvents(
+  onChanged?: (departments: DepartmentRealtimeItem[]) => void,
+  options?: { publicOnly?: boolean },
+): () => void {
+  const s = options?.publicOnly ? getPublicSocket() : getSocket() || getPublicSocket();
+  if (!s) return () => {};
+
+  const handler = (payload: { departments?: DepartmentRealtimeItem[] }) => {
+    onChanged?.(Array.isArray(payload?.departments) ? payload.departments : []);
+  };
+
+  s.on(DEPARTMENT_CHANGED_EVENT, handler);
+  return () => {
+    s.off(DEPARTMENT_CHANGED_EVENT, handler);
+    if (options?.publicOnly) {
+      // Keep public socket alive while Register is open; caller disconnects on unmount.
+    }
+  };
 }
