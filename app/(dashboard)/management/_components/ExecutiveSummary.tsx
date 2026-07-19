@@ -127,13 +127,13 @@ const ExecutiveSummary = ({
   const getInsightColor = (type) => {
     switch (type) {
       case 'positive':
-        return 'bg-app-primary-soft border-app-primary/30';
+        return 'bg-app-surface-2 border-app-primary/40';
       case 'negative':
-        return 'bg-rose-500/10 border-rose-500/30';
+        return 'bg-app-surface-2 border-rose-500/40';
       case 'urgent':
-        return 'bg-orange-500/10 border-orange-500/30';
+        return 'bg-app-surface-2 border-orange-500/40';
       default:
-        return 'bg-sky-500/10 border-sky-500/30';
+        return 'bg-app-surface-2 border-sky-500/40';
     }
   };
 
@@ -167,7 +167,7 @@ const ExecutiveSummary = ({
               <p className="text-xs sm:text-sm font-medium text-app-muted">Total Requests</p>
               <p className="text-xl sm:text-2xl font-bold text-app mt-1">{safeMetrics.totalTickets || 0}</p>
             </div>
-            <div className="p-2 sm:p-3 rounded-lg bg-sky-500/15 text-sky-700 flex-shrink-0">
+            <div className="p-2 sm:p-3 rounded-lg bg-app-surface-3 text-sky-400 flex-shrink-0">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -195,7 +195,7 @@ const ExecutiveSummary = ({
               <p className="text-xs sm:text-sm font-medium text-app-muted">Avg Resolution Time</p>
               <p className="text-xl sm:text-2xl font-bold text-app mt-1">{safeMetrics.avgResolutionTime || 0}h</p>
             </div>
-            <div className="p-2 sm:p-3 rounded-lg bg-amber-500/15 text-amber-700 flex-shrink-0">
+            <div className="p-2 sm:p-3 rounded-lg bg-app-surface-3 text-amber-400 flex-shrink-0">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -227,10 +227,10 @@ const ExecutiveSummary = ({
           </div>
           <div className="sm:text-right flex-shrink-0">
             <div className={`inline-flex items-center px-3 py-1 rounded-lg border text-xs sm:text-sm font-medium ${
-              safeHealthStatus.status === 'Excellent' ? 'bg-app-primary-soft text-app-primary border-app-primary/30' :
-              safeHealthStatus.status === 'Good' ? 'bg-sky-500/15 text-sky-700 border-sky-500/30' :
-              safeHealthStatus.status === 'Fair' ? 'bg-amber-500/15 text-amber-700 border-amber-500/30' :
-              'bg-rose-500/15 text-rose-600 border-rose-500/30'
+              safeHealthStatus.status === 'Excellent' ? 'bg-app-surface-2 text-app-primary border-app-primary/40' :
+              safeHealthStatus.status === 'Good' ? 'bg-app-surface-2 text-sky-400 border-sky-500/40' :
+              safeHealthStatus.status === 'Fair' ? 'bg-app-surface-2 text-amber-400 border-amber-500/40' :
+              'bg-app-surface-2 text-rose-400 border-rose-500/40'
             }`}>
               <div className={`w-2 h-2 rounded-full mr-2 ${
                 safeHealthStatus.status === 'Excellent' ? 'bg-app-primary' :
@@ -278,7 +278,7 @@ const ExecutiveSummary = ({
           <button
             type="button"
             onClick={() => onNavigateToTab?.('reports')}
-            className="p-3 sm:p-4 bg-app-primary-soft hover:bg-app-primary-soft border border-app-primary/30 rounded-lg transition-colors text-left"
+            className="p-3 sm:p-4 bg-app-surface-2 hover:bg-app-surface-3 border border-app-primary/40 rounded-lg transition-colors text-left"
           >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-app-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +294,7 @@ const ExecutiveSummary = ({
           <button
             type="button"
             onClick={() => onNavigateToTab?.('analytics')}
-            className="p-3 sm:p-4 bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/30 rounded-lg transition-colors text-left"
+            className="p-3 sm:p-4 bg-app-surface-2 hover:bg-app-surface-3 border border-sky-500/40 rounded-lg transition-colors text-left"
           >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-sky-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,7 +310,7 @@ const ExecutiveSummary = ({
           <button
             type="button"
             onClick={() => onNavigateToTab?.('feedback')}
-            className="p-3 sm:p-4 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/30 rounded-lg transition-colors text-left"
+            className="p-3 sm:p-4 bg-app-surface-2 hover:bg-app-surface-3 border border-amber-500/40 rounded-lg transition-colors text-left"
           >
             <div className="flex items-center space-x-3">
               <svg className="w-5 h-5 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

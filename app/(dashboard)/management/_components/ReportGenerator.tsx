@@ -506,7 +506,7 @@ const ReportGenerator = ({
                   className={`relative p-4 sm:p-5 rounded-xl border text-left transition-all duration-200 ${
                     active
                       ? 'border-app-primary bg-app-primary-soft shadow-md ring-1 ring-app-primary/30'
-                      : 'border-app bg-app-surface-2/40 hover:border-app-primary hover:bg-app-surface-2/70'
+                      : 'border-app bg-app-surface-2 hover:border-app-primary hover:bg-app-surface-3'
                   }`}
                 >
                   {active ? (
@@ -541,7 +541,7 @@ const ReportGenerator = ({
                   className={`relative p-4 rounded-xl border text-left transition-all duration-200 ${
                     active
                       ? 'border-app-primary bg-app-primary-soft ring-1 ring-app-primary/30 shadow-md'
-                      : 'border-app bg-app-surface-2/40 text-app-soft hover:border-app-primary'
+                      : 'border-app bg-app-surface-2 text-app-soft hover:border-app-primary'
                   }`}
                 >
                   {active ? (
@@ -595,7 +595,7 @@ const ReportGenerator = ({
               {previewMetrics.map((metric) => (
                 <div
                   key={metric.label}
-                  className="relative overflow-hidden rounded-xl border border-app-subtle bg-app-surface-2/50 p-3 sm:p-4"
+                  className="relative overflow-hidden rounded-xl border border-app-subtle bg-app-surface-2 p-3 sm:p-4"
                 >
                   <div className={`absolute inset-x-0 top-0 h-0.5 ${metric.bar}`} />
                   <p className="text-[11px] sm:text-xs font-medium text-app-muted">{metric.label}</p>
@@ -607,7 +607,7 @@ const ReportGenerator = ({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-              <div className="rounded-xl border border-app-subtle bg-app-surface-2/40 p-3.5 sm:p-4">
+              <div className="rounded-xl border border-app-subtle bg-app-surface-2 p-3.5 sm:p-4">
                 <h4 className="font-semibold text-app mb-3 flex items-center gap-2 text-sm sm:text-base">
                   <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-app-primary-soft text-app-primary">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -636,7 +636,7 @@ const ReportGenerator = ({
                 </ul>
               </div>
 
-              <div className="rounded-xl border border-app-subtle bg-app-surface-2/40 p-3.5 sm:p-4">
+              <div className="rounded-xl border border-app-subtle bg-app-surface-2 p-3.5 sm:p-4">
                 <h4 className="font-semibold text-app mb-3 flex items-center gap-2 text-sm sm:text-base">
                   <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-app-primary-soft text-app-primary">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -708,7 +708,7 @@ const ReportGenerator = ({
         <div className="app-card rounded-2xl p-4 sm:p-6 border shadow-xl">
           <h3 className="text-lg font-semibold text-app mb-4">Report Features</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-start p-3 bg-app-surface-2/60 rounded-lg border border-app-subtle">
+            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
               <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
                 <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -719,7 +719,7 @@ const ReportGenerator = ({
                 <p className="text-sm text-app-muted">Safe handling of undefined or missing data</p>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-app-surface-2/60 rounded-lg border border-app-subtle">
+            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
               <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
                 <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -730,7 +730,7 @@ const ReportGenerator = ({
                 <p className="text-sm text-app-muted">PDF and PowerPoint with embedded chart images</p>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-app-surface-2/60 rounded-lg border border-app-subtle">
+            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
               <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
                 <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -741,7 +741,7 @@ const ReportGenerator = ({
                 <p className="text-sm text-app-muted">Comprehensive validation prevents crashes</p>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-app-surface-2/60 rounded-lg border border-app-subtle">
+            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
               <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
                 <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
