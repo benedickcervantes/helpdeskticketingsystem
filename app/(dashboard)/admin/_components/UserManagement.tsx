@@ -8,8 +8,10 @@ import { createPortal } from 'react-dom';
 import { api } from '@/lib/api/client';
 import {
   subscribeDepartmentEvents,
+  subscribeDesignationEvents,
   subscribeUserProfileEvents,
 } from '@/lib/realtime/socketClient';
+import OptionPickerModal from '@/lib/ui/OptionPickerModal';
 
 const roleBadgeClass = (role) => {
   switch (role) {
@@ -56,7 +58,16 @@ const UserAvatar = ({ user, size = 'md' }) => {
   );
 };
 
-const UserFormModal = ({ open, title, onClose, onSubmit, children, submitLabel }) => {
+const UserFormModal = ({
+  open,
+  title,
+  onClose,
+  onSubmit,
+  children,
+  submitLabel,
+  submitting = false,
+  submitLoadingLabel = 'Saving…',
+}) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -73,13 +84,13 @@ const UserFormModal = ({ open, title, onClose, onSubmit, children, submitLabel }
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || submitting) return;
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [open, onClose]);
+  }, [open, submitting, onClose]);
 
   if (!open || !mounted) return null;
 
@@ -89,7 +100,8 @@ const UserFormModal = ({ open, title, onClose, onSubmit, children, submitLabel }
         type="button"
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         aria-label="Close modal"
-        onClick={onClose}
+        onClick={submitting ? undefined : onClose}
+        disabled={submitting}
       />
       <div
         role="dialog"
@@ -104,7 +116,8 @@ const UserFormModal = ({ open, title, onClose, onSubmit, children, submitLabel }
           <button
             type="button"
             onClick={onClose}
-            className="flex-shrink-0 rounded-lg p-2 text-app-muted transition-colors hover:bg-app-surface-3 hover:text-app"
+            disabled={submitting}
+            className="flex-shrink-0 rounded-lg p-2 text-app-muted transition-colors hover:bg-app-surface-3 hover:text-app disabled:opacity-50"
             aria-label="Close"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,22 +128,33 @@ const UserFormModal = ({ open, title, onClose, onSubmit, children, submitLabel }
 
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
-            <div className="space-y-3 sm:space-y-4">{children}</div>
+            <fieldset disabled={submitting} className="min-w-0 space-y-3 sm:space-y-4 border-0 p-0">
+              {children}
+            </fieldset>
           </div>
 
           <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-app-subtle bg-app-panel px-4 py-3 sm:flex-row sm:justify-end sm:gap-3 sm:px-6 sm:py-4">
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2.5 border border-app rounded-xl text-sm font-medium text-app-soft bg-app-surface-2 hover:bg-app-surface-3 transition-colors"
+              disabled={submitting}
+              className="w-full sm:w-auto px-4 py-2.5 border border-app rounded-xl text-sm font-medium text-app-soft bg-app-surface-2 hover:bg-app-surface-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-4 py-2.5 bg-app-primary text-app-on-primary hover:opacity-90 rounded-xl text-sm font-medium transition-all duration-300"
+              disabled={submitting}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-app-primary text-app-on-primary hover:opacity-90 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitLabel}
+              {submitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-app-on-primary border-t-transparent rounded-full animate-spin" />
+                  {submitLoadingLabel}
+                </>
+              ) : (
+                submitLabel
+              )}
             </button>
           </div>
         </form>
@@ -215,7 +239,7 @@ const DeleteUserModal = ({ open, user, deleting, onClose, onConfirm }) => {
             type="button"
             onClick={onClose}
             disabled={deleting}
-            className="w-full sm:w-auto px-4 py-2.5 border border-app rounded-xl text-sm font-medium text-app-soft bg-app-surface-2 hover:bg-app-surface-3 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2.5 border border-app rounded-xl text-sm font-medium text-app-soft bg-app-surface-2 hover:bg-app-surface-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -223,9 +247,16 @@ const DeleteUserModal = ({ open, user, deleting, onClose, onConfirm }) => {
             type="button"
             onClick={onConfirm}
             disabled={deleting}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {deleting ? 'Deleting…' : 'Delete permanently'}
+            {deleting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Deleting…
+              </>
+            ) : (
+              'Delete permanently'
+            )}
           </button>
         </div>
       </div>
@@ -243,6 +274,8 @@ const UserManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [deletingUser, setDeletingUser] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [togglingUserId, setTogglingUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewMode, setViewMode] = useState('auto');
   const [searchTerm, setSearchTerm] = useState('');
@@ -254,6 +287,7 @@ const UserManagement = () => {
   const [editFormData, setEditFormData] = useState({
     name: '',
     email: '',
+    designation: '',
     department: '',
     role: 'user',
     isActive: true,
@@ -263,13 +297,22 @@ const UserManagement = () => {
     name: '',
     email: '',
     password: '',
+    designation: '',
     department: '',
     role: 'user',
     isActive: true,
   });
 
   const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
+  const [editDesignationPickerOpen, setEditDesignationPickerOpen] = useState(false);
+  const [editDepartmentPickerOpen, setEditDepartmentPickerOpen] = useState(false);
+  const [addDesignationPickerOpen, setAddDesignationPickerOpen] = useState(false);
+  const [addDepartmentPickerOpen, setAddDepartmentPickerOpen] = useState(false);
   const roles = ['user', 'admin', 'manager'];
+
+  const pickerTriggerClass =
+    'mt-1 flex w-full min-w-0 max-w-full items-center justify-between gap-2 app-field border rounded-xl shadow-sm py-2.5 px-3 text-left text-sm focus:outline-none';
 
   const loadUsers = useCallback(async () => {
     try {
@@ -284,29 +327,48 @@ const UserManagement = () => {
     }
   }, []);
 
+  const toNames = (data) =>
+    (Array.isArray(data) ? data : [])
+      .map((d) => (typeof d === 'string' ? d : d?.name))
+      .filter(Boolean);
+
   const loadDepartments = useCallback(async () => {
     try {
       const data = await api.get('/api/v1/departments');
-      const names = (Array.isArray(data) ? data : [])
-        .map((d) => (typeof d === 'string' ? d : d?.name))
-        .filter(Boolean);
-      setDepartments(names);
+      setDepartments(toNames(data));
     } catch (err) {
       console.error('Error fetching departments:', err);
       setDepartments([]);
     }
   }, []);
 
+  const loadDesignations = useCallback(async () => {
+    try {
+      const data = await api.get('/api/v1/designations');
+      setDesignations(toNames(data));
+    } catch (err) {
+      console.error('Error fetching designations:', err);
+      setDesignations([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadUsers();
     loadDepartments();
-  }, [loadUsers, loadDepartments]);
+    loadDesignations();
+  }, [loadUsers, loadDepartments, loadDesignations]);
 
   useEffect(() => {
-    return subscribeDepartmentEvents((items) => {
-      const names = (items || []).map((d) => d.name).filter(Boolean);
-      setDepartments(names);
+    const unsubscribeDepartments = subscribeDepartmentEvents((items) => {
+      setDepartments((items || []).map((d) => d.name).filter(Boolean));
     });
+    const unsubscribeDesignations = subscribeDesignationEvents((items) => {
+      setDesignations((items || []).map((d) => d.name).filter(Boolean));
+    });
+    return () => {
+      unsubscribeDepartments();
+      unsubscribeDesignations();
+    };
   }, []);
 
   useEffect(() => {
@@ -339,6 +401,7 @@ const UserManagement = () => {
     .filter(user => {
       const matchesSearch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            user.department?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = filterRole === 'all' || user.role === filterRole;
       const matchesDepartment =
@@ -375,6 +438,7 @@ const UserManagement = () => {
     setEditFormData({
       name: user.name,
       email: user.email,
+      designation: user.designation || '',
       department: user.department || '',
       role: user.role,
       isActive: user.isActive,
@@ -401,10 +465,14 @@ const UserManagement = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    if (formSubmitting || !selectedUser?.id) return;
     try {
+      setFormSubmitting(true);
+      setError('');
       const payload = {
         name: editFormData.name,
         email: editFormData.email,
+        designation: editFormData.designation.trim() || null,
         department: editFormData.department,
         role: editFormData.role,
         isActive: editFormData.isActive,
@@ -419,16 +487,22 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error updating user:', error);
       setError('Failed to update user. Please try again.');
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    if (formSubmitting) return;
     try {
+      setFormSubmitting(true);
+      setError('');
       await api.post('/api/v1/users/admin', {
         name: addFormData.name,
         email: addFormData.email,
         password: addFormData.password,
+        designation: addFormData.designation.trim() || undefined,
         department: addFormData.department,
         role: addFormData.role,
       });
@@ -438,6 +512,7 @@ const UserManagement = () => {
         name: '',
         email: '',
         password: '',
+        designation: '',
         department: '',
         role: 'user',
         isActive: true,
@@ -446,20 +521,30 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error creating user:', error);
       setError(error.message || 'Failed to create user. Please try again.');
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
   const handleToggleActive = async (user) => {
+    if (!user?.id || togglingUserId || deletingUser) return;
     try {
+      setTogglingUserId(user.id);
+      setError('');
       await api.patch(`/api/v1/users/admin/${user.id}`, {
         isActive: !user.isActive,
       });
-      loadUsers();
+      await loadUsers();
     } catch (error) {
       console.error('Error toggling user status:', error);
       setError('Failed to update user status. Please try again.');
+    } finally {
+      setTogglingUserId(null);
     }
   };
+
+  const isUserActionBusy = (userId) =>
+    Boolean(togglingUserId || deletingUser || (userId && togglingUserId === userId));
 
   const openDeleteModal = (user) => {
     setError('');
@@ -472,7 +557,7 @@ const UserManagement = () => {
   };
 
   const confirmDeleteUser = async () => {
-    if (!userToDelete?.id) return;
+    if (!userToDelete?.id || deletingUser) return;
 
     const userId = userToDelete.id;
     try {
@@ -540,24 +625,39 @@ const UserManagement = () => {
 
       <div className="flex flex-wrap gap-1 sm:gap-2 pt-2 sm:pt-3 border-t border-app">
         <button
+          type="button"
           onClick={() => handleEditClick(user)}
-          className="flex-1 min-w-[60px] sm:min-w-[70px] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-app-primary-soft text-app-primary border border-app-primary/30 rounded-lg hover:bg-app-primary-soft transition-colors"
+          disabled={isUserActionBusy(user.id)}
+          className="flex-1 min-w-[60px] sm:min-w-[70px] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-app-primary-soft text-app-primary border border-app-primary/30 rounded-lg hover:bg-app-primary-soft transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Edit
         </button>
         <button
+          type="button"
           onClick={() => handleToggleActive(user)}
-          className={`flex-1 min-w-[60px] sm:min-w-[70px] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg transition-colors ${
+          disabled={isUserActionBusy(user.id)}
+          className={`flex-1 min-w-[60px] sm:min-w-[70px] inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             user.isActive 
               ? 'bg-amber-500/15 text-amber-700 border-amber-500/30 hover:bg-amber-500/25'
               : 'bg-app-primary-soft text-app-primary border-app-primary/30 hover:bg-app-primary-soft'
           }`}
         >
-          {user.isActive ? 'Disable' : 'Enable'}
+          {togglingUserId === user.id ? (
+            <>
+              <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Updating…
+            </>
+          ) : user.isActive ? (
+            'Disable'
+          ) : (
+            'Enable'
+          )}
         </button>
         <button
+          type="button"
           onClick={() => openDeleteModal(user)}
-          className="flex-1 min-w-[60px] sm:min-w-[70px] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-rose-500/15 text-rose-600 border border-rose-500/30 rounded-lg hover:bg-rose-500/25 transition-colors"
+          disabled={isUserActionBusy(user.id)}
+          className="flex-1 min-w-[60px] sm:min-w-[70px] px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-rose-500/15 text-rose-600 border border-rose-500/30 rounded-lg hover:bg-rose-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Delete
         </button>
@@ -823,7 +923,8 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => handleEditClick(user)}
-                          className="p-1.5 rounded-lg border border-app text-app-primary bg-app-primary-soft/60 hover:bg-app-primary-soft transition-colors"
+                          disabled={isUserActionBusy(user.id)}
+                          className="p-1.5 rounded-lg border border-app text-app-primary bg-app-primary-soft/60 hover:bg-app-primary-soft transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Edit User"
                           aria-label={`Edit ${user.name}`}
                         >
@@ -834,15 +935,30 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => handleToggleActive(user)}
-                          className={`p-1.5 rounded-lg border transition-colors ${
+                          disabled={isUserActionBusy(user.id)}
+                          className={`p-1.5 rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                             user.isActive
                               ? 'border-amber-500/30 text-amber-700 bg-amber-500/10 hover:bg-amber-500/20'
                               : 'border-app-primary/30 text-app-primary bg-app-primary-soft/60 hover:bg-app-primary-soft'
                           }`}
-                          title={user.isActive ? 'Disable User' : 'Enable User'}
-                          aria-label={user.isActive ? `Disable ${user.name}` : `Enable ${user.name}`}
+                          title={
+                            togglingUserId === user.id
+                              ? 'Updating…'
+                              : user.isActive
+                                ? 'Disable User'
+                                : 'Enable User'
+                          }
+                          aria-label={
+                            togglingUserId === user.id
+                              ? `Updating ${user.name}`
+                              : user.isActive
+                                ? `Disable ${user.name}`
+                                : `Enable ${user.name}`
+                          }
                         >
-                          {user.isActive ? (
+                          {togglingUserId === user.id ? (
+                            <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                          ) : user.isActive ? (
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
                             </svg>
@@ -855,7 +971,8 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => openDeleteModal(user)}
-                          className="p-1.5 rounded-lg border border-rose-500/30 text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
+                          disabled={isUserActionBusy(user.id)}
+                          className="p-1.5 rounded-lg border border-rose-500/30 text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Delete User"
                           aria-label={`Delete ${user.name}`}
                         >
@@ -886,7 +1003,12 @@ const UserManagement = () => {
         open={showEditModal}
         title="Edit User"
         submitLabel="Update User"
-        onClose={() => setShowEditModal(false)}
+        submitLoadingLabel="Updating…"
+        submitting={formSubmitting}
+        onClose={() => {
+          if (formSubmitting) return;
+          setShowEditModal(false);
+        }}
         onSubmit={handleEditSubmit}
       >
         <div>
@@ -914,25 +1036,50 @@ const UserManagement = () => {
           />
         </div>
         <div>
-          <label htmlFor="edit-department" className="block text-xs sm:text-sm font-medium text-app-soft">Department</label>
-          <select
-            id="edit-department"
-            name="department"
-            value={editFormData.department}
-            onChange={handleEditChange}
-            className="mt-1 block w-full app-field border rounded-xl shadow-sm py-2.5 px-3 focus:outline-none text-sm"
+          <label htmlFor="edit-designation" className="block text-xs sm:text-sm font-medium text-app-soft">Designation</label>
+          <button
+            type="button"
+            id="edit-designation"
+            onClick={() => setEditDesignationPickerOpen(true)}
+            className={pickerTriggerClass}
+            aria-haspopup="dialog"
+            aria-expanded={editDesignationPickerOpen}
+            title={editFormData.designation || undefined}
           >
-            <option value="">Select Department</option>
-            {editFormData.department &&
-              !departments.includes(editFormData.department) && (
-                <option value={editFormData.department} className="bg-app-panel">
-                  {editFormData.department}
-                </option>
-              )}
-            {departments.map(dept => (
-              <option key={dept} value={dept} className="bg-app-panel">{dept}</option>
-            ))}
-          </select>
+            <span
+              className={`min-w-0 truncate ${
+                editFormData.designation ? 'text-app' : 'text-app-muted'
+              }`}
+            >
+              {editFormData.designation || 'Select Designation'}
+            </span>
+            <svg className="h-4 w-4 flex-shrink-0 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+        <div>
+          <label htmlFor="edit-department" className="block text-xs sm:text-sm font-medium text-app-soft">Department</label>
+          <button
+            type="button"
+            id="edit-department"
+            onClick={() => setEditDepartmentPickerOpen(true)}
+            className={pickerTriggerClass}
+            aria-haspopup="dialog"
+            aria-expanded={editDepartmentPickerOpen}
+            title={editFormData.department || undefined}
+          >
+            <span
+              className={`min-w-0 truncate ${
+                editFormData.department ? 'text-app' : 'text-app-muted'
+              }`}
+            >
+              {editFormData.department || 'Select Department'}
+            </span>
+            <svg className="h-4 w-4 flex-shrink-0 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
         <div>
           <label htmlFor="edit-role" className="block text-xs sm:text-sm font-medium text-app-soft">Role</label>
@@ -984,7 +1131,12 @@ const UserManagement = () => {
         open={showAddModal}
         title="Add New User"
         submitLabel="Add User"
-        onClose={() => setShowAddModal(false)}
+        submitLoadingLabel="Adding…"
+        submitting={formSubmitting}
+        onClose={() => {
+          if (formSubmitting) return;
+          setShowAddModal(false);
+        }}
         onSubmit={handleAddSubmit}
       >
         <div>
@@ -1024,19 +1176,50 @@ const UserManagement = () => {
           />
         </div>
         <div>
-          <label htmlFor="add-department" className="block text-xs sm:text-sm font-medium text-app-soft">Department</label>
-          <select
-            id="add-department"
-            name="department"
-            value={addFormData.department}
-            onChange={handleAddChange}
-            className="mt-1 block w-full app-field border rounded-xl shadow-sm py-2.5 px-3 focus:outline-none text-sm"
+          <label htmlFor="add-designation" className="block text-xs sm:text-sm font-medium text-app-soft">Designation</label>
+          <button
+            type="button"
+            id="add-designation"
+            onClick={() => setAddDesignationPickerOpen(true)}
+            className={pickerTriggerClass}
+            aria-haspopup="dialog"
+            aria-expanded={addDesignationPickerOpen}
+            title={addFormData.designation || undefined}
           >
-            <option value="">Select Department</option>
-            {departments.map(dept => (
-              <option key={dept} value={dept} className="bg-app-panel">{dept}</option>
-            ))}
-          </select>
+            <span
+              className={`min-w-0 truncate ${
+                addFormData.designation ? 'text-app' : 'text-app-muted'
+              }`}
+            >
+              {addFormData.designation || 'Select Designation'}
+            </span>
+            <svg className="h-4 w-4 flex-shrink-0 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+        <div>
+          <label htmlFor="add-department" className="block text-xs sm:text-sm font-medium text-app-soft">Department</label>
+          <button
+            type="button"
+            id="add-department"
+            onClick={() => setAddDepartmentPickerOpen(true)}
+            className={pickerTriggerClass}
+            aria-haspopup="dialog"
+            aria-expanded={addDepartmentPickerOpen}
+            title={addFormData.department || undefined}
+          >
+            <span
+              className={`min-w-0 truncate ${
+                addFormData.department ? 'text-app' : 'text-app-muted'
+              }`}
+            >
+              {addFormData.department || 'Select Department'}
+            </span>
+            <svg className="h-4 w-4 flex-shrink-0 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
         <div>
           <label htmlFor="add-role" className="block text-xs sm:text-sm font-medium text-app-soft">Role</label>
@@ -1064,6 +1247,63 @@ const UserManagement = () => {
           <label htmlFor="add-isActive" className="ml-2 block text-xs sm:text-sm text-app-soft">Active</label>
         </div>
       </UserFormModal>
+
+      <OptionPickerModal
+        open={editDesignationPickerOpen}
+        title="Select designation"
+        options={designations}
+        selected={editFormData.designation}
+        searchPlaceholder="Search designations…"
+        emptyMessage="No designations match your search."
+        allowClear
+        clearLabel="Clear designation"
+        onClose={() => setEditDesignationPickerOpen(false)}
+        onSelect={(value) =>
+          setEditFormData((prev) => ({ ...prev, designation: value }))
+        }
+      />
+      <OptionPickerModal
+        open={editDepartmentPickerOpen}
+        title="Select department"
+        options={departments}
+        selected={editFormData.department}
+        searchPlaceholder="Search departments…"
+        emptyMessage="No departments match your search."
+        allowClear
+        clearLabel="Clear department"
+        onClose={() => setEditDepartmentPickerOpen(false)}
+        onSelect={(value) =>
+          setEditFormData((prev) => ({ ...prev, department: value }))
+        }
+      />
+      <OptionPickerModal
+        open={addDesignationPickerOpen}
+        title="Select designation"
+        options={designations}
+        selected={addFormData.designation}
+        searchPlaceholder="Search designations…"
+        emptyMessage="No designations match your search."
+        allowClear
+        clearLabel="Clear designation"
+        onClose={() => setAddDesignationPickerOpen(false)}
+        onSelect={(value) =>
+          setAddFormData((prev) => ({ ...prev, designation: value }))
+        }
+      />
+      <OptionPickerModal
+        open={addDepartmentPickerOpen}
+        title="Select department"
+        options={departments}
+        selected={addFormData.department}
+        searchPlaceholder="Search departments…"
+        emptyMessage="No departments match your search."
+        allowClear
+        clearLabel="Clear department"
+        onClose={() => setAddDepartmentPickerOpen(false)}
+        onSelect={(value) =>
+          setAddFormData((prev) => ({ ...prev, department: value }))
+        }
+      />
     </div>
   );
 };

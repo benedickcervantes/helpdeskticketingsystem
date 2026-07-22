@@ -14,7 +14,7 @@ import {
   ChartGridSkeleton,
 } from '@/lib/ui/DashboardSkeletons';
 
-const ADMIN_TABS = ['overview', 'tickets', 'users', 'departments', 'feedback', 'logs'];
+const ADMIN_TABS = ['overview', 'tickets', 'users', 'departments', 'designations', 'feedback', 'logs'];
 
 const TicketList = dynamic(
   () => import('@/app/(dashboard)/_components/TicketList'),
@@ -37,6 +37,10 @@ const AdminLogs = dynamic(
 );
 const DepartmentManagement = dynamic(
   () => import('@/app/(dashboard)/admin/_components/DepartmentManagement'),
+  { loading: () => <TablePanelSkeleton rows={6} /> },
+);
+const DesignationManagement = dynamic(
+  () => import('@/app/(dashboard)/admin/_components/DesignationManagement'),
   { loading: () => <TablePanelSkeleton rows={6} /> },
 );
 
@@ -148,7 +152,7 @@ const AdminDashboard = () => {
   const activeTickets = stats.open + stats.inProgress;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+    <div className="w-full min-w-0 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
       <div className="pt-4 sm:pt-6 pb-4 sm:pb-6">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-app">Admin Dashboard</h1>
         <p className="mt-1 sm:mt-2 text-sm sm:text-base text-app-muted">
@@ -156,100 +160,139 @@ const AdminDashboard = () => {
         </p>
       </div>
 
-      {/* Enhanced Navigation Tabs - Mobile Optimized */}
-      <div className="mb-6 sm:mb-8">
-        <nav className="flex space-x-1 sm:space-x-2 lg:space-x-4 xl:space-x-8 border-b border-app overflow-x-auto scrollbar-hide -mx-3 px-3 sm:mx-0">
-          <button
-            onClick={() => goToTab('overview')}
-            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              displayTab === 'overview'
-                ? 'border-app-primary text-app-primary bg-app-primary-soft'
-                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
-            }`}
+      {/* Admin tabs: scrollable on tablet/iPad; compact labels below xl */}
+      <div className="mb-6 sm:mb-8 min-w-0">
+        <div className="min-w-0 overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+          <nav
+            className="flex w-max min-w-full flex-nowrap items-stretch gap-1 border-b border-app pr-2"
+            aria-label="Admin sections"
           >
-            <span className="flex items-center space-x-1 sm:space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-              </svg>
-              <span className="hidden sm:inline">Overview</span>
-            </span>
-          </button>
-          <button
-            onClick={() => goToTab('tickets')}
-            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              displayTab === 'tickets'
-                ? 'border-app-primary text-app-primary bg-app-primary-soft'
-                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
-            }`}
-          >
-            <span className="flex items-center space-x-1 sm:space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="hidden sm:inline">All Tickets</span>
-            </span>
-          </button>
-          <button
-            onClick={() => goToTab('users')}
-            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              displayTab === 'users'
-                ? 'border-app-primary text-app-primary bg-app-primary-soft'
-                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
-            }`}
-          >
-            <span className="flex items-center space-x-1 sm:space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-              </svg>
-              <span className="hidden sm:inline">User Management</span>
-            </span>
-          </button>
-          <button
-            onClick={() => goToTab('departments')}
-            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              displayTab === 'departments'
-                ? 'border-app-primary text-app-primary bg-app-primary-soft'
-                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
-            }`}
-          >
-            <span className="flex items-center space-x-1 sm:space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span className="hidden sm:inline">Departments</span>
-            </span>
-          </button>
-          <button
-            onClick={() => goToTab('feedback')}
-            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              displayTab === 'feedback'
-                ? 'border-app-primary text-app-primary bg-app-primary-soft'
-                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
-            }`}
-          >
-            <span className="flex items-center space-x-1 sm:space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <span className="hidden sm:inline">Feedback Analytics</span>
-            </span>
-          </button>
-          <button
-            onClick={() => goToTab('logs')}
-            className={`py-2 sm:py-3 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-              displayTab === 'logs'
-                ? 'border-app-primary text-app-primary bg-app-primary-soft'
-                : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
-            }`}
-          >
-            <span className="flex items-center space-x-1 sm:space-x-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              <span className="hidden sm:inline">Admin Logs</span>
-            </span>
-          </button>
-        </nav>
+            <button
+              type="button"
+              aria-label="Overview"
+              onClick={() => goToTab('overview')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'overview'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                </svg>
+                <span className="hidden sm:inline">Overview</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="All Tickets"
+              onClick={() => goToTab('tickets')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'tickets'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="hidden sm:inline xl:hidden">Tickets</span>
+                <span className="hidden xl:inline">All Tickets</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="User Management"
+              onClick={() => goToTab('users')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'users'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+                <span className="hidden sm:inline xl:hidden">Users</span>
+                <span className="hidden xl:inline">User Management</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="Departments"
+              onClick={() => goToTab('departments')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'departments'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className="hidden sm:inline xl:hidden">Depts</span>
+                <span className="hidden xl:inline">Departments</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="Designations"
+              onClick={() => goToTab('designations')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'designations'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="hidden sm:inline">Designations</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="Feedback Analytics"
+              onClick={() => goToTab('feedback')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'feedback'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span className="hidden sm:inline xl:hidden">Feedback</span>
+                <span className="hidden xl:inline">Feedback Analytics</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label="Admin Logs"
+              onClick={() => goToTab('logs')}
+              className={`flex-shrink-0 py-2.5 sm:py-3 px-2.5 sm:px-3 xl:px-4 border-b-2 font-medium text-sm xl:text-base whitespace-nowrap transition-all duration-200 ${
+                displayTab === 'logs'
+                  ? 'border-app-primary text-app-primary bg-app-primary-soft'
+                  : 'border-transparent text-app-muted hover:text-app-soft hover:border-app hover:bg-app-surface-2/40'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 xl:gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span className="hidden sm:inline xl:hidden">Logs</span>
+                <span className="hidden xl:inline">Admin Logs</span>
+              </span>
+            </button>
+          </nav>
+        </div>
       </div>
 
       {/* Tab Content */}
@@ -557,6 +600,12 @@ const AdminDashboard = () => {
       {displayTab === 'departments' && (
         <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
           <DepartmentManagement />
+        </div>
+      )}
+
+      {displayTab === 'designations' && (
+        <div className="space-y-6 sm:space-y-8 pb-6 sm:pb-8">
+          <DesignationManagement />
         </div>
       )}
 

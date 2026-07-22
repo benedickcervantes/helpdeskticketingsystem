@@ -102,8 +102,12 @@ const PopupMenu = ({ isOpen, onClose }) => {
                 <h3 className="text-lg font-bold text-app">
                   {userProfile?.name || 'User'}
                 </h3>
-                <p className="text-sm text-app-muted">
-                  {userProfile?.role || 'User'} • {userProfile?.department || 'IT Department'}
+                <p
+                  className="text-sm text-app-muted break-words [overflow-wrap:anywhere] line-clamp-2"
+                  title={userProfile?.designation || undefined}
+                >
+                  {userProfile?.role || 'User'}
+                  {userProfile?.designation ? ` • ${userProfile.designation}` : ''}
                 </p>
               </div>
             </div>

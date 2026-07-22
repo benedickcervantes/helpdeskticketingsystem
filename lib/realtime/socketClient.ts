@@ -4,6 +4,7 @@ import { io, type Socket } from 'socket.io-client';
 import { API_URL, getAccessToken } from '@/lib/api/client';
 import {
   DEPARTMENT_CHANGED_EVENT,
+  DESIGNATION_CHANGED_EVENT,
   NOTIFICATION_ALL_READ_EVENT,
   NOTIFICATION_NEW_EVENT,
   NOTIFICATION_READ_EVENT,
@@ -18,6 +19,15 @@ import type { Ticket, TicketMessage } from '@/types/ticket';
 import type { UserProfile } from '@/types/user';
 
 export type DepartmentRealtimeItem = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type DesignationRealtimeItem = {
   id: string;
   name: string;
   isActive: boolean;
@@ -196,5 +206,22 @@ export function subscribeDepartmentEvents(
     if (options?.publicOnly) {
       // Keep public socket alive while Register is open; caller disconnects on unmount.
     }
+  };
+}
+
+export function subscribeDesignationEvents(
+  onChanged?: (designations: DesignationRealtimeItem[]) => void,
+  options?: { publicOnly?: boolean },
+): () => void {
+  const s = options?.publicOnly ? getPublicSocket() : getSocket() || getPublicSocket();
+  if (!s) return () => {};
+
+  const handler = (payload: { designations?: DesignationRealtimeItem[] }) => {
+    onChanged?.(Array.isArray(payload?.designations) ? payload.designations : []);
+  };
+
+  s.on(DESIGNATION_CHANGED_EVENT, handler);
+  return () => {
+    s.off(DESIGNATION_CHANGED_EVENT, handler);
   };
 }

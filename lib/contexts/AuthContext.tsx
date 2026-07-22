@@ -35,6 +35,7 @@ interface AuthContextValue {
     name: string,
     role?: string,
     department?: string,
+    designation?: string,
   ) => Promise<UserProfile>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -191,6 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: string,
     _role = 'user',
     department = '',
+    designation = '',
   ) => {
     setLoaderVariant('loading');
     setLoaderErrorMessage(null);
@@ -206,6 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         name,
         department,
+        designation: designation.trim() || undefined,
       });
       if (!data) throw new Error('Registration failed');
       setTokens(data.access_token, data.refresh_token);
