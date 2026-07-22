@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/api/client';
-import { subscribeDepartmentEvents } from '@/lib/realtime/socketClient';
+import { subscribeDesignationEvents } from '@/lib/realtime/socketClient';
 import { TablePanelSkeleton } from '@/lib/ui/DashboardSkeletons';
 
 const statusBadgeClass = (isActive) =>
@@ -73,8 +73,8 @@ const ConfirmModal = ({ open, title, message, confirmLabel, onClose, onConfirm, 
   );
 };
 
-const DepartmentManagement = () => {
-  const [departments, setDepartments] = useState([]);
+const DesignationManagement = () => {
+  const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busyAction, setBusyAction] = useState('');
@@ -99,53 +99,53 @@ const DepartmentManagement = () => {
     setBusyAction('');
   };
 
-  const loadDepartments = useCallback(async () => {
+  const loadDesignations = useCallback(async () => {
     try {
-      const data = await api.get('/api/v1/departments/admin');
-      setDepartments(Array.isArray(data) ? data : []);
+      const data = await api.get('/api/v1/designations/admin');
+      setDesignations(Array.isArray(data) ? data : []);
       setError('');
     } catch (err) {
-      console.error('Failed to load departments', err);
-      setError('Failed to load departments.');
+      console.error('Failed to load designations', err);
+      setError('Failed to load designations.');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadDepartments();
-  }, [loadDepartments]);
+    loadDesignations();
+  }, [loadDesignations]);
 
   useEffect(() => {
-    return subscribeDepartmentEvents(() => {
+    return subscribeDesignationEvents(() => {
       // Keep admin table in sync (includes inactive rows via admin API).
-      loadDepartments();
+      loadDesignations();
     });
-  }, [loadDepartments]);
+  }, [loadDesignations]);
 
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    return departments.filter((dept) => {
-      if (filterStatus === 'active' && !dept.isActive) return false;
-      if (filterStatus === 'inactive' && dept.isActive) return false;
+    return designations.filter((item) => {
+      if (filterStatus === 'active' && !item.isActive) return false;
+      if (filterStatus === 'inactive' && item.isActive) return false;
       if (!q) return true;
-      return dept.name.toLowerCase().includes(q);
+      return item.name.toLowerCase().includes(q);
     });
-  }, [departments, searchTerm, filterStatus]);
+  }, [designations, searchTerm, filterStatus]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (saving) return;
     const name = newName.trim();
     if (!name) {
-      setError('Department name is required.');
+      setError('Designation name is required.');
       return;
     }
 
     beginSave('create');
     try {
-      const created = await api.post('/api/v1/departments/admin', { name });
-      setDepartments((prev) =>
+      const created = await api.post('/api/v1/designations/admin', { name });
+      setDesignations((prev) =>
         [...prev, created].sort(
           (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name),
         ),
@@ -153,16 +153,16 @@ const DepartmentManagement = () => {
       setNewName('');
       setNotice(`Added “${created.name}”. It is now available on Register.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add department.');
+      setError(err instanceof Error ? err.message : 'Failed to add designation.');
     } finally {
       endSave();
     }
   };
 
-  const startEdit = (dept) => {
+  const startEdit = (item) => {
     if (saving) return;
-    setEditingId(dept.id);
-    setEditName(dept.name);
+    setEditingId(item.id);
+    setEditName(item.name);
     setError('');
     setNotice('');
   };
@@ -173,43 +173,43 @@ const DepartmentManagement = () => {
     setEditName('');
   };
 
-  const saveEdit = async (dept) => {
+  const saveEdit = async (item) => {
     if (saving) return;
     const name = editName.trim();
     if (!name) {
-      setError('Department name is required.');
+      setError('Designation name is required.');
       return;
     }
 
     beginSave('save');
     try {
-      const updated = await api.patch(`/api/v1/departments/admin/${dept.id}`, { name });
-      setDepartments((prev) =>
+      const updated = await api.patch(`/api/v1/designations/admin/${item.id}`, { name });
+      setDesignations((prev) =>
         prev
-          .map((item) => (item.id === dept.id ? updated : item))
+          .map((row) => (row.id === item.id ? updated : row))
           .sort(
             (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name),
           ),
       );
       setEditingId(null);
       setEditName('');
-      setNotice(`Updated department to “${updated.name}”.`);
+      setNotice(`Updated designation to “${updated.name}”.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update department.');
+      setError(err instanceof Error ? err.message : 'Failed to update designation.');
     } finally {
       endSave();
     }
   };
 
-  const toggleActive = async (dept) => {
+  const toggleActive = async (item) => {
     if (saving) return;
     beginSave('toggle');
     try {
-      const updated = await api.patch(`/api/v1/departments/admin/${dept.id}`, {
-        isActive: !dept.isActive,
+      const updated = await api.patch(`/api/v1/designations/admin/${item.id}`, {
+        isActive: !item.isActive,
       });
-      setDepartments((prev) =>
-        prev.map((item) => (item.id === dept.id ? updated : item)),
+      setDesignations((prev) =>
+        prev.map((row) => (row.id === item.id ? updated : row)),
       );
       setNotice(
         updated.isActive
@@ -227,14 +227,14 @@ const DepartmentManagement = () => {
     if (!deactivateTarget || saving) return;
     beginSave('deactivate');
     try {
-      const updated = await api.delete(`/api/v1/departments/admin/${deactivateTarget.id}`);
-      setDepartments((prev) =>
-        prev.map((item) => (item.id === deactivateTarget.id ? updated : item)),
+      const updated = await api.delete(`/api/v1/designations/admin/${deactivateTarget.id}`);
+      setDesignations((prev) =>
+        prev.map((row) => (row.id === deactivateTarget.id ? updated : row)),
       );
       setNotice(`“${updated.name}” deactivated and hidden from Register.`);
       setDeactivateTarget(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to deactivate department.');
+      setError(err instanceof Error ? err.message : 'Failed to deactivate designation.');
     } finally {
       endSave();
     }
@@ -250,25 +250,25 @@ const DepartmentManagement = () => {
         <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-app">Departments</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-app">Designations</h2>
             <p className="mt-1 text-sm text-app-muted">
-              Add or update departments used on Register and user forms
+              Add or update designations used on Register and user forms
             </p>
           </div>
 
-          <form onSubmit={handleCreate} className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+          <form onSubmit={handleCreate} className="flex w-full min-w-0 flex-col gap-2 sm:flex-row lg:w-auto">
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="New department name"
-              maxLength={120}
-              className="app-field w-full rounded-xl border px-3 py-2.5 text-sm sm:min-w-[240px]"
+              placeholder="New designation name"
+              maxLength={150}
+              className="app-field w-full min-w-0 rounded-xl border px-3 py-2.5 text-sm sm:min-w-[240px]"
             />
             <button
               type="submit"
               disabled={saving || !newName.trim()}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-app-primary bg-app-primary px-4 text-sm font-semibold text-app-on-primary transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex h-10 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-app-primary bg-app-primary px-4 text-sm font-semibold text-app-on-primary transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {busyAction === 'create' ? (
                 <>
@@ -283,8 +283,8 @@ const DepartmentManagement = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative min-w-0 flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">
             <svg className="h-4 w-4 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -294,14 +294,14 @@ const DepartmentManagement = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search departments…"
-            className="app-field block w-full rounded-lg border py-2 pl-8 pr-3 text-sm"
+            placeholder="Search designations…"
+            className="app-field block w-full min-w-0 rounded-lg border py-2 pl-8 pr-3 text-sm"
           />
         </div>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="app-select rounded-lg border px-3 py-2 pr-9 text-sm"
+          className="app-select w-full sm:w-auto rounded-lg border px-3 py-2 pr-9 text-sm"
         >
           <option value="all">All status</option>
           <option value="active">Active</option>
@@ -322,50 +322,50 @@ const DepartmentManagement = () => {
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-app-subtle bg-app-panel px-4 py-10 text-center text-sm text-app-muted">
-          No departments found.
+          No designations found.
         </div>
       ) : (
         <>
           {/* Mobile cards */}
           <div className="space-y-3 md:hidden">
-            {filtered.map((dept) => (
+            {filtered.map((item) => (
               <div
-                key={dept.id}
+                key={item.id}
                 className="rounded-xl border border-app-subtle bg-app-panel p-3.5"
               >
-                {editingId === dept.id ? (
+                {editingId === item.id ? (
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    maxLength={120}
+                    maxLength={150}
                     className="app-field mb-3 w-full rounded-lg border px-2.5 py-2 text-sm"
                     autoFocus
                   />
                 ) : (
-                  <p className="text-sm font-semibold text-app break-words leading-snug">
-                    {dept.name}
+                  <p className="text-sm font-semibold text-app break-words [overflow-wrap:anywhere] leading-snug">
+                    {item.name}
                   </p>
                 )}
 
                 <div className="mt-2.5 flex flex-wrap items-center gap-2">
                   <span
-                    className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(dept.isActive)}`}
+                    className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(item.isActive)}`}
                   >
-                    {dept.isActive ? 'Active' : 'Inactive'}
+                    {item.isActive ? 'Active' : 'Inactive'}
                   </span>
                   <span className="text-[11px] text-app-muted tabular-nums">
-                    Order {dept.sortOrder}
+                    Order {item.sortOrder}
                   </span>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  {editingId === dept.id ? (
+                  {editingId === item.id ? (
                     <>
                       <button
                         type="button"
                         disabled={saving}
-                        onClick={() => saveEdit(dept)}
+                        onClick={() => saveEdit(item)}
                         className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-app-primary/40 bg-app-primary-soft text-xs font-semibold text-app-primary disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {busyAction === 'save' ? (
@@ -391,7 +391,7 @@ const DepartmentManagement = () => {
                       <button
                         type="button"
                         disabled={saving}
-                        onClick={() => startEdit(dept)}
+                        onClick={() => startEdit(item)}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-app text-xs font-medium text-app-soft hover:border-app-primary/40 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Rename
@@ -400,12 +400,12 @@ const DepartmentManagement = () => {
                         type="button"
                         disabled={saving}
                         onClick={() =>
-                          dept.isActive
-                            ? setDeactivateTarget(dept)
-                            : toggleActive(dept)
+                          item.isActive
+                            ? setDeactivateTarget(item)
+                            : toggleActive(item)
                         }
                         className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
-                          dept.isActive
+                          item.isActive
                             ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
                             : 'border-app-primary/30 text-app-primary hover:bg-app-primary-soft'
                         }`}
@@ -415,7 +415,7 @@ const DepartmentManagement = () => {
                             <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                             Updating…
                           </>
-                        ) : dept.isActive ? (
+                        ) : item.isActive ? (
                           'Deactivate'
                         ) : (
                           'Activate'
@@ -434,45 +434,47 @@ const DepartmentManagement = () => {
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-app-subtle bg-app-surface-2/60">
                   <tr className="text-[11px] uppercase tracking-wide text-app-muted">
-                    <th className="px-3 py-2.5 font-semibold">Department</th>
+                    <th className="px-3 py-2.5 font-semibold">Designation</th>
                     <th className="px-3 py-2.5 font-semibold w-[100px]">Status</th>
                     <th className="px-3 py-2.5 font-semibold w-[80px]">Order</th>
                     <th className="px-3 py-2.5 font-semibold text-right w-[180px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-app-subtle">
-                  {filtered.map((dept) => (
-                    <tr key={dept.id} className="hover:bg-app-surface-2/40 transition-colors">
+                  {filtered.map((item) => (
+                    <tr key={item.id} className="hover:bg-app-surface-2/40 transition-colors">
                       <td className="px-3 py-2.5">
-                        {editingId === dept.id ? (
+                        {editingId === item.id ? (
                           <input
                             type="text"
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            maxLength={120}
+                            maxLength={150}
                             className="app-field w-full max-w-md rounded-lg border px-2.5 py-1.5 text-sm"
                             autoFocus
                           />
                         ) : (
-                          <span className="font-medium text-app">{dept.name}</span>
+                          <span className="font-medium text-app break-words [overflow-wrap:anywhere]">
+                            {item.name}
+                          </span>
                         )}
                       </td>
                       <td className="px-3 py-2.5">
                         <span
-                          className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(dept.isActive)}`}
+                          className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${statusBadgeClass(item.isActive)}`}
                         >
-                          {dept.isActive ? 'Active' : 'Inactive'}
+                          {item.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="px-3 py-2.5 tabular-nums text-app-soft">{dept.sortOrder}</td>
+                      <td className="px-3 py-2.5 tabular-nums text-app-soft">{item.sortOrder}</td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center justify-end gap-1.5">
-                          {editingId === dept.id ? (
+                          {editingId === item.id ? (
                             <>
                               <button
                                 type="button"
                                 disabled={saving}
-                                onClick={() => saveEdit(dept)}
+                                onClick={() => saveEdit(item)}
                                 className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-app-primary/40 bg-app-primary-soft px-2.5 py-1.5 text-xs font-semibold text-app-primary disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {busyAction === 'save' ? (
@@ -498,7 +500,7 @@ const DepartmentManagement = () => {
                               <button
                                 type="button"
                                 disabled={saving}
-                                onClick={() => startEdit(dept)}
+                                onClick={() => startEdit(item)}
                                 className="rounded-lg border border-app px-2.5 py-1.5 text-xs font-medium text-app-soft hover:border-app-primary/40 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Rename
@@ -507,12 +509,12 @@ const DepartmentManagement = () => {
                                 type="button"
                                 disabled={saving}
                                 onClick={() =>
-                                  dept.isActive
-                                    ? setDeactivateTarget(dept)
-                                    : toggleActive(dept)
+                                  item.isActive
+                                    ? setDeactivateTarget(item)
+                                    : toggleActive(item)
                                 }
                                 className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  dept.isActive
+                                  item.isActive
                                     ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
                                     : 'border-app-primary/30 text-app-primary hover:bg-app-primary-soft'
                                 }`}
@@ -522,7 +524,7 @@ const DepartmentManagement = () => {
                                     <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     Updating…
                                   </>
-                                ) : dept.isActive ? (
+                                ) : item.isActive ? (
                                   'Deactivate'
                                 ) : (
                                   'Activate'
@@ -543,10 +545,10 @@ const DepartmentManagement = () => {
 
       <ConfirmModal
         open={!!deactivateTarget}
-        title="Deactivate department?"
+        title="Deactivate designation?"
         message={
           deactivateTarget
-            ? `“${deactivateTarget.name}” will be hidden from Register. Existing users keep this department name.`
+            ? `“${deactivateTarget.name}” will be hidden from Register. Existing users keep this designation name.`
             : ''
         }
         confirmLabel="Deactivate"
@@ -561,4 +563,4 @@ const DepartmentManagement = () => {
   );
 };
 
-export default DepartmentManagement;
+export default DesignationManagement;

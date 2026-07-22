@@ -11,7 +11,9 @@ import { api } from '@/lib/api/client';
 import {
   disconnectPublicSocket,
   subscribeDepartmentEvents,
+  subscribeDesignationEvents,
 } from '@/lib/realtime/socketClient';
+import OptionPickerModal from '@/lib/ui/OptionPickerModal';
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -24,6 +26,7 @@ const AuthForm = () => {
     email: '',
     password: '',
     name: '',
+    designation: '',
     department: '',
     confirmPassword: ''
   });
@@ -33,6 +36,9 @@ const AuthForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
+  const [designationPickerOpen, setDesignationPickerOpen] = useState(false);
+  const [departmentPickerOpen, setDepartmentPickerOpen] = useState(false);
   
   const { signin, signup, authLoading, currentUser, userProfile } = useAuth();
   const router = useRouter();
@@ -63,29 +69,45 @@ const AuthForm = () => {
   useEffect(() => {
     let cancelled = false;
 
-    const applyNames = (data) => {
-      if (cancelled) return;
-      const names = (Array.isArray(data) ? data : [])
+    const toNames = (data) =>
+      (Array.isArray(data) ? data : [])
         .map((d) => (typeof d === 'string' ? d : d?.name))
         .filter(Boolean);
-      setDepartments(names);
+
+    const applyDepartments = (data) => {
+      if (!cancelled) setDepartments(toNames(data));
+    };
+    const applyDesignations = (data) => {
+      if (!cancelled) setDesignations(toNames(data));
     };
 
     api
       .get('/api/v1/departments')
-      .then(applyNames)
+      .then(applyDepartments)
       .catch(() => {
         if (!cancelled) setDepartments([]);
       });
 
-    const unsubscribe = subscribeDepartmentEvents(
-      (items) => applyNames(items),
+    api
+      .get('/api/v1/designations')
+      .then(applyDesignations)
+      .catch(() => {
+        if (!cancelled) setDesignations([]);
+      });
+
+    const unsubscribeDepartments = subscribeDepartmentEvents(
+      (items) => applyDepartments(items),
+      { publicOnly: true },
+    );
+    const unsubscribeDesignations = subscribeDesignationEvents(
+      (items) => applyDesignations(items),
       { publicOnly: true },
     );
 
     return () => {
       cancelled = true;
-      unsubscribe();
+      unsubscribeDepartments();
+      unsubscribeDesignations();
       disconnectPublicSocket();
     };
   }, []);
@@ -232,7 +254,14 @@ const AuthForm = () => {
           return;
         }
         
-        await signup(formData.email, formData.password, formData.name, 'user', formData.department);
+        await signup(
+          formData.email,
+          formData.password,
+          formData.name,
+          'user',
+          formData.department,
+          formData.designation,
+        );
         
         setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
         
@@ -241,6 +270,7 @@ const AuthForm = () => {
           email: '',
           password: '',
           name: '',
+          designation: '',
           department: '',
           confirmPassword: ''
         });
@@ -255,11 +285,15 @@ const AuthForm = () => {
     }
   };
 
+  const pickerDisabled = loading || authLoading;
+  const triggerClass =
+    'w-full min-w-0 max-w-full min-h-[48px] pl-10 pr-10 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-left text-white appearance-none input-field disabled:opacity-50';
+
   return (
     <div className="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6">
+      <div className="max-w-md w-full min-w-0 space-y-6">
         {/* Form card */}
-        <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 sm:p-8 shadow-2xl">
+        <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 sm:p-8 shadow-2xl min-w-0 overflow-x-hidden">
         {/* Header */}
         <div className="text-center">
           <FpdcLogo size="xl" className="mx-auto shadow-2xl" priority />
@@ -318,31 +352,65 @@ const AuthForm = () => {
                     />
                   </div>
                 </div>
+
+                <div className="min-w-0">
+                  <label htmlFor="designation" className="block text-sm font-semibold text-gray-300 mb-2">
+                    Designation
+                  </label>
+                  <div className="relative input-icon-container min-w-0">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
+                      <span className="text-gray-400 text-lg font-bold">🪪</span>
+                    </div>
+                    <button
+                      type="button"
+                      id="designation"
+                      disabled={pickerDisabled}
+                      onClick={() => setDesignationPickerOpen(true)}
+                      className={triggerClass}
+                      title={formData.designation || undefined}
+                      aria-haspopup="dialog"
+                      aria-expanded={designationPickerOpen}
+                    >
+                      <span
+                        className={`block min-w-0 truncate ${
+                          formData.designation ? 'text-white' : 'text-gray-400'
+                        }`}
+                      >
+                        {formData.designation || 'Select your designation'}
+                      </span>
+                    </button>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none z-10 input-icon">
+                      <span className="text-gray-400 text-sm">▼</span>
+                    </div>
+                  </div>
+                </div>
                 
-                <div>
+                <div className="min-w-0">
                   <label htmlFor="department" className="block text-sm font-semibold text-gray-300 mb-2">
                     Department
                   </label>
-                  <div className="relative input-icon-container">
+                  <div className="relative input-icon-container min-w-0">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
                       <span className="text-gray-400 text-lg font-bold">🏢</span>
                     </div>
-                    <select
+                    <button
+                      type="button"
                       id="department"
-                      name="department"
-                      required={!isLogin}
-                      value={formData.department}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white appearance-none input-field"
-                      disabled={loading || authLoading}
+                      disabled={pickerDisabled}
+                      onClick={() => setDepartmentPickerOpen(true)}
+                      className={triggerClass}
+                      title={formData.department || undefined}
+                      aria-haspopup="dialog"
+                      aria-expanded={departmentPickerOpen}
                     >
-                      <option value="" className="text-gray-400">Select your department</option>
-                      {departments.map((dept) => (
-                        <option key={dept} value={dept} className="text-white bg-gray-800">
-                          {dept}
-                        </option>
-                      ))}
-                    </select>
+                      <span
+                        className={`block min-w-0 truncate ${
+                          formData.department ? 'text-white' : 'text-gray-400'
+                        }`}
+                      >
+                        {formData.department || 'Select your department'}
+                      </span>
+                    </button>
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none z-10 input-icon">
                       <span className="text-gray-400 text-sm">▼</span>
                     </div>
@@ -602,6 +670,36 @@ const AuthForm = () => {
         </form>
         </div>
       </div>
+
+      <OptionPickerModal
+        open={designationPickerOpen}
+        title="Select designation"
+        options={designations}
+        selected={formData.designation}
+        searchPlaceholder="Search designations…"
+        emptyMessage="No designations match your search."
+        allowClear
+        clearLabel="Clear designation"
+        onClose={() => setDesignationPickerOpen(false)}
+        onSelect={(value) => {
+          setFormData((prev) => ({ ...prev, designation: value }));
+          if (error) setError('');
+        }}
+      />
+
+      <OptionPickerModal
+        open={departmentPickerOpen}
+        title="Select department"
+        options={departments}
+        selected={formData.department}
+        searchPlaceholder="Search departments…"
+        emptyMessage="No departments match your search."
+        onClose={() => setDepartmentPickerOpen(false)}
+        onSelect={(value) => {
+          setFormData((prev) => ({ ...prev, department: value }));
+          if (error) setError('');
+        }}
+      />
     </div>
   );
 };

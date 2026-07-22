@@ -5,6 +5,7 @@ export interface UserProfile {
   name?: string;
   role?: string;
   department?: string;
+  designation?: string;
   phone?: string;
   photoURL?: string | null;
   photo_url?: string | null;

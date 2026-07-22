@@ -3,18 +3,20 @@
 import {
   useState,
   useEffect,
-  useMemo,
   useRef,
   type ChangeEvent,
   type FormEvent,
 } from 'react';
-import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, apiFetch, setTokens } from '@/lib/api/client';
-import { subscribeDepartmentEvents } from '@/lib/realtime/socketClient';
+import {
+  subscribeDepartmentEvents,
+  subscribeDesignationEvents,
+} from '@/lib/realtime/socketClient';
 import { getDashboardPath } from '@/lib/utils/roles';
 import { ProfileFormSkeleton } from '@/lib/ui/DashboardSkeletons';
+import OptionPickerModal from '@/lib/ui/OptionPickerModal';
 import type { UserProfile } from '@/types/user';
 
 type FormErrors = Record<string, string>;
@@ -31,172 +33,6 @@ const ROLE_LABELS: Record<string, string> = {
   user: 'User',
 };
 
-type DepartmentPickerModalProps = {
-  open: boolean;
-  departments: string[];
-  selected: string;
-  onClose: () => void;
-  onSelect: (department: string) => void;
-};
-
-const DepartmentPickerModal = ({
-  open,
-  departments,
-  selected,
-  onClose,
-  onSelect,
-}: DepartmentPickerModalProps) => {
-  const [mounted, setMounted] = useState(false);
-  const [search, setSearch] = useState('');
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!open) {
-      setSearch('');
-      return;
-    }
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const timer = window.setTimeout(() => searchRef.current?.focus(), 50);
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.clearTimeout(timer);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open, onClose]);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const list = [...departments];
-    if (selected && !list.includes(selected)) {
-      list.unshift(selected);
-    }
-    if (!q) return list;
-    return list.filter((name) => name.toLowerCase().includes(q));
-  }, [departments, search, selected]);
-
-  if (!mounted || !open) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/55 backdrop-blur-[1px]"
-        aria-label="Close department picker"
-        onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="department-picker-title"
-        className="relative flex w-full max-w-md max-h-[85vh] flex-col overflow-hidden rounded-t-2xl border border-app-subtle bg-app-panel shadow-2xl sm:rounded-2xl"
-      >
-        <div className="flex-shrink-0 border-b border-app-subtle px-4 py-3.5 sm:px-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 id="department-picker-title" className="text-base sm:text-lg font-semibold text-app">
-              Select department
-            </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-app-muted hover:bg-app-surface-2 hover:text-app transition-colors"
-              aria-label="Close"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">
-              <svg className="h-4 w-4 text-app-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              ref={searchRef}
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search departments…"
-              className="app-field block w-full rounded-xl border py-2.5 pl-8 pr-3 text-sm focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 sm:px-3">
-          {filtered.length === 0 ? (
-            <p className="px-3 py-8 text-center text-sm text-app-muted">
-              No departments match your search.
-            </p>
-          ) : (
-            <ul className="space-y-0.5" role="listbox" aria-label="Departments">
-              {filtered.map((dept) => {
-                const isSelected = dept === selected;
-                return (
-                  <li key={dept}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => {
-                        onSelect(dept);
-                        onClose();
-                      }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
-                        isSelected
-                          ? 'bg-app-primary-soft text-app-primary'
-                          : 'text-app-soft hover:bg-app-surface-2 hover:text-app'
-                      }`}
-                    >
-                      <span
-                        className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border ${
-                          isSelected
-                            ? 'border-app-primary bg-app-primary text-app-on-primary'
-                            : 'border-app'
-                        }`}
-                      >
-                        {isSelected && (
-                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate font-medium">{dept}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-
-        <div className="flex-shrink-0 border-t border-app-subtle px-4 py-3 sm:px-5">
-          <button
-            type="button"
-            onClick={() => {
-              onSelect('');
-              onClose();
-            }}
-            className="w-full rounded-xl border border-app bg-app-surface-2 px-3 py-2.5 text-sm font-medium text-app-soft hover:bg-app-surface-3 transition-colors"
-          >
-            Clear selection
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-};
-
 const ProfileSettings = () => {
   const { currentUser, userProfile, setUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -204,10 +40,13 @@ const ProfileSettings = () => {
   const [removingPhoto, setRemovingPhoto] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [designations, setDesignations] = useState<string[]>([]);
   const [deptModalOpen, setDeptModalOpen] = useState(false);
+  const [designationModalOpen, setDesignationModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    designation: '',
     department: '',
     phone: '',
   });
@@ -232,6 +71,7 @@ const ProfileSettings = () => {
       setFormData({
         name: userProfile.name || '',
         email: userProfile.email || currentUser?.email || '',
+        designation: userProfile.designation || '',
         department: userProfile.department || '',
         phone: userProfile.phone || '',
       });
@@ -242,28 +82,45 @@ const ProfileSettings = () => {
   useEffect(() => {
     let cancelled = false;
 
-    const applyNames = (data: unknown) => {
-      if (cancelled) return;
-      const names = (Array.isArray(data) ? data : [])
+    const toNames = (data: unknown) =>
+      (Array.isArray(data) ? data : [])
         .map((d: { name?: string } | string) =>
           typeof d === 'string' ? d : d?.name,
         )
         .filter((name): name is string => Boolean(name));
-      setDepartments(names);
+
+    const applyDepartments = (data: unknown) => {
+      if (!cancelled) setDepartments(toNames(data));
+    };
+    const applyDesignations = (data: unknown) => {
+      if (!cancelled) setDesignations(toNames(data));
     };
 
     api
       .get('/api/v1/departments')
-      .then(applyNames)
+      .then(applyDepartments)
       .catch(() => {
         if (!cancelled) setDepartments([]);
       });
 
-    const unsubscribe = subscribeDepartmentEvents((items) => applyNames(items));
+    api
+      .get('/api/v1/designations')
+      .then(applyDesignations)
+      .catch(() => {
+        if (!cancelled) setDesignations([]);
+      });
+
+    const unsubscribeDepartments = subscribeDepartmentEvents((items) =>
+      applyDepartments(items),
+    );
+    const unsubscribeDesignations = subscribeDesignationEvents((items) =>
+      applyDesignations(items),
+    );
 
     return () => {
       cancelled = true;
-      unsubscribe();
+      unsubscribeDepartments();
+      unsubscribeDesignations();
     };
   }, []);
 
@@ -311,6 +168,13 @@ const ProfileSettings = () => {
     setFormData((prev) => ({ ...prev, department }));
     if (errors.department) {
       setErrors((prev) => ({ ...prev, department: '' }));
+    }
+  };
+
+  const handleDesignationSelect = (designation: string) => {
+    setFormData((prev) => ({ ...prev, designation }));
+    if (errors.designation) {
+      setErrors((prev) => ({ ...prev, designation: '' }));
     }
   };
 
@@ -379,6 +243,11 @@ const ProfileSettings = () => {
       next.phone = 'Enter a valid phone number';
     }
 
+    const designation = formData.designation.trim();
+    if (designation.length > 120) {
+      next.designation = 'Designation must be 120 characters or less';
+    }
+
     const department = formData.department.trim();
     if (department.length > 100) {
       next.department = 'Department must be 100 characters or less';
@@ -405,12 +274,14 @@ const ProfileSettings = () => {
 
       const updated = await api.patch<UserProfile>('/api/v1/users/me', {
         name: formData.name.trim(),
+        designation: formData.designation.trim() || null,
         department: formData.department.trim(),
         phone: formData.phone.trim(),
       });
 
       mergeProfile(updated, {
         name: updated?.name ?? formData.name.trim(),
+        designation: updated?.designation ?? formData.designation.trim(),
         department: updated?.department ?? formData.department.trim(),
         phone: updated?.phone ?? formData.phone.trim(),
         photoURL: nextPhotoUrl || updated?.photoURL || updated?.photo_url || null,
@@ -545,7 +416,8 @@ const ProfileSettings = () => {
   const photoBusy = uploading || removingPhoto;
 
   const inputClass =
-    'app-field w-full min-w-0 max-w-full box-border px-3 sm:px-4 py-2.5 sm:py-3 text-base border rounded-xl focus:outline-none transition-all duration-200 disabled:opacity-60';
+    'app-field w-full min-w-0 max-w-full box-border h-11 sm:h-12 px-3 sm:px-4 text-base border rounded-xl focus:outline-none transition-all duration-200 disabled:opacity-60';
+  const fieldLabelClass = 'block text-sm font-medium text-app-soft mb-1.5 leading-5';
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-app-gradient py-3 sm:py-8">
@@ -675,9 +547,9 @@ const ProfileSettings = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-w-0">
-                <div className="min-w-0">
-                  <label htmlFor="name" className="block text-sm font-medium text-app-soft mb-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 min-w-0 items-start">
+                <div className="flex min-w-0 flex-col">
+                  <label htmlFor="name" className={fieldLabelClass}>
                     Full Name <span className="text-app-primary">*</span>
                   </label>
                   <input
@@ -694,8 +566,8 @@ const ProfileSettings = () => {
                   {errors.name && <p className="text-sm text-red-400 mt-1 break-words">{errors.name}</p>}
                 </div>
 
-                <div className="min-w-0">
-                  <label htmlFor="email" className="block text-sm font-medium text-app-soft mb-1.5">
+                <div className="flex min-w-0 flex-col">
+                  <label htmlFor="email" className={fieldLabelClass}>
                     Email Address
                   </label>
                   <input
@@ -706,11 +578,46 @@ const ProfileSettings = () => {
                     disabled
                     className={`${inputClass} text-app-muted cursor-not-allowed`}
                   />
-                  <p className="text-xs text-app-muted mt-1">Ask an admin to change email.</p>
+                  <p className="mt-1 text-xs leading-4 text-app-muted">Ask an admin to change email.</p>
                 </div>
 
-                <div className="min-w-0">
-                  <label htmlFor="department" className="block text-sm font-medium text-app-soft mb-1.5">
+                <div className="flex min-w-0 flex-col">
+                  <label htmlFor="designation" className={fieldLabelClass}>
+                    Designation
+                  </label>
+                  <button
+                    type="button"
+                    id="designation"
+                    onClick={() => setDesignationModalOpen(true)}
+                    className={`${inputClass} flex items-center justify-between gap-2 text-left`}
+                    aria-haspopup="dialog"
+                    aria-expanded={designationModalOpen}
+                    title={formData.designation || undefined}
+                  >
+                    <span
+                      className={`min-w-0 truncate ${
+                        formData.designation ? 'text-app' : 'text-app-muted'
+                      }`}
+                    >
+                      {formData.designation || 'Select designation'}
+                    </span>
+                    <svg
+                      className="h-4 w-4 flex-shrink-0 text-app-muted"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {errors.designation && (
+                    <p className="text-sm text-red-400 mt-1 break-words">{errors.designation}</p>
+                  )}
+                </div>
+
+                <div className="flex min-w-0 flex-col">
+                  <label htmlFor="department" className={fieldLabelClass}>
                     Department
                   </label>
                   <button
@@ -720,6 +627,7 @@ const ProfileSettings = () => {
                     className={`${inputClass} flex items-center justify-between gap-2 text-left`}
                     aria-haspopup="dialog"
                     aria-expanded={deptModalOpen}
+                    title={formData.department || undefined}
                   >
                     <span
                       className={`min-w-0 truncate ${
@@ -743,8 +651,8 @@ const ProfileSettings = () => {
                   )}
                 </div>
 
-                <div className="min-w-0">
-                  <label htmlFor="phone" className="block text-sm font-medium text-app-soft mb-1.5">
+                <div className="flex min-w-0 flex-col sm:col-span-2 sm:max-w-[calc(50%-0.5rem)]">
+                  <label htmlFor="phone" className={fieldLabelClass}>
                     Phone Number
                   </label>
                   <input
@@ -904,10 +812,28 @@ const ProfileSettings = () => {
         </form>
       </div>
 
-      <DepartmentPickerModal
+      <OptionPickerModal
+        open={designationModalOpen}
+        title="Select designation"
+        options={designations}
+        selected={formData.designation}
+        searchPlaceholder="Search designations…"
+        emptyMessage="No designations match your search."
+        allowClear
+        clearLabel="Clear designation"
+        onClose={() => setDesignationModalOpen(false)}
+        onSelect={handleDesignationSelect}
+      />
+
+      <OptionPickerModal
         open={deptModalOpen}
-        departments={departments}
+        title="Select department"
+        options={departments}
         selected={formData.department}
+        searchPlaceholder="Search departments…"
+        emptyMessage="No departments match your search."
+        allowClear
+        clearLabel="Clear department"
         onClose={() => setDeptModalOpen(false)}
         onSelect={handleDepartmentSelect}
       />

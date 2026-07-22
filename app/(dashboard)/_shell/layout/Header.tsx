@@ -65,10 +65,10 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-app-subtle bg-app-header lg:fixed lg:left-0 lg:right-0">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-12 sm:h-14">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between gap-2 h-12 sm:h-14 min-w-0">
             {/* Left side - Menu toggle + Logo */}
-            <div className="flex items-center flex-1 min-w-0">
+            <div className="flex items-center flex-1 min-w-0 overflow-hidden">
               {shell?.showSidebarToggle && (
                 <button
                   onClick={shell.toggleSidebar}
@@ -120,11 +120,11 @@ const Header = () => {
             {/* Right side - Different content based on authentication */}
             {currentUser ? (
               /* Authenticated users */
-              <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
+              <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
                 {showDashboardButton && (
                   <Link
                     href={dashboardPath}
-                    className="hidden sm:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-app-primary text-sm font-medium rounded-lg transition-colors duration-200"
+                    className="hidden xl:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-app-primary text-sm font-medium rounded-lg transition-colors duration-200"
                   >
                     Dashboard
                   </Link>
@@ -139,14 +139,14 @@ const Header = () => {
                 />
                 
                 {/* User Profile Dropdown */}
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-1.5 sm:space-x-2 p-1 rounded-xl bg-app-surface-2/50 border border-app-subtle hover:bg-app-surface-3 transition-colors duration-200"
+                    className="flex items-center gap-1.5 sm:gap-2 p-1 rounded-xl bg-app-surface-2/50 border border-app-subtle hover:bg-app-surface-3 transition-colors duration-200"
                   >
                     <ProfilePhoto />
-                    <div className="hidden sm:block text-left min-w-0">
-                      <p className="text-xs sm:text-sm font-medium text-app truncate max-w-20 lg:max-w-28 leading-tight">
+                    <div className="hidden xl:block text-left min-w-0">
+                      <p className="text-sm font-medium text-app truncate max-w-[7.5rem] leading-tight">
                         {userProfile?.name || 'User'}
                       </p>
                     </div>
@@ -157,19 +157,21 @@ const Header = () => {
 
                   {/* Profile Dropdown Menu */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-app-surface border border-app rounded-xl shadow-xl z-50">
-                      <div className="p-3 sm:p-4 border-b border-app">
-                        <div className="flex items-center space-x-3">
-                          <ProfilePhoto />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-app truncate">
+                    <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1.25rem)] sm:w-64 bg-app-surface border border-app rounded-xl shadow-xl z-50">
+                      <div className="px-3 py-2.5 border-b border-app">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex-shrink-0">
+                            <ProfilePhoto />
+                          </div>
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <p className="text-sm font-medium text-app truncate leading-tight">
                               {userProfile?.name || 'User'}
                             </p>
-                            <p className="hidden sm:block text-xs sm:text-sm text-app-muted truncate">
-                              {userProfile?.email || 'user@example.com'}
-                            </p>
-                            <p className="text-xs text-app-primary font-medium">
-                              {userProfile?.department || 'Department'}
+                            <p
+                              className="mt-0.5 text-xs text-app-primary font-medium leading-snug break-words [overflow-wrap:anywhere] line-clamp-2"
+                              title={userProfile?.designation || undefined}
+                            >
+                              {userProfile?.designation || 'No designation'}
                             </p>
                           </div>
                         </div>
@@ -178,10 +180,10 @@ const Header = () => {
                         {showDashboardButton && (
                           <Link
                             href={dashboardPath}
-                            className="flex items-center px-3 sm:px-4 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200 sm:hidden"
+                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200 sm:hidden"
                             onClick={() => setIsProfileOpen(false)}
                           >
-                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                             </svg>
                             Dashboard
@@ -189,22 +191,23 @@ const Header = () => {
                         )}
                         <Link
                           href="/profile"
-                          className="flex items-center px-3 sm:px-4 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
+                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
                           onClick={() => setIsProfileOpen(false)}
                         >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                           Profile Settings
                         </Link>
                         <button
+                          type="button"
                           onClick={() => {
                             setIsProfileOpen(false);
                             logout();
                           }}
-                          className="flex items-center w-full px-3 sm:px-4 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
+                          className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
                         >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                           </svg>
                           Sign Out
