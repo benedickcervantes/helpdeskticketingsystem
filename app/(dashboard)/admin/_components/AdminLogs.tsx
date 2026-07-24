@@ -4,6 +4,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { TablePanelSkeleton } from '@/lib/ui/DashboardSkeletons';
+import { ExportMenu } from '@/lib/ui/ExportMenu';
+import { ExportColumnDialog } from '@/lib/ui/ExportColumnDialog';
+import {
+  ALL_ADMIN_LOG_EXPORT_COLUMN_KEYS,
+  ADMIN_LOG_EXPORT_COLUMN_SECTIONS,
+  exportAdminLogsExcel,
+  exportAdminLogsPdf,
+} from '@/lib/utils/exportAdminLogs';
 
 const ACTION_OPTIONS = [
   { value: '', label: 'All actions' },
@@ -83,6 +91,10 @@ const AdminLogs = () => {
   const [actorRole, setActorRole] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportNotice, setExportNotice] = useState('');
+  const [exportError, setExportError] = useState('');
   const limit = 25;
 
   useEffect(() => {
@@ -129,6 +141,81 @@ const AdminLogs = () => {
   const onFilterChange = (setter) => (e) => {
     setter(e.target.value);
     setPage(1);
+  };
+
+  const buildLogFilterSummary = () => {
+    const parts = [];
+    if (debouncedSearch) parts.push(`Search: "${debouncedSearch}"`);
+    if (action) {
+      const label = ACTION_OPTIONS.find((opt) => opt.value === action)?.label || action;
+      parts.push(`Action: ${label}`);
+    }
+    if (actorRole) {
+      const label = ROLE_OPTIONS.find((opt) => opt.value === actorRole)?.label || actorRole;
+      parts.push(`Role: ${label}`);
+    }
+    if (from) parts.push(`From: ${from}`);
+    if (to) parts.push(`To: ${to}`);
+    return parts.length ? parts.join(' · ') : 'None (all records)';
+  };
+
+  const fetchAllFilteredLogs = async () => {
+    const pageLimit = 100;
+    const all = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+    do {
+      const params = new URLSearchParams();
+      params.set('page', String(currentPage));
+      params.set('limit', String(pageLimit));
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (action) params.set('action', action);
+      if (actorRole) params.set('actorRole', actorRole);
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+
+      const data = await api.get(`/api/v1/audit-logs?${params.toString()}`);
+      const pageItems = Array.isArray(data?.items) ? data.items : [];
+      all.push(...pageItems);
+      totalPages = data?.totalPages ?? 1;
+      currentPage += 1;
+    } while (currentPage <= totalPages);
+
+    return all;
+  };
+
+  const runLogExport = async (format, columns = ALL_ADMIN_LOG_EXPORT_COLUMN_KEYS) => {
+    if (exporting) return;
+    if (!columns.length) {
+      setExportError('Select at least one column to export.');
+      setExportDialogOpen(true);
+      return;
+    }
+    setExporting(true);
+    setExportError('');
+    setExportNotice('');
+    try {
+      const rows = await fetchAllFilteredLogs();
+      if (rows.length === 0) {
+        setExportError('No logs match the current filters to export.');
+        return;
+      }
+      const filterSummary = buildLogFilterSummary();
+      if (format === 'excel') {
+        await exportAdminLogsExcel(rows, filterSummary, columns);
+      } else {
+        exportAdminLogsPdf(rows, filterSummary, columns);
+      }
+      setExportNotice(
+        `Exported ${rows.length} log${rows.length === 1 ? '' : 's'} to ${format === 'excel' ? 'Excel' : 'PDF'}.`,
+      );
+      setExportDialogOpen(false);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Export failed');
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading && items.length === 0) {
@@ -219,15 +306,35 @@ const AdminLogs = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm text-app-muted">
-        <span>
-          {total} {total === 1 ? 'entry' : 'entries'}
-          {loading ? ' · Refreshing…' : ''}
-        </span>
-        <span>
-          Page {page} of {totalPages}
-        </span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm text-app-muted w-full sm:w-auto">
+          <span>
+            {total} {total === 1 ? 'entry' : 'entries'}
+            {loading ? ' · Refreshing…' : ''}
+          </span>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+        </div>
+        <ExportMenu
+          disabled={total === 0}
+          exporting={exporting}
+          onCustomize={() => setExportDialogOpen(true)}
+          onExportExcel={() => runLogExport('excel')}
+          onExportPdf={() => runLogExport('pdf')}
+        />
       </div>
+
+      {exportNotice && (
+        <div className="rounded-lg border border-app-primary/30 bg-app-primary-soft/40 px-3 py-2 text-sm text-app-primary">
+          {exportNotice}
+        </div>
+      )}
+      {exportError && (
+        <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
+          {exportError}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-app-subtle bg-app-panel px-4 py-10 text-center text-sm text-app-muted">
@@ -345,6 +452,17 @@ const AdminLogs = () => {
           Next
         </button>
       </div>
+
+      <ExportColumnDialog
+        open={exportDialogOpen}
+        titleId="admin-log-export-columns"
+        allColumnKeys={ALL_ADMIN_LOG_EXPORT_COLUMN_KEYS}
+        columnSections={ADMIN_LOG_EXPORT_COLUMN_SECTIONS}
+        filterSummary={buildLogFilterSummary()}
+        exporting={exporting}
+        onClose={() => setExportDialogOpen(false)}
+        onExport={runLogExport}
+      />
     </div>
   );
 };
