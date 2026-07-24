@@ -2,9 +2,56 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { TechNewsSkeleton } from '@/lib/ui/DashboardSkeletons';
+import { FpdcLogo } from '@/lib/ui/FpdcLogo';
 
-const TechNewsSection = () => {
+const FALLBACK_NEWS = [
+  {
+    title: 'AI-Powered Development Tools Transform Software Engineering',
+    link: '#',
+    pubDate: new Date().toISOString(),
+    source: 'Tech News',
+    image: null,
+  },
+  {
+    title: 'Next.js 15 Introduces Revolutionary Server Components',
+    link: '#',
+    pubDate: new Date().toISOString(),
+    source: 'Tech News',
+    image: null,
+  },
+  {
+    title: 'Quantum Computing Breakthrough Achieves 99.9% Accuracy',
+    link: '#',
+    pubDate: new Date().toISOString(),
+    source: 'Tech News',
+    image: null,
+  },
+  {
+    title: 'OpenAI Releases GPT-5 with Enhanced Reasoning Capabilities',
+    link: '#',
+    pubDate: new Date().toISOString(),
+    source: 'Tech News',
+    image: null,
+  },
+  {
+    title: 'Microsoft Copilot Integration Reaches 1 Billion Users',
+    link: '#',
+    pubDate: new Date().toISOString(),
+    source: 'Tech News',
+    image: null,
+  },
+  {
+    title: 'Edge Computing Revolutionizes IoT Device Performance',
+    link: '#',
+    pubDate: new Date().toISOString(),
+    source: 'Tech News',
+    image: null,
+  },
+];
+
+const TechNewsSection = ({ ctaHref = '/auth', ctaLabel = 'Get Started' }) => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,73 +61,27 @@ const TechNewsSection = () => {
   const [startPosition, setStartPosition] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const scrollContainerRef = useRef(null);
+  const sectionRef = useRef(null);
   const autoScrollRef = useRef(null);
   const touchStartXRef = useRef(0);
   const touchStartScrollLeftRef = useRef(0);
 
-  // Sample fallback data
-  const fallbackNews = [
-    {
-      title: "AI-Powered Development Tools Transform Software Engineering",
-      link: "#",
-      pubDate: new Date().toISOString(),
-      source: "Tech News",
-      image: null
-    },
-    {
-      title: "Next.js 15 Introduces Revolutionary Server Components",
-      link: "#",
-      pubDate: new Date().toISOString(),
-      source: "Tech News",
-      image: null
-    },
-    {
-      title: "Quantum Computing Breakthrough Achieves 99.9% Accuracy",
-      link: "#",
-      pubDate: new Date().toISOString(),
-      source: "Tech News",
-      image: null
-    },
-    {
-      title: "OpenAI Releases GPT-5 with Enhanced Reasoning Capabilities",
-      link: "#",
-      pubDate: new Date().toISOString(),
-      source: "Tech News",
-      image: null
-    },
-    {
-      title: "Microsoft Copilot Integration Reaches 1 Billion Users",
-      link: "#",
-      pubDate: new Date().toISOString(),
-      source: "Tech News",
-      image: null
-    },
-    {
-      title: "Edge Computing Revolutionizes IoT Device Performance",
-      link: "#",
-      pubDate: new Date().toISOString(),
-      source: "Tech News",
-      image: null
-    }
-  ];
-
-  // Fetch tech news
   useEffect(() => {
     const fetchTechNews = async () => {
       try {
         setLoading(true);
         const response = await fetch('/api/tech-news');
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch tech news: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        setNews(data);
+        setNews(Array.isArray(data) && data.length > 0 ? data : FALLBACK_NEWS);
       } catch (err) {
         console.error('Error fetching tech news:', err);
         setError(err.message);
-        setNews(fallbackNews);
+        setNews(FALLBACK_NEWS);
       } finally {
         setLoading(false);
       }
@@ -89,11 +90,29 @@ const TechNewsSection = () => {
     fetchTechNews();
   }, []);
 
-  // Auto-scroll functionality
+  const handlePrev = useCallback(() => {
+    setIsAutoScrolling(false);
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : Math.max(news.length - 1, 0)));
+  }, [news.length]);
+
+  const handleNext = useCallback(() => {
+    setIsAutoScrolling(false);
+    setCurrentIndex((prev) => (prev < news.length - 1 ? prev + 1 : 0));
+  }, [news.length]);
+
+  const scrollToItem = useCallback((index) => {
+    setIsAutoScrolling(false);
+    setCurrentIndex(index);
+  }, []);
+
+  const toggleAutoScroll = useCallback(() => {
+    setIsAutoScrolling((prev) => !prev);
+  }, []);
+
   useEffect(() => {
     if (news.length > 0 && isAutoScrolling) {
       autoScrollRef.current = setInterval(() => {
-        setCurrentIndex(prevIndex => (prevIndex + 1) % news.length);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
       }, 5000);
     }
 
@@ -104,9 +123,9 @@ const TechNewsSection = () => {
     };
   }, [news.length, isAutoScrolling]);
 
-  // Arrow key navigation
   useEffect(() => {
     const handleKeyPress = (e) => {
+      if (!sectionRef.current?.contains(document.activeElement)) return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         handlePrev();
@@ -118,76 +137,72 @@ const TechNewsSection = () => {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [news.length]);
+  }, [handlePrev, handleNext]);
 
-  // Scroll to current item
   useEffect(() => {
     if (scrollContainerRef.current && news.length > 0) {
       const container = scrollContainerRef.current;
       const item = container.children[currentIndex];
-      
+
       if (item) {
         const itemWidth = item.offsetWidth;
-        const gap = 16; // 16px gap between items
+        const gap = 16;
         const scrollAmount = currentIndex * (itemWidth + gap);
-        
+
         container.scrollTo({
           left: scrollAmount,
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       }
     }
   }, [currentIndex, news.length]);
 
-  // Handle touch events for mobile swipe
   const handleTouchStart = useCallback((e) => {
     touchStartXRef.current = e.touches[0].clientX;
     touchStartScrollLeftRef.current = scrollContainerRef.current.scrollLeft;
     setIsDragging(true);
   }, []);
 
-  const handleTouchMove = useCallback((e) => {
-    if (!isDragging) return;
-    
-    const touchX = e.touches[0].clientX;
-    const walk = (touchX - touchStartXRef.current) * 2;
-    
-    scrollContainerRef.current.scrollLeft = touchStartScrollLeftRef.current - walk;
-  }, [isDragging]);
+  const handleTouchMove = useCallback(
+    (e) => {
+      if (!isDragging) return;
+      const touchX = e.touches[0].clientX;
+      const walk = (touchX - touchStartXRef.current) * 2;
+      scrollContainerRef.current.scrollLeft = touchStartScrollLeftRef.current - walk;
+    },
+    [isDragging]
+  );
 
-  const handleTouchEnd = useCallback((e) => {
-    if (!isDragging) return;
-    
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartXRef.current - touchEndX;
-    
-    // If swipe is significant enough, change slide
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        handleNext();
-      } else {
-        handlePrev();
+  const handleTouchEnd = useCallback(
+    (e) => {
+      if (!isDragging) return;
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchStartXRef.current - touchEndX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) handleNext();
+        else handlePrev();
       }
-    }
-    
-    setIsDragging(false);
-  }, [isDragging]);
+      setIsDragging(false);
+    },
+    [isDragging, handleNext, handlePrev]
+  );
 
-  // Mouse drag events for desktop
   const handleMouseDown = useCallback((e) => {
     setIsDragging(true);
     setStartPosition(e.pageX - scrollContainerRef.current.offsetLeft);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startPosition) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startPosition, scrollLeft]);
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startPosition) * 2;
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startPosition, scrollLeft]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -195,26 +210,6 @@ const TechNewsSection = () => {
 
   const handleMouseLeave = useCallback(() => {
     setIsDragging(false);
-  }, []);
-
-  // Navigation handlers
-  const handlePrev = useCallback(() => {
-    setIsAutoScrolling(false);
-    setCurrentIndex(prev => prev > 0 ? prev - 1 : news.length - 1);
-  }, [news.length]);
-
-  const handleNext = useCallback(() => {
-    setIsAutoScrolling(false);
-    setCurrentIndex(prev => prev < news.length - 1 ? prev + 1 : 0);
-  }, [news.length]);
-
-  const scrollToItem = useCallback((index) => {
-    setIsAutoScrolling(false);
-    setCurrentIndex(index);
-  }, []);
-
-  const toggleAutoScroll = useCallback(() => {
-    setIsAutoScrolling(prev => !prev);
   }, []);
 
   const handleNewsClick = useCallback((link) => {
@@ -227,211 +222,283 @@ const TechNewsSection = () => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInHours < 48) return 'Yesterday';
-    
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric'
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
     });
   }, []);
 
-  // Loading state
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
-        <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-gray-700/50 shadow-2xl">
+      <section className="relative w-full overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/40 via-gray-900 to-gray-900 pointer-events-none" />
+        <div className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6 space-y-8">
+          <div className="space-y-4 max-w-2xl">
+            <div className="h-10 w-10 rounded-xl bg-gray-800 skeleton-shimmer" />
+            <div className="h-10 w-72 max-w-full rounded-lg bg-gray-800 skeleton-shimmer" />
+            <div className="h-4 w-96 max-w-full rounded bg-gray-800/70 skeleton-shimmer" />
+            <div className="h-11 w-36 rounded-lg bg-gray-800 skeleton-shimmer" />
+          </div>
           <TechNewsSkeleton count={3} />
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-1 pb-3 sm:pt-2 sm:pb-4">
-      {/* Hero header + controls */}
-      <div className="text-center space-y-2 sm:space-y-2.5 mb-2 sm:mb-3">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 backdrop-blur-sm border border-emerald-500/20">
-          <div className="relative shrink-0">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <div className="absolute inset-0 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
-          </div>
-          <span className="text-emerald-400 font-medium text-[11px] sm:text-xs">Tech Pulse</span>
-        </div>
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight bg-gradient-to-r from-white via-emerald-200 to-cyan-300 bg-clip-text text-transparent px-1 sm:px-4 break-words">
-          Technology Trends & Innovation
-        </h2>
-        <p className="text-sm sm:text-base text-gray-400 leading-snug max-w-2xl mx-auto px-1 sm:px-4">
-          Explore what&apos;s shaping the digital world — from AI and cloud breakthroughs to the tools and trends driving the industry forward
-        </p>
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden"
+      aria-label="FPDC Helpdesk hero"
+    >
+      {/* Atmosphere */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden>
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/50 via-gray-900 to-gray-900" />
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.22), transparent 55%)',
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+            maskImage: 'linear-gradient(to bottom, black 0%, transparent 75%)',
+          }}
+        />
+      </div>
 
-        <div className="flex justify-center pt-0.5">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleAutoScroll}
-              className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
-                isAutoScrolling
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-gray-800/50 border-gray-700/50 text-gray-400 hover:border-emerald-500/30'
-              }`}
-              aria-label={isAutoScrolling ? 'Pause auto-scroll' : 'Play auto-scroll'}
-            >
-              <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isAutoScrolling ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
-              <span className="text-xs md:text-sm font-medium">
-                {isAutoScrolling ? 'Auto' : 'Paused'}
-              </span>
-            </button>
-
-            <div className="flex items-center gap-1 md:gap-2">
-              <button
-                onClick={handlePrev}
-                className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
-                aria-label="Previous news"
+      <div className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-5 sm:pt-10 lg:pt-12 pb-5 sm:pb-8">
+        {/* Brand + CTA */}
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 lg:gap-10 mb-7 sm:mb-10">
+          <div className="max-w-2xl space-y-3.5 sm:space-y-4 min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <FpdcLogo size="md" className="sm:hidden shrink-0" priority />
+              <FpdcLogo size="lg" className="hidden sm:block shrink-0" priority />
+              <div className="min-w-0">
+                <p className="text-emerald-400/90 text-[10px] sm:text-sm font-medium tracking-wide uppercase truncate">
+                  Federal Pioneer Development Corp.
+                </p>
+                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
+                  IT Helpdesk
+                </h1>
+              </div>
+            </div>
+            <p className="text-sm sm:text-lg text-gray-300 leading-relaxed max-w-xl">
+              Submit IT requests, track progress, and stay current with technology news — all in one place.
+            </p>
+            <div className="flex flex-col min-[380px]:flex-row gap-2.5 sm:gap-3 pt-0.5 w-full">
+              <Link
+                href={ctaHref}
+                className="inline-flex w-full min-[380px]:w-auto min-h-11 items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold shadow-lg shadow-emerald-900/25 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-900"
               >
-                <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <button
-                onClick={handleNext}
-                className="p-1.5 md:p-2 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/80 hover:border-emerald-500/30 transition-all duration-300 group"
-                aria-label="Next news"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>{ctaLabel}</span>
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Link>
+              <a
+                href="#tech-news"
+                className="inline-flex w-full min-[380px]:w-auto min-h-11 items-center justify-center gap-2 border border-gray-600 hover:border-gray-500 text-gray-200 hover:text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+              >
+                Browse tech news
+              </a>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* News Carousel */}
-      <div className="relative -mx-1 sm:mx-0">
-        <div 
-          ref={scrollContainerRef}
-          className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 gap-3 sm:gap-4"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        >
-          {news.map((item, index) => (
-            <div 
-              key={index}
-              className="flex-shrink-0 snap-start w-[88%] sm:w-[70%] md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] xl:w-[calc(25%-0.75rem)] max-w-full"
-            >
-              <article 
-                className="group bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-700/50 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1 cursor-pointer h-full"
-                onClick={() => handleNewsClick(item.link)}
+          <div className="hidden lg:block text-right pb-1 shrink-0">
+            <p className="text-sm text-gray-500">Live feed</p>
+            <p className="text-2xl font-semibold text-white tabular-nums">
+              {news.length}
+              <span className="text-base font-normal text-gray-400 ml-1.5">stories</span>
+            </p>
+          </div>
+        </div>
+
+        {/* News strip header */}
+        <div id="tech-news" className="flex items-start sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 scroll-mt-20 min-w-0">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-semibold text-white">Technology news</h2>
+            <p className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate sm:whitespace-normal">
+              Latest trends and tools shaping IT
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={toggleAutoScroll}
+            className="shrink-0 inline-flex items-center justify-center gap-2 min-h-9 min-w-9 sm:min-w-0 px-2.5 sm:px-3 py-1.5 rounded-lg border border-gray-700/80 bg-gray-900/60 text-xs sm:text-sm text-gray-300 hover:border-emerald-500/40 hover:text-emerald-300 transition-colors"
+            aria-pressed={isAutoScrolling}
+            aria-label={isAutoScrolling ? 'Pause auto-scroll' : 'Resume auto-scroll'}
+          >
+            {isAutoScrolling ? (
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+              </svg>
+            ) : (
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path d="M8 5v14l11-7L8 5z" />
+              </svg>
+            )}
+            <span className="hidden sm:inline">{isAutoScrolling ? 'Pause' : 'Play'}</span>
+          </button>
+        </div>
+
+        {/* Carousel */}
+        <div className="relative">
+          <div
+            ref={scrollContainerRef}
+            className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-3 sm:gap-4 pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 touch-pan-x"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            tabIndex={0}
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Technology news carousel"
+          >
+            {news.map((item, index) => (
+              <div
+                key={`${item.title}-${index}`}
+                className="flex-shrink-0 snap-start w-[92%] sm:w-[72%] md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)]"
               >
-                {/* Image Container */}
-                <div className="relative h-40 sm:h-44 md:h-48 lg:h-52 xl:h-56 overflow-hidden">
-                  {item.image ? (
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextElementSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div 
-                    className={`absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center ${item.image ? 'hidden' : 'flex'}`}
-                  >
-                    <svg className="w-8 h-8 md:w-10 md:h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                    </svg>
-                  </div>
-                  
-                  {/* Source Badge */}
-                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 max-w-[45%]">
-                    <span className="inline-block max-w-full truncate px-2 py-0.5 sm:px-3 sm:py-1 bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] sm:text-xs font-medium rounded-full shadow-lg">
-                      {item.source || 'Tech News'}
-                    </span>
-                  </div>
-                  
-                  {/* Time Badge */}
-                  <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                    <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-black/50 backdrop-blur-sm text-white text-[10px] sm:text-xs font-medium rounded-full whitespace-nowrap">
-                      {formatDate(item.pubDate)}
-                    </span>
-                  </div>
-
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-2 left-2 right-2 md:bottom-3 md:left-3 md:right-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 md:gap-2">
-                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                          <span className="text-white text-xs font-medium">Click to read more</span>
-                        </div>
-                        <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </div>
+                <article
+                  className="group h-full rounded-2xl overflow-hidden border border-gray-700/60 bg-gray-900/70 hover:border-emerald-500/35 transition-colors duration-200 cursor-pointer"
+                  onClick={() => handleNewsClick(item.link)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleNewsClick(item.link);
+                    }
+                  }}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Open article: ${item.title}`}
+                >
+                  <div className="relative h-40 sm:h-44 overflow-hidden bg-gray-800">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt=""
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          if (e.target.nextElementSibling) {
+                            e.target.nextElementSibling.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br from-emerald-900/40 to-cyan-900/30 items-center justify-center ${
+                        item.image ? 'hidden' : 'flex'
+                      }`}
+                    >
+                      <svg
+                        className="w-9 h-9 text-emerald-400/80"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-gray-900/90 to-transparent" />
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between gap-2">
+                      <span className="max-w-[55%] truncate px-2 py-0.5 bg-black/55 backdrop-blur-sm text-white text-[10px] sm:text-xs font-medium rounded">
+                        {item.source || 'Tech News'}
+                      </span>
+                      <span className="px-2 py-0.5 bg-black/45 backdrop-blur-sm text-gray-200 text-[10px] sm:text-xs rounded whitespace-nowrap">
+                        {formatDate(item.pubDate)}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="p-3 sm:p-4 lg:p-5">
-                  <h3 className="text-white font-semibold text-sm sm:text-base md:text-lg leading-snug sm:leading-tight mb-2 md:mb-3 line-clamp-3 group-hover:text-emerald-300 transition-colors break-words">
-                    {item.title}
-                  </h3>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 md:gap-2">
-                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <span className="text-gray-400 text-xs md:text-sm">Live</span>
-                    </div>
-                    <div className="text-gray-500 text-xs">
-                      {index + 1} of {news.length}
-                    </div>
+                  <div className="p-3.5 sm:p-4">
+                    <h3 className="text-white font-semibold text-sm sm:text-base leading-snug line-clamp-3 group-hover:text-emerald-200 transition-colors break-words">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-gray-500 group-hover:text-emerald-400/80 transition-colors">
+                      Read article
+                      <span className="inline-block ml-1 transition-transform group-hover:translate-x-0.5">→</span>
+                    </p>
                   </div>
-                </div>
-              </article>
-            </div>
-          ))}
-        </div>
+                </article>
+              </div>
+            ))}
+          </div>
 
-        {/* Navigation Dots */}
-        <div className="flex justify-center mt-3 md:mt-4 space-x-1 md:space-x-2">
-          {news.slice(0, Math.min(8, news.length)).map((_, index) => (
+          {/* Controls + dots */}
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4 px-1">
             <button
-              key={index}
-              onClick={() => scrollToItem(index)}
-              className={`h-2 md:h-3 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-emerald-400 w-6 md:w-8 shadow-lg shadow-emerald-400/30' 
-                  : 'bg-gray-600 hover:bg-gray-500 w-2 md:w-3'
-              }`}
-              aria-label={`Go to news item ${index + 1}`}
-            />
-          ))}
-          {news.length > 8 && (
-            <span className="text-gray-400 text-xs md:text-sm ml-2 md:ml-3">+{news.length - 8} more</span>
-          )}
+              type="button"
+              onClick={handlePrev}
+              className="p-2.5 min-h-10 min-w-10 rounded-lg border border-gray-700/80 bg-gray-900/60 text-gray-400 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors"
+              aria-label="Previous news"
+            >
+              <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <div className="flex items-center justify-center gap-1.5 max-w-[min(100%,14rem)] overflow-hidden">
+              {news.slice(0, Math.min(8, news.length)).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => scrollToItem(index)}
+                  className={`h-2 rounded-full transition-all duration-300 shrink-0 ${
+                    index === currentIndex
+                      ? 'bg-emerald-400 w-5 sm:w-6'
+                      : 'bg-gray-600 hover:bg-gray-500 w-2'
+                  }`}
+                  aria-label={`Go to news item ${index + 1}`}
+                  aria-current={index === currentIndex ? 'true' : undefined}
+                />
+              ))}
+              {news.length > 8 && (
+                <span className="text-gray-500 text-xs ml-1 shrink-0">+{news.length - 8}</span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNext}
+              className="p-2.5 min-h-10 min-w-10 rounded-lg border border-gray-700/80 bg-gray-900/60 text-gray-400 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors"
+              aria-label="Next news"
+            >
+              <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {error && (
+          <p className="mt-3 text-center text-xs text-amber-400/90">
+            Showing cached news. Live feed temporarily unavailable.
+          </p>
+        )}
       </div>
 
-      {/* Error message (hidden by default) */}
-      {error && (
-        <div className="mt-4 text-center text-xs md:text-sm text-amber-400">
-          Showing cached news. {error}
-        </div>
-      )}
-
-      {/* Custom CSS */}
       <style jsx>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
