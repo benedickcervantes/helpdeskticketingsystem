@@ -15,6 +15,14 @@ import { useTheme } from '@/lib/contexts/ThemeContext';
 import { getTicketFeedbackStatus } from '@/lib/utils/notifications';
 import FeedbackForm from '@/app/(dashboard)/_components/FeedbackForm';
 import TicketConversation from '@/app/(dashboard)/_components/TicketConversation';
+import { ExportMenu } from '@/lib/ui/ExportMenu';
+import { ExportColumnDialog } from '@/lib/ui/ExportColumnDialog';
+import {
+  ALL_TICKET_EXPORT_COLUMN_KEYS,
+  TICKET_EXPORT_COLUMN_SECTIONS,
+  exportTicketsExcel,
+  exportTicketsPdf,
+} from '@/lib/utils/exportTickets';
 
 const UserAvatar = ({ user, size = 'sm', className = '' }) => {
   const photoURL = user?.photoURL || user?.photo_url;
@@ -491,6 +499,10 @@ const TicketList = ({
   const [assigningTicketId, setAssigningTicketId] = useState(null);
   const [showTicketDetails, setShowTicketDetails] = useState(false);
   const [selectedTicketDetails, setSelectedTicketDetails] = useState(null);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportNotice, setExportNotice] = useState('');
+  const [exportError, setExportError] = useState('');
   const [lightboxImage, setLightboxImage] = useState(null);
   const [isDesktopTable, setIsDesktopTable] = useState(false);
   const openedTicketRef = useRef(null);
@@ -1191,12 +1203,67 @@ const TicketList = ({
   }
 
   const hasActiveFilters =
-    !!searchTerm || filter !== 'all' || priorityFilter !== 'all';
+    !!searchTerm ||
+    filter !== 'all' ||
+    priorityFilter !== 'all' ||
+    (adminMode && assignedToFilter !== 'all');
 
   const clearAllFilters = () => {
     setSearchTerm('');
     setFilter('all');
     setPriorityFilter('all');
+    if (adminMode) setAssignedToFilter('all');
+  };
+
+  const buildTicketFilterSummary = () => {
+    const parts = [];
+    if (searchTerm) parts.push(`Search: "${searchTerm}"`);
+    if (filter !== 'all') parts.push(`Status: ${filter}`);
+    if (priorityFilter !== 'all') parts.push(`Priority: ${priorityFilter}`);
+    if (adminMode && assignedToFilter !== 'all') {
+      if (assignedToFilter === 'unassigned') parts.push('Assignment: Unassigned');
+      else if (assignedToFilter === 'assigned') parts.push('Assignment: Assigned');
+      else {
+        const assignee = assignableUsers.find((user) => user.id === assignedToFilter);
+        parts.push(`Assignee: ${assignee?.name || assignee?.email || assignedToFilter}`);
+      }
+    }
+    return parts.length ? parts.join(' · ') : 'None (all records)';
+  };
+
+  const runTicketExport = async (
+    format,
+    columns = ALL_TICKET_EXPORT_COLUMN_KEYS,
+  ) => {
+    if (exporting) return;
+    if (!columns.length) {
+      setExportError('Select at least one column to export.');
+      setExportDialogOpen(true);
+      return;
+    }
+    setExporting(true);
+    setExportError('');
+    setExportNotice('');
+    try {
+      if (filteredTickets.length === 0) {
+        setExportError('No tickets match the current filters to export.');
+        return;
+      }
+      const filterSummary = buildTicketFilterSummary();
+      if (format === 'excel') {
+        await exportTicketsExcel(filteredTickets, filterSummary, columns);
+      } else {
+        exportTicketsPdf(filteredTickets, filterSummary, columns);
+      }
+      setExportNotice(
+        `Exported ${filteredTickets.length} ticket${filteredTickets.length === 1 ? '' : 's'} to ${format === 'excel' ? 'Excel' : 'PDF'}.`,
+      );
+      setExportDialogOpen(false);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Export failed');
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -1345,6 +1412,17 @@ const TicketList = ({
                 </svg>
               </button>
             </div>
+
+            {adminMode && (
+              <ExportMenu
+                className="w-full sm:w-auto sm:col-span-2 lg:col-span-1"
+                disabled={filteredTickets.length === 0}
+                exporting={exporting}
+                onCustomize={() => setExportDialogOpen(true)}
+                onExportExcel={() => runTicketExport('excel')}
+                onExportPdf={() => runTicketExport('pdf')}
+              />
+            )}
           </div>
         </div>
 
@@ -1355,7 +1433,31 @@ const TicketList = ({
           {priorityFilter !== 'all' && ` with ${priorityFilter} priority`}
           {adminMode && assignedToFilter !== 'all' && ` (${assignedToFilter})`}
         </div>
+
+        {adminMode && exportNotice && (
+          <div className="rounded-lg border border-app-primary/30 bg-app-primary-soft/40 px-3 py-2 text-sm text-app-primary">
+            {exportNotice}
+          </div>
+        )}
+        {adminMode && exportError && (
+          <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
+            {exportError}
+          </div>
+        )}
       </div>
+
+      {adminMode && (
+        <ExportColumnDialog
+          open={exportDialogOpen}
+          titleId="ticket-export-columns"
+          allColumnKeys={ALL_TICKET_EXPORT_COLUMN_KEYS}
+          columnSections={TICKET_EXPORT_COLUMN_SECTIONS}
+          filterSummary={buildTicketFilterSummary()}
+          exporting={exporting}
+          onClose={() => setExportDialogOpen(false)}
+          onExport={runTicketExport}
+        />
+      )}
 
       {/* Empty state — filters stay visible above */}
       {filteredTickets.length === 0 && !openTicketId ? (
