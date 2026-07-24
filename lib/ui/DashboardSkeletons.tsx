@@ -67,12 +67,16 @@ export const TablePanelSkeleton = ({ rows = 6, className = '' }) => (
 );
 
 export const TabStripSkeleton = ({ tabCount = 4, className = '' }) => (
-  <div className={`flex space-x-2 sm:space-x-4 border-b border-app pb-3 mb-6 ${className}`}>
+  <div
+    className={`hidden sm:flex w-full flex-nowrap items-stretch border-b border-app mb-6 sm:mb-8 gap-0 overflow-hidden ${className}`}
+  >
     {Array.from({ length: tabCount }).map((_, i) => (
       <div
         key={i}
-        className="h-8 sm:h-10 w-16 sm:w-24 bg-app-surface-3/80 rounded-lg skeleton-shimmer"
-      />
+        className="flex flex-1 basis-0 items-center justify-center min-w-[6.75rem] px-2 py-3"
+      >
+        <div className="h-5 w-20 sm:w-24 bg-app-surface-3/80 rounded-md skeleton-shimmer" />
+      </div>
     ))}
   </div>
 );
@@ -100,6 +104,8 @@ export const DashboardPageSkeleton = ({
         return <TicketListSkeleton />;
       case 'form':
         return <TicketFormSkeleton />;
+      case 'executive':
+        return <ExecutiveGlanceSkeleton />;
       case 'mixed':
         return (
           <div className="space-y-6">
@@ -116,6 +122,10 @@ export const DashboardPageSkeleton = ({
   return (
     <div className={`w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 ${className}`}>
       <TitleBarSkeleton />
+      {/* Mobile select placeholder */}
+      <div className="sm:hidden mb-4">
+        <div className="h-11 w-full rounded-lg bg-app-surface-3/60 border border-app-subtle skeleton-shimmer" />
+      </div>
       {showTabs && <TabStripSkeleton tabCount={tabCount} />}
       {renderContent()}
     </div>
@@ -262,9 +272,277 @@ export const TicketFormSkeleton = ({ className = '' }) => (
   </div>
 );
 
-export const ExecutiveFeedbackSkeleton = ({ className = '' }) => (
-  <div className={`space-y-6 ${className}`}>
+/** Shared shimmer block for executive tab skeletons */
+const Shimmer = ({ className = '' }) => (
+  <div className={`bg-app-surface-3/70 skeleton-shimmer rounded-lg ${className}`} />
+);
+
+/** At a Glance — health panel, 4 KPIs, status strip, insights */
+export const ExecutiveGlanceSkeleton = ({ className = '' }) => (
+  <div className={`space-y-4 sm:space-y-6 ${className}`} aria-busy="true" aria-label="Loading At a Glance">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <Shimmer className="h-7 w-36 sm:w-44" />
+        <Shimmer className="h-4 w-56 sm:w-80" />
+      </div>
+      <Shimmer className="h-10 w-full sm:w-40 rounded-xl" />
+    </div>
+
+    <div className="rounded-xl border border-app/40 bg-app-surface-2/40 p-4 sm:p-6 space-y-4">
+      <Shimmer className="h-3 w-28" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-3 flex-1">
+          <Shimmer className="h-8 w-48 sm:w-64 rounded-md" />
+          <Shimmer className="h-4 w-full max-w-xl" />
+          <Shimmer className="h-4 w-3/4 max-w-lg" />
+        </div>
+        <div className="sm:text-right space-y-2">
+          <Shimmer className="h-10 w-20 ml-auto" />
+          <Shimmer className="h-3 w-24 ml-auto" />
+        </div>
+      </div>
+      <Shimmer className="h-1.5 w-full rounded-full" />
+    </div>
+
     <StatsGridSkeleton count={4} />
-    <ChartGridSkeleton />
+
+    <div className="app-card rounded-xl border p-4 sm:p-5 space-y-4">
+      <div className="flex justify-between gap-3">
+        <div className="space-y-2">
+          <Shimmer className="h-5 w-32" />
+          <Shimmer className="h-3 w-48" />
+        </div>
+        <Shimmer className="h-4 w-24" />
+      </div>
+      <Shimmer className="h-2.5 w-full rounded-full" />
+      <div className="grid grid-cols-3 gap-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Shimmer className="h-7 w-12" />
+            <Shimmer className="h-3 w-16" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <Shimmer className="h-5 w-28" />
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-xl border border-app/30 bg-app-surface-2/40 p-4 flex gap-3"
+        >
+          <Shimmer className="h-full w-1 min-h-[2.5rem] rounded-full shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Shimmer className="h-4 w-2/3" />
+            <Shimmer className="h-3 w-full" />
+          </div>
+        </div>
+      ))}
+    </div>
   </div>
 );
+
+/** Charts tab — KPI strip + 2×2 chart grid */
+export const ExecutiveChartsSkeleton = ({ className = '' }) => (
+  <div className={`space-y-4 sm:space-y-6 ${className}`} aria-busy="true" aria-label="Loading Charts">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <Shimmer className="h-7 w-28" />
+        <Shimmer className="h-4 w-64" />
+      </div>
+      <Shimmer className="h-10 w-full sm:w-40 rounded-xl" />
+    </div>
+    <StatsGridSkeleton count={4} />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <SkeletonChart key={i} height={280} />
+      ))}
+    </div>
+  </div>
+);
+
+/** Service Quality — verdict, targets, risk cards */
+export const ExecutiveServiceQualitySkeleton = ({ className = '' }) => (
+  <div className={`space-y-4 sm:space-y-6 ${className}`} aria-busy="true" aria-label="Loading Service Quality">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <Shimmer className="h-7 w-40" />
+        <Shimmer className="h-4 w-72" />
+      </div>
+      <Shimmer className="h-10 w-full sm:w-40 rounded-xl" />
+    </div>
+
+    <div className="rounded-xl border border-app/40 bg-app-surface-2/40 p-4 sm:p-6 space-y-3">
+      <Shimmer className="h-7 w-36 rounded-md" />
+      <Shimmer className="h-4 w-full max-w-2xl" />
+      <Shimmer className="h-4 w-2/3 max-w-xl" />
+    </div>
+
+    <div className="app-card rounded-xl border p-4 sm:p-5 space-y-5">
+      <div className="space-y-2">
+        <Shimmer className="h-5 w-36" />
+        <Shimmer className="h-3 w-64" />
+      </div>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="flex justify-between gap-3">
+            <Shimmer className="h-4 w-40" />
+            <Shimmer className="h-5 w-16" />
+          </div>
+          <div className="flex gap-2 items-center">
+            <Shimmer className="h-5 w-20 rounded-md" />
+            <Shimmer className="h-3 w-32" />
+          </div>
+          <Shimmer className="h-2.5 w-full rounded-full" />
+        </div>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="app-card rounded-xl border p-4 space-y-2 text-center">
+          <Shimmer className="h-8 w-12 mx-auto" />
+          <Shimmer className="h-3 w-24 mx-auto" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/** By Team — summary KPIs, help/health panels, team cards */
+export const ExecutiveByTeamSkeleton = ({ className = '' }) => (
+  <div className={`space-y-4 sm:space-y-6 ${className}`} aria-busy="true" aria-label="Loading By Team">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <Shimmer className="h-7 w-28" />
+        <Shimmer className="h-4 w-72" />
+      </div>
+      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <Shimmer className="h-10 w-full sm:w-44 rounded-xl" />
+        <Shimmer className="h-10 w-full sm:w-40 rounded-xl" />
+      </div>
+    </div>
+
+    <StatsGridSkeleton count={4} />
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {Array.from({ length: 2 }).map((_, col) => (
+        <div key={col} className="app-card rounded-xl border p-4 space-y-3">
+          <Shimmer className="h-5 w-40" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Shimmer className="h-6 w-6 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Shimmer className="h-4 w-2/3" />
+                <Shimmer className="h-2 w-full rounded-full" />
+              </div>
+              <Shimmer className="h-5 w-8" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="app-card rounded-xl border p-4 space-y-3">
+          <div className="flex justify-between gap-2">
+            <Shimmer className="h-4 w-32" />
+            <Shimmer className="h-5 w-16 rounded-md" />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 3 }).map((_, j) => (
+              <div key={j} className="rounded-lg border border-app/20 p-2 space-y-1">
+                <Shimmer className="h-5 w-8" />
+                <Shimmer className="h-2.5 w-12" />
+              </div>
+            ))}
+          </div>
+          <Shimmer className="h-2 w-full rounded-full" />
+          <Shimmer className="h-3 w-28" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/** Reports — type picker + preview panels */
+export const ExecutiveReportsSkeleton = ({ className = '' }) => (
+  <div className={`space-y-4 sm:space-y-6 ${className}`} aria-busy="true" aria-label="Loading Reports">
+    <div className="space-y-2">
+      <Shimmer className="h-7 w-28" />
+      <Shimmer className="h-4 w-72" />
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="rounded-xl border border-app/40 bg-app-surface-2/40 p-4 space-y-3">
+          <Shimmer className="h-5 w-40" />
+          <Shimmer className="h-3 w-full" />
+          <Shimmer className="h-3 w-2/3" />
+        </div>
+      ))}
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="rounded-xl border border-app/40 p-4 space-y-3">
+        <Shimmer className="h-5 w-36" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Shimmer key={i} className="h-10 w-full rounded-xl" />
+        ))}
+      </div>
+      <div className="rounded-xl border border-app/40 p-4 space-y-3">
+        <Shimmer className="h-5 w-32" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="rounded-lg border border-app/30 p-3 space-y-2">
+            <Shimmer className="h-4 w-3/4" />
+            <Shimmer className="h-3 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+    <Shimmer className="h-12 w-full sm:w-48 rounded-xl" />
+  </div>
+);
+
+/** Feedback — 4 KPIs + rating bars + comments */
+export const ExecutiveFeedbackSkeleton = ({ className = '' }) => (
+  <div className={`space-y-4 sm:space-y-6 ${className}`} aria-busy="true" aria-label="Loading Feedback">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-2">
+        <Shimmer className="h-7 w-32" />
+        <Shimmer className="h-4 w-72" />
+      </div>
+      <Shimmer className="h-10 w-full sm:w-40 rounded-xl" />
+    </div>
+    <StatsGridSkeleton count={4} />
+    <div className="app-card rounded-xl border p-4 sm:p-5 space-y-4">
+      <Shimmer className="h-5 w-40" />
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Shimmer className="h-4 w-16" />
+          <Shimmer className="h-2.5 flex-1 rounded-full" />
+          <Shimmer className="h-4 w-10" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/** Map active Executive Dashboard tab → matching skeleton */
+export const getExecutiveTabSkeleton = (tabId = 'overview') => {
+  switch (tabId) {
+    case 'analytics':
+      return <ExecutiveChartsSkeleton />;
+    case 'performance':
+      return <ExecutiveServiceQualitySkeleton />;
+    case 'departments':
+      return <ExecutiveByTeamSkeleton />;
+    case 'reports':
+      return <ExecutiveReportsSkeleton />;
+    case 'feedback':
+      return <ExecutiveFeedbackSkeleton />;
+    case 'overview':
+    default:
+      return <ExecutiveGlanceSkeleton />;
+  }
+};

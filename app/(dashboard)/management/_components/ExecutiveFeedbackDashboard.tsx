@@ -7,6 +7,9 @@ import {
   formatFeedbackDateTime,
   getFeedbackUserLabel,
 } from '@/lib/utils/feedbackReportUtils';
+import { getDateRangeLabel, getDateRangeSpanLabel } from '@/lib/utils/analytics';
+import { buildFeedbackSummary } from '@/lib/utils/managementReportUtils';
+import DateRangeSelect from './DateRangeSelect';
 
 const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRangeChange }) => {
   const [exportLoading, setExportLoading] = useState(null);
@@ -20,45 +23,12 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
     [feedback, dateRange],
   );
 
-  const calculateMetrics = () => {
-    const totalFeedback = filteredFeedback.length;
-    const averageRating =
-      totalFeedback > 0
-        ? (
-            filteredFeedback.reduce((sum, item) => sum + (item.rating || 0), 0) /
-            totalFeedback
-          ).toFixed(1)
-        : 0;
+  const metrics = useMemo(
+    () => buildFeedbackSummary(filteredFeedback),
+    [filteredFeedback],
+  );
 
-    const highRatings = filteredFeedback.filter((item) => item.rating >= 4).length;
-    const lowRatings = filteredFeedback.filter((item) => item.rating <= 2).length;
-
-    const satisfactionRate =
-      totalFeedback > 0 ? ((highRatings / totalFeedback) * 100).toFixed(1) : 0;
-    const improvementRate =
-      totalFeedback > 0 ? ((lowRatings / totalFeedback) * 100).toFixed(1) : 0;
-
-    return {
-      totalFeedback,
-      averageRating,
-      satisfactionRate,
-      improvementRate,
-      highRatings,
-      lowRatings,
-    };
-  };
-
-  const metrics = calculateMetrics();
-
-  const ratingDistribution = useMemo(() => {
-    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    filteredFeedback.forEach((item) => {
-      if (item.rating >= 1 && item.rating <= 5) {
-        distribution[item.rating] += 1;
-      }
-    });
-    return distribution;
-  }, [filteredFeedback]);
+  const ratingDistribution = metrics.ratingDistribution;
 
   const handleExport = async (format) => {
     if (filteredFeedback.length === 0) return;
@@ -153,25 +123,16 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
             <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-app-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <span className="truncate">Executive Feedback Report</span>
+            <span className="truncate">User Feedback</span>
           </h2>
           <p className="text-xs sm:text-sm text-app-muted mt-1">
-            User feedback with submitter name, date, and export options
+            How satisfied users are with IT support
+            <span className="text-app-muted/80"> · {getDateRangeSpanLabel(dateRange)}</span>
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-          <select
-            value={dateRange}
-            onChange={(e) => onDateRangeChange?.(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 app-field border rounded-lg text-sm focus:outline-none focus:border-transparent"
-            aria-label="Date range"
-          >
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="365">Last year</option>
-          </select>
+          <DateRangeSelect value={dateRange} onChange={onDateRangeChange} />
 
           <button
             type="button"
@@ -195,9 +156,9 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <StatCard
-          title="Total Feedback"
+          title="Ratings received"
           value={metrics.totalFeedback}
-          subtitle={`Last ${dateRange} days`}
+          subtitle={getDateRangeLabel(dateRange)}
           color="bg-sky-500/15 text-sky-700"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +168,7 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
         />
 
         <StatCard
-          title="Average Rating"
+          title="Average score"
           value={metrics.averageRating}
           subtitle="Out of 5 stars"
           color="bg-amber-500/15 text-amber-700"
@@ -219,9 +180,9 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
         />
 
         <StatCard
-          title="Satisfaction Rate"
+          title="Happy users"
           value={`${metrics.satisfactionRate}%`}
-          subtitle="High ratings (4-5 stars)"
+          subtitle="Gave 4–5 stars"
           color="bg-app-primary-soft text-app-primary"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,9 +192,9 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
         />
 
         <StatCard
-          title="Improvement Areas"
+          title="Needs improvement"
           value={`${metrics.improvementRate}%`}
-          subtitle="Low ratings (1-2 stars)"
+          subtitle="Gave 1–2 stars"
           color="bg-rose-500/15 text-rose-600"
           icon={
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +205,7 @@ const ExecutiveFeedbackDashboard = ({ feedback = [], dateRange = '30', onDateRan
       </div>
 
       <div className="app-card rounded-xl border p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Rating Distribution</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Star ratings breakdown</h3>
         <div className="space-y-3">
           {[5, 4, 3, 2, 1].map((rating) => {
             const count = ratingDistribution[rating];
