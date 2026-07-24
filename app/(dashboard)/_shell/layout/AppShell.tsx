@@ -61,7 +61,13 @@ function AppShellContent({ children }) {
     return (
       <div className="min-h-screen bg-app-gradient text-app app-shell" style={shellStyle}>
         <Header />
-        <main className="pt-0 lg:pt-14 pb-6 overflow-x-clip">{children}</main>
+        <main
+          className={`overflow-x-clip ${
+            isLandingPage ? 'pt-12 sm:pt-14 pb-0' : 'pt-0 lg:pt-14 pb-6'
+          }`}
+        >
+          {children}
+        </main>
       </div>
     );
   }
