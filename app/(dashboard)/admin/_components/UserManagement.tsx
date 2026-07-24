@@ -285,7 +285,7 @@ const UserManagement = () => {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [togglingUserId, setTogglingUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [viewMode, setViewMode] = useState('auto');
+  const [viewMode, setViewMode] = useState('table'); // 'cards' | 'table'
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
@@ -744,10 +744,12 @@ const UserManagement = () => {
           </h2>
           
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 lg:space-x-4">
-            {/* View Mode Toggle - Hidden on mobile, show on larger screens */}
-            <div className="hidden lg:flex items-center space-x-2">
+            {/* View Mode Toggle — desktop only (mobile always uses cards) */}
+            <div className="hidden lg:flex items-center space-x-2" role="group" aria-label="User list view">
               <button
+                type="button"
                 onClick={() => setViewMode('cards')}
+                aria-pressed={viewMode === 'cards'}
                 className={`p-2 rounded-lg transition-colors ${
                   viewMode === 'cards' ? 'bg-app-primary-soft text-app-primary' : 'text-app-muted hover:text-app'
                 }`}
@@ -758,7 +760,9 @@ const UserManagement = () => {
                 </svg>
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('table')}
+                aria-pressed={viewMode === 'table'}
                 className={`p-2 rounded-lg transition-colors ${
                   viewMode === 'table' ? 'bg-app-primary-soft text-app-primary' : 'text-app-muted hover:text-app'
                 }`}
@@ -923,15 +927,23 @@ const UserManagement = () => {
         </div>
       ) : (
         <>
-          {/* Mobile/Tablet Card View */}
-          <div className="block lg:hidden space-y-3 sm:space-y-4">
+          {/* Card view: always on mobile/tablet; desktop when Cards is selected */}
+          <div
+            className={`${
+              viewMode === 'cards' ? 'block' : 'block lg:hidden'
+            } space-y-3 sm:space-y-4`}
+          >
             {filteredAndSortedUsers.map((user) => (
               <UserCard key={user.id} user={user} />
             ))}
           </div>
 
-          {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-x-auto rounded-xl border border-app bg-app-panel">
+          {/* Table view: desktop only when Table is selected */}
+          <div
+            className={`${
+              viewMode === 'table' ? 'hidden lg:block' : 'hidden'
+            } overflow-x-auto rounded-xl border border-app bg-app-panel`}
+          >
             <table className="w-full min-w-[880px] text-sm">
               <thead>
                 <tr className="border-b border-app bg-app-surface-2/60 text-left text-[11px] uppercase tracking-wide text-app-muted">
