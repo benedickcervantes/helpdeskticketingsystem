@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FpdcLogo } from '@/lib/ui/FpdcLogo';
@@ -18,28 +18,40 @@ const Header = () => {
   const [mounted, setMounted] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Handle notification center close
-  const handleNotificationCenterClose = () => {
-    setShowNotifications(false);
-  };
+  useEffect(() => {
+    setIsProfileOpen(false);
+  }, [pathname]);
 
-  // Handle notification bell click
-  const handleNotificationBellClick = () => {
-    setShowNotifications(true);
-  };
+  useEffect(() => {
+    if (!isProfileOpen) return;
 
-  if (!mounted) {
-    return null;
-  }
+    const handlePointerDown = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setIsProfileOpen(false);
+      }
+    };
 
-  const dashboardPath = getDashboardPath(userProfile?.role);
-  const showDashboardButton = !isOnDashboardPage(pathname, userProfile?.role);
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setIsProfileOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isProfileOpen]);
+
   const isLandingPage = pathname === '/';
+  const dashboardPath = getDashboardPath(userProfile?.role);
+  const showDashboardButton = !!currentUser && !isOnDashboardPage(pathname, userProfile?.role);
   const showThemeMenu = !!currentUser && !isLandingPage;
 
   const ProfilePhoto = () => {
@@ -49,25 +61,55 @@ const Header = () => {
       return (
         <img
           src={photoURL}
-          alt="Profile"
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-app-subtle"
+          alt=""
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-app-subtle"
         />
       );
     }
 
     return (
-      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-app-primary flex items-center justify-center font-semibold text-sm sm:text-base border-2 border-app-subtle">
+      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-app-primary flex items-center justify-center font-semibold text-sm border border-app-subtle text-white">
         {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
       </div>
     );
   };
 
+  if (!mounted) {
+    return (
+      <header
+        className={`z-50 border-b border-app-subtle ${
+          pathname === '/'
+            ? 'fixed top-0 left-0 right-0 bg-gray-950 border-gray-800'
+            : 'sticky top-0 bg-app-header lg:fixed lg:left-0 lg:right-0'
+        }`}
+      >
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between h-12 sm:h-14">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-app-surface-3 skeleton-shimmer" />
+              <div className="space-y-1.5 hidden sm:block">
+                <div className="h-3.5 w-16 rounded bg-app-surface-3 skeleton-shimmer" />
+                <div className="h-2.5 w-24 rounded bg-app-surface-3/70 skeleton-shimmer" />
+              </div>
+            </div>
+            <div className="h-8 w-24 rounded-lg bg-app-surface-3 skeleton-shimmer" />
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-app-subtle bg-app-header lg:fixed lg:left-0 lg:right-0">
+      <header
+        className={`z-50 border-b border-app-subtle ${
+          isLandingPage
+            ? 'fixed top-0 left-0 right-0 bg-gray-950 border-gray-800'
+            : 'sticky top-0 bg-app-header lg:fixed lg:left-0 lg:right-0'
+        }`}
+      >
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="flex items-center justify-between gap-2 h-12 sm:h-14 min-w-0">
-            {/* Left side - Menu toggle + Logo */}
             <div className="flex items-center flex-1 min-w-0 overflow-hidden">
               {shell?.showSidebarToggle && (
                 <button
@@ -99,32 +141,34 @@ const Header = () => {
                   </svg>
                 </button>
               )}
-              {/* Logo - Updated to match footer */}
-              <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group">
+
+              <Link
+                href="/"
+                className="flex items-center gap-2 sm:gap-2.5 group min-w-0"
+                aria-label="FPDC IT Helpdesk home"
+              >
                 <FpdcLogo
                   size="md"
-                  className="group-hover:scale-105 transition-transform duration-200"
+                  className="group-hover:scale-[1.03] transition-transform duration-200"
                   priority
                 />
                 <div className="block min-w-0">
-                  <h1 className="text-sm sm:text-base md:text-lg font-bold leading-tight text-app">
+                  <p className="text-sm sm:text-base font-bold leading-tight text-app truncate">
                     FPDC
-                  </h1>
-                  <p className="hidden lg:block text-[10px] leading-tight text-app-muted group-hover:text-app-soft transition-colors duration-200 truncate">
-                    Helpdesk Enterprise IT Support
+                  </p>
+                  <p className="hidden sm:block text-[11px] leading-tight text-app-muted group-hover:text-app-soft transition-colors truncate">
+                    IT Helpdesk
                   </p>
                 </div>
               </Link>
             </div>
 
-            {/* Right side - Different content based on authentication */}
             {currentUser ? (
-              /* Authenticated users */
               <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
                 {showDashboardButton && (
                   <Link
                     href={dashboardPath}
-                    className="hidden xl:inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-app-primary text-sm font-medium rounded-lg transition-colors duration-200"
+                    className="hidden lg:inline-flex items-center px-3.5 py-2 bg-app-primary hover:opacity-90 text-sm font-medium rounded-lg transition-opacity duration-200 text-white"
                   >
                     Dashboard
                   </Link>
@@ -132,17 +176,18 @@ const Header = () => {
 
                 {showThemeMenu && <ThemeMenu />}
 
-                {/* Notification Bell */}
-                <NotificationBell 
-                  onClick={handleNotificationBellClick} 
+                <NotificationBell
+                  onClick={() => setShowNotifications(true)}
                   isActive={showNotifications}
                 />
-                
-                {/* User Profile Dropdown */}
-                <div className="relative flex-shrink-0">
+
+                <div className="relative flex-shrink-0" ref={profileRef}>
                   <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    type="button"
+                    onClick={() => setIsProfileOpen((open) => !open)}
                     className="flex items-center gap-1.5 sm:gap-2 p-1 rounded-xl bg-app-surface-2/50 border border-app-subtle hover:bg-app-surface-3 transition-colors duration-200"
+                    aria-expanded={isProfileOpen}
+                    aria-haspopup="menu"
                   >
                     <ProfilePhoto />
                     <div className="hidden xl:block text-left min-w-0">
@@ -150,14 +195,23 @@ const Header = () => {
                         {userProfile?.name || 'User'}
                       </p>
                     </div>
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-app-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className={`w-3.5 h-3.5 text-app-muted flex-shrink-0 transition-transform duration-200 ${
+                        isProfileOpen ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
-                  {/* Profile Dropdown Menu */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1.25rem)] sm:w-64 bg-app-surface border border-app rounded-xl shadow-xl z-50">
+                    <div
+                      role="menu"
+                      className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1.25rem)] sm:w-64 bg-app-surface border border-app rounded-xl shadow-xl z-50 overflow-hidden"
+                    >
                       <div className="px-3 py-2.5 border-b border-app">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="flex-shrink-0">
@@ -180,7 +234,8 @@ const Header = () => {
                         {showDashboardButton && (
                           <Link
                             href={dashboardPath}
-                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200 sm:hidden"
+                            role="menuitem"
+                            className="flex items-center gap-2.5 px-3 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200 lg:hidden"
                             onClick={() => setIsProfileOpen(false)}
                           >
                             <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,6 +246,7 @@ const Header = () => {
                         )}
                         <Link
                           href="/profile"
+                          role="menuitem"
                           className="flex items-center gap-2.5 px-3 py-2 text-sm text-app-soft hover:bg-app-surface-2 hover:text-app transition-colors duration-200"
                           onClick={() => setIsProfileOpen(false)}
                         >
@@ -201,6 +257,7 @@ const Header = () => {
                         </Link>
                         <button
                           type="button"
+                          role="menuitem"
                           onClick={() => {
                             setIsProfileOpen(false);
                             logout();
@@ -218,17 +275,16 @@ const Header = () => {
                 </div>
               </div>
             ) : (
-              /* Non-authenticated users — no theme customizer on public landing */
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 <Link
                   href="/auth"
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-medium text-app-soft hover:text-app transition-colors duration-200"
+                  className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-app-soft hover:text-app transition-colors duration-200 rounded-lg hover:bg-app-surface-2/60 min-h-9 inline-flex items-center"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth?register=true"
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm"
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200 min-h-9 inline-flex items-center"
                 >
                   Register
                 </Link>
@@ -238,10 +294,9 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Notification Center */}
-      <NotificationCenter 
-        isOpen={showNotifications} 
-        onClose={handleNotificationCenterClose} 
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
       />
     </>
   );

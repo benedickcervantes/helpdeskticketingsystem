@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { ModernSpinner } from '@/lib/ui/LoadingComponents';
 import { FpdcLogo } from '@/lib/ui/FpdcLogo';
+import Link from 'next/link';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +15,15 @@ import {
   subscribeDesignationEvents,
 } from '@/lib/realtime/socketClient';
 import OptionPickerModal from '@/lib/ui/OptionPickerModal';
+
+const FieldIcon = ({ children }) => (
+  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 text-gray-400">
+    {children}
+  </div>
+);
+
+const inputClass =
+  'w-full min-h-11 pl-10 pr-4 py-2.5 sm:py-3 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/80 focus:border-emerald-500/50 transition-colors duration-200 bg-gray-900/70 text-white placeholder-gray-500 text-sm sm:text-base disabled:opacity-50';
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,7 +38,7 @@ const AuthForm = () => {
     name: '',
     designation: '',
     department: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,12 +49,11 @@ const AuthForm = () => {
   const [designations, setDesignations] = useState([]);
   const [designationPickerOpen, setDesignationPickerOpen] = useState(false);
   const [departmentPickerOpen, setDepartmentPickerOpen] = useState(false);
-  
+
   const { signin, signup, authLoading, currentUser, userProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Redirect if authenticated (keep global loader visible during navigation)
   useEffect(() => {
     if (currentUser && userProfile) {
       const userRole = userProfile.role || 'user';
@@ -58,7 +67,6 @@ const AuthForm = () => {
     }
   }, [currentUser, userProfile, router]);
 
-  // Check for register query parameter
   useEffect(() => {
     const registerParam = searchParams.get('register');
     if (registerParam === 'true') {
@@ -97,11 +105,11 @@ const AuthForm = () => {
 
     const unsubscribeDepartments = subscribeDepartmentEvents(
       (items) => applyDepartments(items),
-      { publicOnly: true },
+      { publicOnly: true }
     );
     const unsubscribeDesignations = subscribeDesignationEvents(
       (items) => applyDesignations(items),
-      { publicOnly: true },
+      { publicOnly: true }
     );
 
     return () => {
@@ -111,13 +119,13 @@ const AuthForm = () => {
       disconnectPublicSocket();
     };
   }, []);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    // Clear error when user starts typing
     if (error) setError('');
     setSuccessMessage('');
   };
@@ -164,7 +172,7 @@ const AuthForm = () => {
     setResetToken('');
     setVerifiedEmail('');
     setVerifiedName('');
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       password: '',
       confirmPassword: '',
@@ -216,7 +224,7 @@ const AuthForm = () => {
         password: formData.password,
       });
       setSuccessMessage('Password updated successfully! You can now sign in with your new password.');
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         password: '',
         confirmPassword: '',
@@ -241,7 +249,6 @@ const AuthForm = () => {
     try {
       if (isLogin) {
         await signin(formData.email, formData.password);
-        // Don't redirect here - let useEffect handle it
       } else {
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match');
@@ -253,98 +260,195 @@ const AuthForm = () => {
           setLoading(false);
           return;
         }
-        
+
         await signup(
           formData.email,
           formData.password,
           formData.name,
           'user',
           formData.department,
-          formData.designation,
+          formData.designation
         );
-        
+
         setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
-        
-        // Clear form data
+
         setFormData({
           email: '',
           password: '',
           name: '',
           designation: '',
           department: '',
-          confirmPassword: ''
+          confirmPassword: '',
         });
-        
-        // Redirect will be handled by useEffect
       }
     } catch (error) {
-      const friendlyMessage = getErrorMessage(error);
-      setError(friendlyMessage);
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
 
+  const switchMode = (loginMode) => {
+    setIsLogin(loginMode);
+    setIsForgotPassword(false);
+    setForgotStep(1);
+    setError('');
+    setSuccessMessage('');
+    router.replace(loginMode ? '/auth' : '/auth?register=true');
+  };
+
   const pickerDisabled = loading || authLoading;
-  const triggerClass =
-    'w-full min-w-0 max-w-full min-h-[48px] pl-10 pr-10 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-left text-white appearance-none input-field disabled:opacity-50';
+  const triggerClass = `${inputClass} pr-10 text-left appearance-none`;
+
+  const title = isForgotPassword
+    ? forgotStep === 1
+      ? 'Forgot password'
+      : 'Set new password'
+    : isLogin
+      ? 'Sign in'
+      : 'Create account';
+
+  const subtitle = isForgotPassword
+    ? forgotStep === 1
+      ? 'Enter your registered email to verify your account'
+      : `Create a new password for ${verifiedEmail}`
+    : isLogin
+      ? 'Access the FPDC IT Helpdesk'
+      : 'Register for FPDC IT support access';
+
+  const submitLabel = isForgotPassword
+    ? forgotStep === 1
+      ? 'Verify email'
+      : 'Update password'
+    : isLogin
+      ? 'Sign in'
+      : 'Create account';
+
+  const loadingLabel = isForgotPassword
+    ? forgotStep === 1
+      ? 'Verifying...'
+      : 'Updating password...'
+    : isLogin
+      ? 'Signing in...'
+      : 'Creating account...';
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full min-w-0 space-y-6">
-        {/* Form card */}
-        <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 sm:p-8 shadow-2xl min-w-0 overflow-x-hidden">
-        {/* Header */}
-        <div className="text-center">
-          <FpdcLogo size="xl" className="mx-auto shadow-2xl" priority />
-          <h2 className="mt-4 text-2xl sm:text-3xl font-bold text-white">
-            {isForgotPassword
-              ? forgotStep === 1
-                ? 'Forgot Password'
-                : 'Set New Password'
-              : isLogin
-                ? 'Welcome Back'
-                : 'Create Account'}
-          </h2>
-          <p className="mt-1 text-sm text-gray-400">
-            {isForgotPassword
-              ? forgotStep === 1
-                ? 'Enter your registered email to verify your account'
-                : `Create a new password for ${verifiedEmail}`
-              : isLogin
-                ? 'Sign in to your FPDC account'
-                : 'Join thousands of IT professionals'}
-          </p>
+    <div className="min-h-screen flex flex-col justify-center py-8 sm:py-10 px-3 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md mx-auto min-w-0">
+        <div className="mb-4 sm:mb-5">
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 min-h-10 rounded-xl border border-gray-800 bg-gray-900/60 px-3 sm:px-3.5 text-sm text-gray-300 hover:border-emerald-500/40 hover:bg-gray-900 hover:text-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70"
+          >
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-gray-950 border border-gray-800 text-gray-400 group-hover:border-emerald-500/30 group-hover:text-emerald-400 transition-colors duration-200">
+              <svg
+                className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </span>
+            <span className="font-medium">Back to home</span>
+          </Link>
         </div>
 
-        {/* Form */}
-        <form
-          className="mt-6 space-y-6"
-          onSubmit={
-            isForgotPassword
-              ? forgotStep === 1
-                ? handleVerifyEmail
-                : handleResetPassword
-              : handleSubmit
-          }
-        >
-          <div className="space-y-4">
+        <div className="rounded-2xl border border-gray-800 bg-gray-900/80 p-5 sm:p-8 shadow-2xl shadow-black/30 min-w-0 overflow-x-hidden">
+          {/* Brand */}
+          <div className="flex items-center gap-3 mb-5 sm:mb-6">
+            <FpdcLogo size="lg" className="shrink-0" priority />
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-medium tracking-wide uppercase text-emerald-400/90 truncate">
+                Federal Pioneer Development Corp.
+              </p>
+              <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">IT Helpdesk</h1>
+            </div>
+          </div>
+
+          {/* Mode tabs — sliding pill */}
+          {!isForgotPassword && (
+            <div
+              className="relative flex p-1 mb-5 sm:mb-6 rounded-xl bg-gray-950/80 border border-gray-800"
+              role="tablist"
+              aria-label="Authentication mode"
+            >
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-lg bg-emerald-600 shadow-md shadow-emerald-900/30 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+                  isLogin ? 'translate-x-0' : 'translate-x-full'
+                }`}
+              />
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isLogin}
+                onClick={() => switchMode(true)}
+                disabled={loading || authLoading}
+                className={`relative z-10 flex-1 min-h-10 rounded-lg text-sm font-semibold transition-colors duration-300 ${
+                  isLogin ? 'text-white' : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!isLogin}
+                onClick={() => switchMode(false)}
+                disabled={loading || authLoading}
+                className={`relative z-10 flex-1 min-h-10 rounded-lg text-sm font-semibold transition-colors duration-300 ${
+                  !isLogin ? 'text-white' : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Register
+              </button>
+            </div>
+          )}
+
+          <div
+            key={isForgotPassword ? `forgot-${forgotStep}` : isLogin ? 'login' : 'register'}
+            className="auth-mode-panel"
+          >
+            <div className="mb-5">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">{title}</h2>
+              <p className="mt-1 text-sm text-gray-400 break-words">{subtitle}</p>
+            </div>
+
+          <form
+            className="space-y-4"
+            onSubmit={
+              isForgotPassword
+                ? forgotStep === 1
+                  ? handleVerifyEmail
+                  : handleResetPassword
+                : handleSubmit
+            }
+          >
             {!isLogin && !isForgotPassword && (
               <>
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-300 mb-2">
-                    Full Name
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1.5">
+                    Full name
                   </label>
-                  <div className="relative input-icon-container">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
-                      <span className="text-gray-400 text-lg font-bold">👨‍💼</span>
-                    </div>
+                  <div className="relative">
+                    <FieldIcon>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </FieldIcon>
                     <input
                       id="name"
                       name="name"
                       type="text"
                       required={!isLogin}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                      className={inputClass}
                       placeholder="Enter full name"
                       value={formData.name}
                       onChange={handleChange}
@@ -354,13 +458,23 @@ const AuthForm = () => {
                 </div>
 
                 <div className="min-w-0">
-                  <label htmlFor="designation" className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label
+                    htmlFor="designation"
+                    className="block text-sm font-medium text-gray-300 mb-1.5"
+                  >
                     Designation
                   </label>
-                  <div className="relative input-icon-container min-w-0">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
-                      <span className="text-gray-400 text-lg font-bold">🪪</span>
-                    </div>
+                  <div className="relative min-w-0">
+                    <FieldIcon>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"
+                        />
+                      </svg>
+                    </FieldIcon>
                     <button
                       type="button"
                       id="designation"
@@ -373,26 +487,43 @@ const AuthForm = () => {
                     >
                       <span
                         className={`block min-w-0 truncate ${
-                          formData.designation ? 'text-white' : 'text-gray-400'
+                          formData.designation ? 'text-white' : 'text-gray-500'
                         }`}
                       >
                         {formData.designation || 'Select your designation'}
                       </span>
                     </button>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none z-10 input-icon">
-                      <span className="text-gray-400 text-sm">▼</span>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="min-w-0">
-                  <label htmlFor="department" className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label
+                    htmlFor="department"
+                    className="block text-sm font-medium text-gray-300 mb-1.5"
+                  >
                     Department
                   </label>
-                  <div className="relative input-icon-container min-w-0">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
-                      <span className="text-gray-400 text-lg font-bold">🏢</span>
-                    </div>
+                  <div className="relative min-w-0">
+                    <FieldIcon>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
+                      </svg>
+                    </FieldIcon>
                     <button
                       type="button"
                       id="department"
@@ -405,28 +536,42 @@ const AuthForm = () => {
                     >
                       <span
                         className={`block min-w-0 truncate ${
-                          formData.department ? 'text-white' : 'text-gray-400'
+                          formData.department ? 'text-white' : 'text-gray-500'
                         }`}
                       >
                         {formData.department || 'Select your department'}
                       </span>
                     </button>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none z-10 input-icon">
-                      <span className="text-gray-400 text-sm">▼</span>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
                     </div>
                   </div>
                 </div>
               </>
             )}
-            
+
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
-                Email Address
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">
+                Email address
               </label>
-              <div className="relative input-icon-container">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
-                  <span className="text-gray-400 text-lg font-bold">📧</span>
-                </div>
+              <div className="relative">
+                <FieldIcon>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </FieldIcon>
                 <input
                   id="email"
                   name="email"
@@ -434,7 +579,9 @@ const AuthForm = () => {
                   autoComplete="email"
                   required
                   readOnly={isForgotPassword && forgotStep === 2}
-                  className={`w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field ${isForgotPassword && forgotStep === 2 ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`${inputClass} ${
+                    isForgotPassword && forgotStep === 2 ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
                   placeholder="Enter email address"
                   value={isForgotPassword && forgotStep === 2 ? verifiedEmail : formData.email}
                   onChange={handleChange}
@@ -444,83 +591,106 @@ const AuthForm = () => {
             </div>
 
             {isForgotPassword && forgotStep === 2 && verifiedName && (
-              <div className="bg-emerald-900/20 border border-emerald-700/40 text-emerald-300 px-4 py-3 rounded-xl text-sm">
-                Account verified: <span className="font-semibold text-white">{verifiedName}</span>
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-200">
+                Account verified:{' '}
+                <span className="font-semibold text-white">{verifiedName}</span>
               </div>
             )}
-            
+
             {(!isForgotPassword || forgotStep === 2) && (
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-300 mb-2">
-                {isForgotPassword ? 'New Password' : 'Password'}
-              </label>
-              <div className="relative input-icon-container">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
-                  <div className="relative group">
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-emerald-400 transition-all duration-300 transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
-                  </div>
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete={isForgotPassword ? 'new-password' : 'current-password'}
-                  required={!isForgotPassword || forgotStep === 2}
-                  className="w-full pl-10 pr-14 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
-                  placeholder={isForgotPassword ? 'Enter new password' : 'Enter password'}
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={loading || authLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center z-10 text-gray-400 hover:text-emerald-400 transition-all duration-300 group"
-                  disabled={loading || authLoading}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-300 mb-1.5"
                 >
-                  <div className="relative">
+                  {isForgotPassword ? 'New password' : 'Password'}
+                </label>
+                <div className="relative">
+                  <FieldIcon>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </FieldIcon>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete={isForgotPassword ? 'new-password' : 'current-password'}
+                    required={!isForgotPassword || forgotStep === 2}
+                    className={`${inputClass} pr-12`}
+                    placeholder={isForgotPassword ? 'Enter new password' : 'Enter password'}
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={loading || authLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-emerald-400 transition-colors min-w-10 justify-center"
+                    disabled={loading || authLoading}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
                     {showPassword ? (
-                      <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                      </svg>                      
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                        />
+                      </svg>
                     ) : (
-                      <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
                       </svg>
                     )}
-                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
-                  </div>
-                </button>
+                  </button>
+                </div>
               </div>
-            </div>
             )}
-            
+
             {(!isLogin && !isForgotPassword) || (isForgotPassword && forgotStep === 2) ? (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-300 mb-2">
-                  Confirm Password
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-300 mb-1.5"
+                >
+                  Confirm password
                 </label>
-                <div className="relative input-icon-container">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 input-icon">
-                    <div className="relative group">
-                      <svg className="w-5 h-5 text-gray-400 group-hover:text-emerald-400 transition-all duration-300 transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      
-                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
-                    </div>
-                  </div>
+                <div className="relative">
+                  <FieldIcon>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </FieldIcon>
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     required={!isLogin || (isForgotPassword && forgotStep === 2)}
-                    className="w-full pl-10 pr-14 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-700/50 backdrop-blur-sm text-white placeholder-gray-400 input-field"
+                    className={`${inputClass} pr-12`}
                     placeholder="Confirm password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
@@ -529,29 +699,42 @@ const AuthForm = () => {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center z-10 text-gray-400 hover:text-emerald-400 transition-all duration-300 group"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-emerald-400 transition-colors min-w-10 justify-center"
                     disabled={loading || authLoading}
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                   >
-                    <div className="relative">
-                      {showConfirmPassword ? (
-                        <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110 group-hover:-rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                      <div className="absolute inset-0 bg-emerald-500/20 rounded-full scale-0 group-hover:scale-150 transition-transform duration-500 opacity-0 group-hover:opacity-100"></div>
-                    </div>
+                    {showConfirmPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                        />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
             ) : null}
 
             {isLogin && !isForgotPassword && (
-              <div className="text-right -mt-2">
+              <div className="flex justify-end -mt-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -560,78 +743,58 @@ const AuthForm = () => {
                     setError('');
                     setSuccessMessage('');
                   }}
-                  className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                  className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
                   disabled={loading || authLoading}
                 >
-                  Forgot Password?
+                  Forgot password?
                 </button>
               </div>
             )}
 
             {error && (
-              <div className="bg-red-900/30 border border-red-700 text-red-400 px-4 py-3 rounded-xl text-sm">
-                <div className="flex">
-                  <span className="text-red-400 mr-2 flex-shrink-0">⚠️</span>
-                  {error}
-                </div>
+              <div
+                role="alert"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 px-3.5 py-3 text-sm text-red-300"
+              >
+                {error}
               </div>
             )}
 
             {successMessage && (
-              <div className="bg-emerald-900/30 border border-emerald-700 text-emerald-400 px-4 py-3 rounded-xl text-sm">
-                <div className="flex">
-                  <span className="text-emerald-400 mr-2 flex-shrink-0">✅</span>
-                  {successMessage}
-                </div>
+              <div
+                role="status"
+                className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-200"
+              >
+                {successMessage}
               </div>
             )}
-          </div>
 
-          <div>
             <button
               type="submit"
               disabled={loading || authLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+              className="w-full min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm sm:text-base font-semibold shadow-lg shadow-emerald-900/25 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading || authLoading ? (
-                <div className="flex items-center">
+                <>
                   <ModernSpinner size="sm" color="white" />
-                  <span className="ml-2">
-                    {isForgotPassword
-                      ? forgotStep === 1
-                        ? 'Verifying...'
-                        : 'Updating Password...'
-                      : isLogin
-                        ? 'Signing In...'
-                        : 'Creating Account...'}
-                  </span>
-                </div>
+                  <span>{loadingLabel}</span>
+                </>
               ) : (
-                <div className="flex items-center">
-                  <span className="mr-2">
-                    {isForgotPassword
-                      ? forgotStep === 1
-                        ? '✉️'
-                        : '🔒'
-                      : isLogin
-                        ? '🔑'
-                        : '👨‍💼'}
-                  </span>
-                  {isForgotPassword
-                    ? forgotStep === 1
-                      ? 'Verify Email'
-                      : 'Update Password'
-                    : isLogin
-                      ? 'Sign In'
-                      : 'Create Account'}
-                </div>
+                <>
+                  <span>{submitLabel}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </>
               )}
             </button>
-          </div>
 
-          {/* Toggle between login and signup */}
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-400">
+            <div className="pt-1 text-center text-sm text-gray-400">
               {isForgotPassword ? (
                 <>
                   Remember your password?
@@ -642,9 +805,9 @@ const AuthForm = () => {
                       setIsLogin(true);
                       router.replace('/auth');
                     }}
-                    className="ml-2 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                    className="ml-1.5 font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
                   >
-                    Back to Sign in
+                    Back to sign in
                   </button>
                 </>
               ) : (
@@ -652,23 +815,21 @@ const AuthForm = () => {
                   {isLogin ? "Don't have an account?" : 'Already have an account?'}
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsLogin(!isLogin);
-                      setError('');
-                      setSuccessMessage('');
-                      const next = !isLogin;
-                      router.replace(next ? '/auth' : '/auth?register=true');
-                    }}
-                    className="ml-2 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                    onClick={() => switchMode(!isLogin)}
+                    className="ml-1.5 font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
                   >
-                    {isLogin ? 'Sign up' : 'Sign in'}
+                    {isLogin ? 'Register' : 'Sign in'}
                   </button>
                 </>
               )}
-            </p>
+            </div>
+          </form>
           </div>
-        </form>
         </div>
+
+        <p className="mt-5 text-center text-xs text-gray-500">
+          FPDC IT Helpdesk — internal support access only
+        </p>
       </div>
 
       <OptionPickerModal
@@ -680,6 +841,7 @@ const AuthForm = () => {
         emptyMessage="No designations match your search."
         allowClear
         clearLabel="Clear designation"
+        tone="auth"
         onClose={() => setDesignationPickerOpen(false)}
         onSelect={(value) => {
           setFormData((prev) => ({ ...prev, designation: value }));
@@ -694,6 +856,7 @@ const AuthForm = () => {
         selected={formData.department}
         searchPlaceholder="Search departments…"
         emptyMessage="No departments match your search."
+        tone="auth"
         onClose={() => setDepartmentPickerOpen(false)}
         onSelect={(value) => {
           setFormData((prev) => ({ ...prev, department: value }));
