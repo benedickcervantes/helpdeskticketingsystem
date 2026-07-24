@@ -1,17 +1,104 @@
 // @ts-nocheck
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { api } from '@/lib/api/client';
+import { subscribeDepartmentEvents } from '@/lib/realtime/socketClient';
 import {
   buildManagementReportCharts,
+  buildServiceQualitySnapshot,
+  buildTeamAnalyticsReport,
   computeExecutiveMetrics,
   computeHealthStatus,
+  formatExecutiveDuration,
+  getDateRangeSpanLabel,
 } from '@/lib/utils/analytics';
 import { filterFeedbackByDateRange } from '@/lib/utils/feedbackReportUtils';
 import {
   buildFeedbackSummary,
+  buildDataDrivenInsights,
   getReportPeriodLabel,
 } from '@/lib/utils/managementReportUtils';
+import DateRangeSelect from './DateRangeSelect';
+
+const toDepartmentNames = (data) => {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => (typeof item === 'string' ? item : item?.name))
+    .map((name) => String(name || '').trim())
+    .filter(Boolean);
+};
+
+const REPORT_TYPES = [
+  {
+    id: 'dashboard',
+    name: 'Full overview',
+    description: 'Complete snapshot across all sections',
+  },
+  {
+    id: 'executive',
+    name: 'At a Glance',
+    description: 'Short summary for executives',
+  },
+  {
+    id: 'analytics',
+    name: 'Charts & volume',
+    description: 'Volume, status, and distribution',
+  },
+  {
+    id: 'operational',
+    name: 'Service quality',
+    description: 'Targets, finish rate, and speed',
+  },
+  {
+    id: 'departmental',
+    name: 'By Team',
+    description: 'Department-by-department breakdown',
+  },
+];
+
+const FORMAT_OPTIONS = [
+  {
+    id: 'pdf',
+    name: 'PDF',
+    description: 'Printable document with charts',
+  },
+  {
+    id: 'powerpoint',
+    name: 'PowerPoint',
+    description: 'Slides ready for meetings',
+  },
+];
+
+const ICON_PATHS = {
+  dashboard:
+    'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2',
+  executive:
+    'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z',
+  analytics:
+    'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+  operational: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+  departmental:
+    'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+  pdf: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+  powerpoint:
+    'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+};
+
+const ReportIcon = ({ id, className = '' }) => (
+  <span
+    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-app-primary-soft text-app-primary ${className}`}
+  >
+    <svg className="h-4.5 w-4.5 h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d={ICON_PATHS[id] || ICON_PATHS.dashboard}
+      />
+    </svg>
+  </span>
+);
 
 const ReportGenerator = ({
   tickets = [],
@@ -20,6 +107,38 @@ const ReportGenerator = ({
   dateRange = '30',
   onDateRangeChange,
 }) => {
+  const [departmentNames, setDepartmentNames] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const apply = (data) => {
+      if (cancelled) return;
+      const names = toDepartmentNames(data);
+      const seen = new Set();
+      const unique = [];
+      names.forEach((name) => {
+        const key = name.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        unique.push(name);
+      });
+      setDepartmentNames(unique);
+    };
+
+    api
+      .get('/api/v1/departments')
+      .then(apply)
+      .catch(() => {
+        if (!cancelled) setDepartmentNames([]);
+      });
+
+    const unsub = subscribeDepartmentEvents((items) => apply(items));
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
+
   const metrics = useMemo(
     () => computeExecutiveMetrics(tickets, feedback, dateRange),
     [tickets, feedback, dateRange],
@@ -33,283 +152,277 @@ const ReportGenerator = ({
     () => buildFeedbackSummary(filteredFeedback),
     [filteredFeedback],
   );
+  const serviceQuality = useMemo(
+    () => buildServiceQualitySnapshot(tickets, feedback, dateRange),
+    [tickets, feedback, dateRange],
+  );
+  const teamAnalytics = useMemo(
+    () => buildTeamAnalyticsReport(tickets, users, dateRange, departmentNames),
+    [tickets, users, dateRange, departmentNames],
+  );
   const reportPeriod = useMemo(() => getReportPeriodLabel(dateRange), [dateRange]);
+  const periodSpan = useMemo(() => getDateRangeSpanLabel(dateRange), [dateRange]);
+  const typicalFix = useMemo(
+    () => formatExecutiveDuration(metrics?.avgResolutionTime),
+    [metrics?.avgResolutionTime],
+  );
   const chartData = useMemo(
     () => buildManagementReportCharts(tickets, users, dateRange),
     [tickets, users, dateRange],
   );
+
   const [selectedReportType, setSelectedReportType] = useState('dashboard');
   const [selectedFormat, setSelectedFormat] = useState('pdf');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
 
-  const reportTypes = [
-    {
-      id: 'dashboard',
-      name: 'Management Dashboard Overview',
-      description: 'Complete overview across all dashboard sections',
-    },
-    {
-      id: 'executive',
-      name: 'Executive Summary',
-      description: 'High-level overview for C-level executives',
-    },
-    {
-      id: 'analytics',
-      name: 'Analytics Overview',
-      description: 'Comprehensive charts and data visualizations',
-    },
-    {
-      id: 'operational',
-      name: 'Performance Metrics',
-      description: 'Detailed performance metrics and KPIs',
-    },
-    {
-      id: 'departmental',
-      name: 'Department Analysis',
-      description: 'Department-wise performance breakdown',
-    },
-    {
-      id: 'trends',
-      name: 'Trend Analysis',
-      description: 'Historical trends and predictive insights',
-    },
-    {
-      id: 'compliance',
-      name: 'Compliance Report',
-      description: 'SLA compliance and audit trail',
-    },
-  ];
+  const selectedTypeMeta =
+    REPORT_TYPES.find((t) => t.id === selectedReportType) || REPORT_TYPES[0];
+  const selectedFormatMeta =
+    FORMAT_OPTIONS.find((f) => f.id === selectedFormat) || FORMAT_OPTIONS[0];
 
-  const formatOptions = [
-    { id: 'pdf', name: 'PDF Document', description: 'Professional PDF with charts' },
-    { id: 'powerpoint', name: 'PowerPoint Presentation', description: 'Executive presentation with visualizations' },
-  ];
+  const urgentOpen = metrics?.urgentOpenTickets || 0;
+  const finishedCount = metrics?.resolvedCount || 0;
+  const openCount = metrics?.openCount || 0;
+  const topByFinishRate = [...(teamAnalytics.teams || [])]
+    .filter((d) => (d.totalTickets || 0) > 0)
+    .sort(
+      (a, b) =>
+        (b.resolutionRate || 0) - (a.resolutionRate || 0) ||
+        (b.totalTickets || 0) - (a.totalTickets || 0),
+    )[0] ||
+    [...(chartData.departmentPerformance || [])]
+      .filter((d) => (d.total || 0) > 0)
+      .sort(
+        (a, b) =>
+          (b.resolutionRate || 0) - (a.resolutionRate || 0) ||
+          (b.total || 0) - (a.total || 0),
+      )[0];
+  const topByVolume =
+    [...(teamAnalytics.teams || [])]
+      .sort((a, b) => b.totalTickets - a.totalTickets)[0] ||
+    chartData.departmentPerformance?.[0];
+  // Normalize for findings that expect .department / .resolutionRate / .total
+  const topByFinishRateNorm = topByFinishRate
+    ? {
+        department: topByFinishRate.department,
+        resolutionRate: topByFinishRate.resolutionRate,
+        total: topByFinishRate.totalTickets ?? topByFinishRate.total,
+      }
+    : null;
+  const topByVolumeNorm = topByVolume
+    ? {
+        department: topByVolume.department,
+        total: topByVolume.totalTickets ?? topByVolume.total,
+      }
+    : null;
 
-  const renderReportIcon = (id) => {
-    const paths = {
-      dashboard: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2',
-      executive: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-      analytics: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-      operational: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-      departmental: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-      trends: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
-      compliance: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-      pdf: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
-      powerpoint: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-    };
-    return (
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-app-primary-soft text-app-primary mb-2.5">
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={paths[id] || paths.dashboard} />
-        </svg>
-      </span>
-    );
-  };
+  const weakestByRate = [...(teamAnalytics.teams || [])]
+    .filter((d) => (d.totalTickets || 0) >= 2)
+    .sort(
+      (a, b) =>
+        (a.resolutionRate || 0) - (b.resolutionRate || 0) ||
+        (b.totalTickets || 0) - (a.totalTickets || 0),
+    )[0];
 
-  const generateChartData = () => chartData;
+  const insightBase = () => ({
+    periodLabel: reportPeriod,
+    periodSpan,
+    totalTickets: metrics?.totalTickets || 0,
+    finishedCount,
+    openCount,
+    stillOpenCount: metrics?.stillOpenCount || 0,
+    resolutionRate: metrics?.resolutionRate || 0,
+    avgResolutionHours: metrics?.avgResolutionTime || 0,
+    typicalFixLabel: typicalFix,
+    urgentOpen,
+    customerSatisfaction:
+      (feedbackSummary?.totalFeedback || 0) > 0
+        ? Number(feedbackSummary.satisfactionRate)
+        : metrics?.customerSatisfaction || 0,
+    health: {
+      status: healthStatus?.status,
+      score: healthStatus?.score,
+      headline: healthStatus?.headline,
+      summary: healthStatus?.summary,
+    },
+    feedback: feedbackSummary,
+    serviceQuality: {
+      score: serviceQuality.score,
+      verdict: serviceQuality.verdict,
+      verdictTone: serviceQuality.verdictTone,
+      verdictSummary: serviceQuality.verdictSummary,
+      resolutionRate: serviceQuality.resolutionRate,
+      stillOpen: serviceQuality.stillOpen,
+      overdueOpen: serviceQuality.overdueOpen,
+      agingOpen: serviceQuality.agingOpen,
+      targets: serviceQuality.targets,
+      feedbackMetrics: serviceQuality.feedbackMetrics,
+    },
+    team: {
+      allTeams: teamAnalytics.allTeams,
+      activeTeams: teamAnalytics.activeTeams,
+      needingHelp: teamAnalytics.needingHelp,
+      totalOpen: teamAnalytics.totalOpen,
+      totalOverdue: teamAnalytics.totalOverdue,
+      needsHelp: teamAnalytics.needsHelp,
+      healthiest: teamAnalytics.healthiest,
+      weakestByRate: weakestByRate
+        ? {
+            department: weakestByRate.department,
+            resolutionRate: weakestByRate.resolutionRate,
+            totalTickets: weakestByRate.totalTickets,
+          }
+        : null,
+    },
+    topByFinish: topByFinishRateNorm,
+    topByVolume: topByVolumeNorm,
+    chartKpis: chartData.chartKpis,
+    priority: {
+      critical: chartData.priorityDistribution?.[0]?.value || 0,
+      high: chartData.priorityDistribution?.[1]?.value || 0,
+      medium: chartData.priorityDistribution?.[2]?.value || 0,
+      low: chartData.priorityDistribution?.[3]?.value || 0,
+    },
+    fixTimeSummary: chartData.fixTimeSummary,
+    weeklyFixTimes: chartData.weeklyFixTimes,
+    dailyTrends: chartData.dailyTrends,
+  });
 
-  const buildReportBase = (overrides = {}) => {
-    const charts = generateChartData();
-    return {
-      date: new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-      period: reportPeriod,
-      summary: {
-        totalRequests: metrics?.totalTickets || 0,
-        resolutionRate: metrics?.resolutionRate || 0,
-        avgResolutionTime: metrics?.avgResolutionTime || 0,
-        customerSatisfaction: metrics?.customerSatisfaction || 0,
-        criticalIssues: metrics?.criticalTickets || 0,
-      },
-      feedbackSummary,
-      healthStatus: healthStatus?.status || 'Unknown',
-      healthScore: healthStatus?.score || 0,
-      charts,
-      ...overrides,
-    };
-  };
+  const satisfactionDisplay =
+    (feedbackSummary?.totalFeedback || 0) > 0
+      ? Number(feedbackSummary.satisfactionRate)
+      : 0;
+
+  const buildReportBase = (overrides = {}) => ({
+    date: new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+    period: reportPeriod,
+    periodSpan,
+    summary: {
+      totalRequests: metrics?.totalTickets || 0,
+      resolutionRate: metrics?.resolutionRate || 0,
+      avgResolutionTime: metrics?.avgResolutionTime || 0,
+      avgResolutionLabel: typicalFix,
+      // Same “Happy users” % as Feedback tab
+      customerSatisfaction: satisfactionDisplay || metrics?.customerSatisfaction || 0,
+      criticalIssues: urgentOpen,
+      finishedCount,
+      openCount,
+      inProgressCount: metrics?.inProgressCount || 0,
+      stillOpenCount: metrics?.stillOpenCount || 0,
+      feedbackCount: feedbackSummary?.totalFeedback || metrics?.feedbackCount || 0,
+    },
+    chartKpis: chartData.chartKpis,
+    feedbackSummary,
+    healthStatus: healthStatus?.status || 'Unknown',
+    healthScore: healthStatus?.score || 0,
+    healthHeadline: healthStatus?.headline || '',
+    healthSummary: healthStatus?.summary || '',
+    serviceQuality: {
+      score: serviceQuality.score,
+      verdict: serviceQuality.verdict,
+      verdictTone: serviceQuality.verdictTone,
+      verdictSummary: serviceQuality.verdictSummary,
+      resolutionRate: serviceQuality.resolutionRate,
+      stillOpen: serviceQuality.stillOpen,
+      overdueOpen: serviceQuality.overdueOpen,
+      agingOpen: serviceQuality.agingOpen,
+      targets: serviceQuality.targets,
+      feedbackMetrics: serviceQuality.feedbackMetrics,
+    },
+    teamAnalytics,
+    charts: chartData,
+    ...overrides,
+  });
 
   const generateDashboardOverviewReport = () => {
-    const charts = generateChartData();
-    const deptCount = charts.departmentPerformance?.length || 0;
-    const topDept = charts.departmentPerformance?.[0];
-
+    const insights = buildDataDrivenInsights({
+      ...insightBase(),
+      reportKind: 'dashboard',
+    });
     return buildReportBase({
-      title: 'Management Dashboard Overview Report',
-      subtitle: 'Comprehensive IT Helpdesk Performance Summary',
+      title: 'IT Support Full Overview',
+      subtitle: `Complete performance snapshot · ${periodSpan}`,
       reportType: 'dashboard',
-      keyFindings: [
-        `Dashboard overview for ${reportPeriod}: ${metrics?.totalTickets || 0} total support requests`,
-        `Resolution rate ${metrics?.resolutionRate || 0}% with average resolution time of ${metrics?.avgResolutionTime || 0} hours`,
-        `Support health: ${healthStatus?.status || 'Unknown'} (score ${healthStatus?.score || 0}/100)`,
-        `${metrics?.criticalTickets || 0} critical issues requiring attention`,
-        `Customer satisfaction at ${metrics?.customerSatisfaction || 0}% from ${feedbackSummary?.totalFeedback || 0} feedback responses`,
-        `Department coverage: ${deptCount} departments — top performer: ${topDept?.department || 'N/A'} (${topDept?.resolutionRate || 0}% resolution rate)`,
-      ],
-      recommendations: [
-        (metrics?.resolutionRate || 0) < 80
-          ? 'Prioritize backlog reduction and resolution rate improvements'
-          : 'Maintain strong resolution performance across all teams',
-        (metrics?.avgResolutionTime || 0) > 48
-          ? 'Review workflows to reduce average resolution time'
-          : 'Resolution times are within acceptable targets',
-        (metrics?.criticalTickets || 0) > 0
-          ? 'Address critical issues immediately to minimize business impact'
-          : 'Continue monitoring for emerging critical issues',
-        (feedbackSummary?.totalFeedback || 0) > 0
-          ? 'Review executive feedback reports for service improvement opportunities'
-          : 'Encourage user feedback to strengthen satisfaction metrics',
-        'Share department best practices and monitor SLA compliance regularly',
-      ],
+      keyFindings: insights.keyFindings,
+      recommendations: insights.recommendations,
     });
   };
 
-  const generateExecutiveReport = () =>
-    buildReportBase({
-      title: 'IT Support Executive Summary Report',
-      subtitle: 'Executive-level performance snapshot',
-      reportType: 'executive',
-      keyFindings: [
-        `Support team handled ${metrics?.totalTickets || 0} requests with ${metrics?.resolutionRate || 0}% resolution rate`,
-        `Average resolution time of ${metrics?.avgResolutionTime || 0} hours`,
-        `${metrics?.criticalTickets || 0} critical issues requiring immediate attention`,
-        `Customer satisfaction at ${metrics?.customerSatisfaction || 0}%`,
-      ],
-      recommendations: [
-        (metrics?.resolutionRate || 0) < 80
-          ? 'Improve resolution rate through additional training'
-          : 'Maintain excellent resolution performance',
-        (metrics?.avgResolutionTime || 0) > 48
-          ? 'Implement process improvements to reduce resolution time'
-          : 'Resolution times are within acceptable range',
-        (metrics?.criticalTickets || 0) > 0
-          ? 'Address critical issues immediately to prevent business disruption'
-          : 'No critical issues requiring immediate attention',
-      ],
+  const generateExecutiveReport = () => {
+    const insights = buildDataDrivenInsights({
+      ...insightBase(),
+      reportKind: 'executive',
     });
+    return buildReportBase({
+      title: 'IT Support At a Glance',
+      subtitle: `Executive snapshot · ${periodSpan}`,
+      reportType: 'executive',
+      keyFindings: insights.keyFindings,
+      recommendations: insights.recommendations,
+    });
+  };
 
   const generateAnalyticsReport = () => {
-    const charts = generateChartData();
+    const insights = buildDataDrivenInsights({
+      ...insightBase(),
+      reportKind: 'analytics',
+    });
     return buildReportBase({
-      title: 'IT Support Analytics Overview Report',
-      subtitle: 'Charts and distribution analysis',
+      title: 'IT Support Charts & Volume',
+      subtitle: `Volume and distribution · ${periodSpan}`,
       reportType: 'analytics',
-      keyFindings: [
-        `Total ticket volume: ${metrics?.totalTickets || 0} requests processed`,
-        `Status distribution: ${Math.round(((charts.ticketVolume[3]?.value || 0) / (metrics?.totalTickets || 1)) * 100)}% resolved, ${Math.round(((charts.ticketVolume[1]?.value || 0) / (metrics?.totalTickets || 1)) * 100)}% open`,
-        `Priority breakdown: ${charts.priorityDistribution[0]?.value || 0} critical, ${charts.priorityDistribution[1]?.value || 0} high priority`,
-        `Department analysis covers ${charts.departmentPerformance?.length || 0} departments`,
-        `Top performing department: ${charts.departmentPerformance[0]?.department || 'N/A'}`,
-      ],
-      recommendations: [
-        'Monitor daily ticket volume trends for capacity planning',
-        'Focus on reducing open ticket backlog',
-        'Implement priority-based routing for critical issues',
-        'Share best practices from top-performing departments',
-        'Analyze resolution time patterns for process improvements',
-      ],
+      keyFindings: insights.keyFindings,
+      recommendations: insights.recommendations,
     });
   };
 
   const generatePerformanceReport = () => {
-    const charts = generateChartData();
-    const rates = charts.departmentPerformance?.map((d) => d.resolutionRate) || [0];
+    const insights = buildDataDrivenInsights({
+      ...insightBase(),
+      reportKind: 'operational',
+    });
     return buildReportBase({
-      title: 'IT Support Performance Metrics Report',
-      subtitle: 'Operational KPIs and efficiency metrics',
+      title: 'IT Support Service Quality',
+      subtitle: `Quality targets and risks · ${periodSpan}`,
       reportType: 'operational',
-      keyFindings: [
-        `Performance metrics show ${metrics?.totalTickets || 0} total requests processed`,
-        `Resolution rate of ${metrics?.resolutionRate || 0}% indicates operational efficiency`,
-        `Average resolution time of ${metrics?.avgResolutionTime || 0} hours`,
-        `Critical issues count: ${metrics?.criticalTickets || 0}`,
-        `Department performance varies from ${Math.min(...rates)}% to ${Math.max(...rates)}%`,
-      ],
-      recommendations: [
-        'Monitor daily ticket volume trends for capacity planning',
-        'Implement automated routing for improved efficiency',
-        'Regular training sessions for support team members',
-        'Focus on departments with lower resolution rates',
-        'Implement SLA monitoring and alerting',
-      ],
+      keyFindings: insights.keyFindings,
+      recommendations: insights.recommendations,
     });
   };
 
   const generateDepartmentalReport = () => {
-    const charts = generateChartData();
-    const sortedByVolume = [...(charts.departmentPerformance || [])].sort(
-      (a, b) => (b.total || 0) - (a.total || 0),
-    );
-    const rates = charts.departmentPerformance?.map((d) => d.resolutionRate) || [0];
+    const insights = buildDataDrivenInsights({
+      ...insightBase(),
+      reportKind: 'departmental',
+    });
     return buildReportBase({
-      title: 'Department Performance Analysis Report',
-      subtitle: 'Department-wise breakdown and comparisons',
+      title: 'IT Support By Team',
+      subtitle: `Department comparison · ${periodSpan}`,
       reportType: 'departmental',
-      keyFindings: [
-        `Department analysis covers ${charts.departmentPerformance?.length || 0} departments`,
-        `Top performing department: ${charts.departmentPerformance[0]?.department || 'N/A'} with ${charts.departmentPerformance[0]?.resolutionRate || 0}% resolution rate`,
-        `Average department resolution rate: ${Math.round((charts.departmentPerformance?.reduce((sum, d) => sum + (d.resolutionRate || 0), 0) || 0) / (charts.departmentPerformance?.length || 1))}%`,
-        `Department with highest volume: ${sortedByVolume[0]?.department || 'N/A'}`,
-        `Performance gap: ${Math.max(...rates) - Math.min(...rates)}% between best and worst performing departments`,
-      ],
-      recommendations: [
-        'Share best practices from top-performing departments',
-        'Provide additional support to underperforming departments',
-        'Implement department-specific training programs',
-        'Create department performance dashboards',
-        'Regular department performance reviews',
-      ],
+      keyFindings: insights.keyFindings,
+      recommendations: insights.recommendations,
     });
   };
 
-  const generateTrendsReport = () => {
-    const charts = generateChartData();
-    return buildReportBase({
-      title: 'IT Support Trend Analysis Report',
-      subtitle: 'Performance trends and forecasting insights',
-      reportType: 'trends',
-      keyFindings: [
-        `Trend analysis based on ${metrics?.totalTickets || 0} requests over ${reportPeriod}`,
-        `Current resolution rate of ${metrics?.resolutionRate || 0}% shows ${(metrics?.resolutionRate || 0) >= 90 ? 'excellent' : (metrics?.resolutionRate || 0) >= 80 ? 'good' : 'room for improvement'} performance`,
-        `Average resolution time of ${metrics?.avgResolutionTime || 0} hours is ${(metrics?.avgResolutionTime || 0) <= 24 ? 'excellent' : (metrics?.avgResolutionTime || 0) <= 48 ? 'acceptable' : 'needs improvement'}`,
-        `Critical issues represent ${Math.round(((charts.priorityDistribution[0]?.value || 0) / (metrics?.totalTickets || 1)) * 100)}% of total volume`,
-        `Department performance trends show ${charts.departmentPerformance?.length || 0} departments with varying performance levels`,
-      ],
-      recommendations: [
-        'Implement trend monitoring dashboards',
-        'Set up automated alerts for performance degradation',
-        'Conduct regular trend analysis reviews',
-        'Develop predictive models for capacity planning',
-        'Create trend-based performance improvement plans',
-      ],
-    });
-  };
-
-  const generateComplianceReport = () => {
-    const charts = generateChartData();
-    return buildReportBase({
-      title: 'SLA Compliance & Audit Report',
-      subtitle: 'Compliance status and audit findings',
-      reportType: 'compliance',
-      keyFindings: [
-        `SLA compliance analysis for ${metrics?.totalTickets || 0} requests`,
-        `Resolution rate compliance: ${(metrics?.resolutionRate || 0) >= 90 ? 'Compliant' : 'Non-compliant'} (${metrics?.resolutionRate || 0}% vs 90% target)`,
-        `Response time compliance: ${(metrics?.avgResolutionTime || 0) <= 48 ? 'Compliant' : 'Non-compliant'} (${metrics?.avgResolutionTime || 0}h vs 48h target)`,
-        `Critical issues compliance: ${(charts.priorityDistribution[0]?.value || 0) <= 5 ? 'Compliant' : 'Non-compliant'} (${charts.priorityDistribution[0]?.value || 0} critical issues)`,
-        `Department compliance varies across ${charts.departmentPerformance?.length || 0} departments`,
-      ],
-      recommendations: [
-        'Implement automated SLA monitoring',
-        'Regular compliance reviews and reporting',
-        'Process improvements for non-compliant areas',
-        'Department-specific SLA targets',
-        'Compliance training for support teams',
-      ],
-    });
+  const buildSelectedReport = () => {
+    switch (selectedReportType) {
+      case 'executive':
+        return generateExecutiveReport();
+      case 'analytics':
+        return generateAnalyticsReport();
+      case 'operational':
+        return generatePerformanceReport();
+      case 'departmental':
+        return generateDepartmentalReport();
+      case 'dashboard':
+      default:
+        return generateDashboardOverviewReport();
+    }
   };
 
   const healthTone =
@@ -321,138 +434,145 @@ const ReportGenerator = ({
           ? 'bg-amber-500/15 text-amber-600 border-amber-500/30'
           : 'bg-rose-500/15 text-rose-500 border-rose-500/30';
 
-  const previewReport = useMemo(() => {
-    switch (selectedReportType) {
-      case 'executive':
-        return generateExecutiveReport();
-      case 'analytics':
-        return generateAnalyticsReport();
-      case 'operational':
-        return generatePerformanceReport();
-      case 'departmental':
-        return generateDepartmentalReport();
-      case 'trends':
-        return generateTrendsReport();
-      case 'compliance':
-        return generateComplianceReport();
-      case 'dashboard':
-      default:
-        return generateDashboardOverviewReport();
-    }
-  }, [
-    selectedReportType,
-    metrics,
-    healthStatus,
-    feedbackSummary,
-    reportPeriod,
-    chartData,
-  ]);
+  const previewReport = useMemo(
+    () => buildSelectedReport(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      selectedReportType,
+      metrics,
+      healthStatus,
+      feedbackSummary,
+      serviceQuality,
+      teamAnalytics,
+      reportPeriod,
+      periodSpan,
+      typicalFix,
+      chartData,
+    ],
+  );
 
   const previewCharts = [
     {
-      label: 'Daily Ticket Trends',
-      detail: `${chartData.dailyTrends?.length || 0} data points`,
+      label: 'Charts KPI strip',
+      detail: chartData.chartKpis
+        ? `New ${chartData.chartKpis.newRequests} · Open ${chartData.chartKpis.stillOpen} · Finished ${chartData.chartKpis.finished} · Urgent ${chartData.chartKpis.urgent}`
+        : '—',
     },
     {
-      label: 'Ticket Volume Distribution',
-      detail: `${metrics?.totalTickets || 0} total`,
+      label: 'Daily request activity',
+      detail: `${chartData.dailyTrends?.length || 0} days · New / Waiting / Being fixed / Done`,
     },
     {
-      label: 'Status Distribution',
+      label: 'Where requests stand',
       detail:
         chartData.statusDistribution
           ?.map((s) => `${s.name}: ${s.value}`)
           .join(' · ') || '—',
     },
     {
-      label: 'Priority Breakdown',
-      detail: `${chartData.priorityDistribution?.[0]?.value || 0} critical`,
+      label: 'How urgent are they?',
+      detail: `${chartData.priorityDistribution?.[0]?.value || 0} critical · ${chartData.priorityDistribution?.[1]?.value || 0} high`,
     },
     {
-      label: 'Department Performance',
-      detail: `${chartData.departmentPerformance?.length || 0} departments`,
+      label: 'Requests by department',
+      detail: `Top ${chartData.departmentPerformance?.length || 0} teams by volume`,
+    },
+    {
+      label: 'How long do fixes usually take?',
+      detail: chartData.weeklyFixTimes?.length
+        ? `${chartData.weeklyFixTimes.length} weeks · Typical ${formatExecutiveDuration(chartData.fixTimeSummary?.typical)}`
+        : 'No finished tickets yet',
+    },
+    {
+      label: 'How fast were tickets finished?',
+      detail:
+        chartData.speedDistribution
+          ?.filter((s) => s.value > 0)
+          .map((s) => `${s.name}: ${s.value}`)
+          .join(' · ') || 'No completed fixes yet',
+    },
+    {
+      label: 'This year by month',
+      detail: chartData.monthlyComparison?.some((m) => m.filed > 0)
+        ? `${new Date().getFullYear()} · Filed vs Finished`
+        : 'No monthly data yet',
+    },
+    {
+      label: 'Service quality + By Team',
+      detail: `${serviceQuality.verdict} · ${teamAnalytics.allTeams} teams · ${teamAnalytics.totalOverdue} overdue 2w+`,
+    },
+    {
+      label: 'Feedback detail',
+      detail:
+        (feedbackSummary?.totalFeedback || 0) > 0
+          ? `${feedbackSummary.totalFeedback} ratings · avg ${feedbackSummary.averageRating}/5 · happy ${feedbackSummary.satisfactionRate}% · needs improvement ${feedbackSummary.improvementRate}%`
+          : 'No feedback in this period',
     },
   ];
 
   const previewMetrics = [
     {
-      label: 'Total Requests',
+      label: 'Total requests',
       value: metrics?.totalTickets || 0,
       accent: 'text-app',
       bar: 'bg-sky-500',
     },
     {
-      label: 'Resolution Rate',
+      label: 'Finish rate',
       value: `${metrics?.resolutionRate || 0}%`,
       accent: 'text-app-primary',
       bar: 'bg-app-primary',
     },
     {
-      label: 'Avg Resolution',
-      value: `${metrics?.avgResolutionTime || 0}h`,
+      label: 'Typical fix time',
+      value: typicalFix,
       accent: 'text-amber-600',
       bar: 'bg-amber-500',
     },
     {
-      label: 'Satisfaction',
-      value: `${metrics?.customerSatisfaction || 0}%`,
+      label: 'Happy users',
+      value:
+        (feedbackSummary?.totalFeedback || 0) > 0
+          ? `${feedbackSummary.satisfactionRate}%`
+          : '—',
       accent: 'text-app-primary',
       bar: 'bg-app-primary',
     },
   ];
 
+  const downloadLabel =
+    selectedFormat === 'powerpoint' ? 'Download PowerPoint' : 'Download PDF';
+
   const generateReport = async () => {
     setIsGenerating(true);
     setGenerationProgress(0);
-    
+
     try {
-      let report;
-      switch (selectedReportType) {
-        case 'dashboard':
-          report = generateDashboardOverviewReport();
-          break;
-        case 'executive':
-          report = generateExecutiveReport();
-          break;
-        case 'analytics':
-          report = generateAnalyticsReport();
-          break;
-        case 'operational':
-          report = generatePerformanceReport();
-          break;
-        case 'departmental':
-          report = generateDepartmentalReport();
-          break;
-        case 'trends':
-          report = generateTrendsReport();
-          break;
-        case 'compliance':
-          report = generateComplianceReport();
-          break;
-        default:
-          report = generateDashboardOverviewReport();
-      }
+      const report = buildSelectedReport();
+      setGenerationProgress(15);
+      // Allow UI to paint progress before heavy chart capture work
+      await new Promise((r) => setTimeout(r, 80));
 
-      setGenerationProgress(30);
-
+      setGenerationProgress(35);
       if (selectedFormat === 'pdf') {
-        setGenerationProgress(60);
-        const { exportManagementReportPdf } = await import('@/lib/utils/managementReportExport');
+        setGenerationProgress(55);
+        const { exportManagementReportPdf } = await import(
+          '@/lib/utils/managementReportExport'
+        );
         await exportManagementReportPdf(report);
       } else if (selectedFormat === 'powerpoint') {
-        setGenerationProgress(60);
-        const { exportManagementReportPptx } = await import('@/lib/utils/managementReportExport');
+        setGenerationProgress(55);
+        const { exportManagementReportPptx } = await import(
+          '@/lib/utils/managementReportExport'
+        );
         await exportManagementReportPptx(report);
       }
 
-      setGenerationProgress(90);
       setGenerationProgress(100);
-
       setTimeout(() => {
         setIsGenerating(false);
         setGenerationProgress(0);
-      }, 1000);
-      
+      }, 900);
     } catch (error) {
       console.error('Error generating report:', error);
       setIsGenerating(false);
@@ -461,297 +581,253 @@ const ReportGenerator = ({
   };
 
   return (
-    <div className="min-w-0 space-y-4 sm:space-y-6 lg:space-y-8">
-      <div className="w-full space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Header */}
-        <div className="text-center mb-4 sm:mb-6 lg:mb-8 px-1">
-          <h1 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-app mb-1 sm:mb-2">
-            Executive Report Generator
-          </h1>
-          <p className="text-xs sm:text-sm lg:text-base text-app-muted max-w-2xl mx-auto">
-            Create professional reports with comprehensive charts and visualizations designed for executive presentations.
+    <div className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full">
+      {/* Header — matches other Executive Dashboard tabs */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between px-1 min-w-0">
+        <div className="min-w-0 text-center sm:text-left">
+          <h2 className="text-lg sm:text-2xl font-bold text-app mb-1">Reports</h2>
+          <p className="text-xs sm:text-sm text-app-muted">
+            Download a PDF or PowerPoint for leadership reviews
+            <span className="text-app-muted/80"> · {periodSpan}</span>
           </p>
-          {onDateRangeChange ? (
-            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-              <label htmlFor="report-date-range" className="text-xs sm:text-sm text-app-muted">
-                Report period
-              </label>
-              <select
-                id="report-date-range"
-                value={dateRange}
-                onChange={(e) => onDateRangeChange(e.target.value)}
-                className="w-full sm:w-auto px-3 py-2 app-field border rounded-lg text-sm focus:outline-none"
+        </div>
+        {onDateRangeChange ? (
+          <DateRangeSelect value={dateRange} onChange={onDateRangeChange} />
+        ) : null}
+      </div>
+
+      {/* Step 1 — Choose report */}
+      <div className="app-card rounded-xl border p-4 sm:p-5">
+        <div className="mb-3 sm:mb-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-app-muted">
+            Step 1
+          </p>
+          <h3 className="text-base sm:text-lg font-semibold text-app">Choose report</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
+          {REPORT_TYPES.map((type) => {
+            const active = selectedReportType === type.id;
+            return (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => setSelectedReportType(type.id)}
+                className={`relative flex items-start gap-3 rounded-xl border p-3 sm:p-3.5 text-left transition-all ${
+                  active
+                    ? 'border-app-primary bg-app-primary-soft ring-1 ring-app-primary/25'
+                    : 'border-app bg-app-surface-2/50 hover:border-app-primary/40 hover:bg-app-surface-2'
+                }`}
               >
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
-                <option value="365">Last year</option>
-              </select>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Report Type Selection */}
-        <div className="app-card rounded-2xl p-4 sm:p-6 border shadow-xl">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-app">Select Report Type</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {reportTypes.map((type) => {
-              const active = selectedReportType === type.id;
-              return (
-                <button
-                  key={type.id}
-                  type="button"
-                  onClick={() => setSelectedReportType(type.id)}
-                  className={`relative p-4 sm:p-5 rounded-xl border text-left transition-all duration-200 ${
-                    active
-                      ? 'border-app-primary bg-app-primary-soft shadow-md ring-1 ring-app-primary/30'
-                      : 'border-app bg-app-surface-2 hover:border-app-primary hover:bg-app-surface-3'
-                  }`}
-                >
-                  {active ? (
-                    <span className="absolute top-3 right-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-app-primary text-app-on-primary">
-                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                  ) : null}
-                  {renderReportIcon(type.id)}
-                  <h3 className={`font-semibold mb-1 pr-6 ${active ? 'text-app-primary' : 'text-app'}`}>
+                <ReportIcon id={type.id} />
+                <span className="min-w-0 flex-1 pr-5">
+                  <span
+                    className={`block text-sm font-semibold ${active ? 'text-app-primary' : 'text-app'}`}
+                  >
                     {type.name}
-                  </h3>
-                  <p className="text-sm text-app-muted">{type.description}</p>
-                </button>
-              );
-            })}
-          </div>
+                  </span>
+                  <span className="block text-xs text-app-muted mt-0.5 leading-snug">
+                    {type.description}
+                  </span>
+                </span>
+                {active ? (
+                  <span className="absolute top-3 right-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-app-primary text-app-on-primary">
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
+      </div>
 
-        {/* Format Selection */}
-        <div className="app-card rounded-2xl p-4 sm:p-6 border shadow-xl">
-          <h3 className="text-base sm:text-lg font-semibold text-app mb-4">Select Report Format</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            {formatOptions.map((format) => {
-              const active = selectedFormat === format.id;
-              return (
-                <button
-                  key={format.id}
-                  type="button"
-                  onClick={() => setSelectedFormat(format.id)}
-                  className={`relative p-4 rounded-xl border text-left transition-all duration-200 ${
-                    active
-                      ? 'border-app-primary bg-app-primary-soft ring-1 ring-app-primary/30 shadow-md'
-                      : 'border-app bg-app-surface-2 text-app-soft hover:border-app-primary'
-                  }`}
-                >
-                  {active ? (
-                    <span className="absolute top-3 right-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-app-primary text-app-on-primary">
+      {/* Step 2 — Choose format */}
+      <div className="app-card rounded-xl border p-4 sm:p-5">
+        <div className="mb-3 sm:mb-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-app-muted">
+            Step 2
+          </p>
+          <h3 className="text-base sm:text-lg font-semibold text-app">Choose format</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+          {FORMAT_OPTIONS.map((format) => {
+            const active = selectedFormat === format.id;
+            return (
+              <button
+                key={format.id}
+                type="button"
+                onClick={() => setSelectedFormat(format.id)}
+                className={`relative flex items-start gap-3 rounded-xl border p-3.5 sm:p-4 text-left transition-all ${
+                  active
+                    ? 'border-app-primary bg-app-primary-soft ring-1 ring-app-primary/25'
+                    : 'border-app bg-app-surface-2/50 hover:border-app-primary/40 hover:bg-app-surface-2'
+                }`}
+              >
+                <ReportIcon id={format.id} />
+                <span className="min-w-0 flex-1 pr-5">
+                  <span
+                    className={`block text-sm font-semibold ${active ? 'text-app-primary' : 'text-app'}`}
+                  >
+                    {format.name}
+                  </span>
+                  <span className="block text-xs text-app-muted mt-0.5">
+                    {format.description}
+                  </span>
+                </span>
+                {active ? (
+                  <span className="absolute top-3 right-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-app-primary text-app-on-primary">
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Step 3 — Preview & download */}
+      <div className="app-card relative overflow-hidden rounded-xl border">
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
+        <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-app-muted mb-1">
+                Step 3 · Preview
+              </p>
+              <h3 className="text-base sm:text-xl font-bold text-app leading-snug">
+                {previewReport?.title || selectedTypeMeta.name}
+              </h3>
+              <p className="text-sm text-app-muted mt-1">
+                {previewReport?.subtitle || selectedTypeMeta.description}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <span className="inline-flex items-center rounded-lg border border-app bg-app-surface-2/70 px-2.5 py-1 text-xs font-medium text-app-soft">
+                {reportPeriod}
+              </span>
+              <span className="inline-flex items-center rounded-lg border border-app bg-app-surface-2/70 px-2.5 py-1 text-xs font-medium text-app-soft">
+                {periodSpan}
+              </span>
+              <span className="inline-flex items-center rounded-lg border border-app bg-app-surface-2/70 px-2.5 py-1 text-xs font-medium text-app-soft">
+                {selectedFormatMeta.name}
+              </span>
+              <span
+                className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-semibold ${healthTone}`}
+              >
+                {healthStatus?.headline || healthStatus?.status || 'Unknown'} ·{' '}
+                {healthStatus?.score || 0}/100
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {previewMetrics.map((metric) => (
+              <div
+                key={metric.label}
+                className="relative overflow-hidden rounded-xl border border-app/40 bg-app-surface-2/60 p-3 sm:p-4"
+              >
+                <div className={`absolute inset-x-0 top-0 h-0.5 ${metric.bar}`} />
+                <p className="text-[11px] sm:text-xs font-medium text-app-muted">{metric.label}</p>
+                <p className={`mt-1 text-lg sm:text-2xl font-bold tabular-nums leading-tight ${metric.accent}`}>
+                  {metric.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+            <div className="rounded-xl border border-app/40 bg-app-surface-2/40 p-3.5 sm:p-4">
+              <h4 className="font-semibold text-app mb-3 text-sm sm:text-base">What’s included</h4>
+              <ul className="space-y-2">
+                {previewCharts.map((chart) => (
+                  <li
+                    key={chart.label}
+                    className="flex items-start gap-2.5 rounded-lg border border-app/30 bg-app-panel/50 px-3 py-2.5"
+                  >
+                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-app-primary-soft text-app-primary">
                       <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
-                  ) : null}
-                  {renderReportIcon(format.id)}
-                  <h4 className={`font-semibold mb-1 ${active ? 'text-app-primary' : 'text-app'}`}>
-                    {format.name}
-                  </h4>
-                  <p className="text-sm text-app-muted">{format.description}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Report Preview */}
-        <div className="app-card relative overflow-hidden rounded-2xl border shadow-xl">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-app-primary" />
-          <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-app-primary mb-1">
-                  Report preview
-                </p>
-                <h3 className="text-base sm:text-xl font-bold text-app leading-snug">
-                  {previewReport?.title || reportTypes.find((t) => t.id === selectedReportType)?.name}
-                </h3>
-                <p className="text-sm text-app-muted mt-1">
-                  {previewReport?.subtitle || 'Live snapshot of what will be exported'}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <span className="inline-flex items-center rounded-lg border border-app bg-app-surface-2/70 px-2.5 py-1 text-xs font-medium text-app-soft">
-                  {reportPeriod}
-                </span>
-                <span className="inline-flex items-center rounded-lg border border-app bg-app-surface-2/70 px-2.5 py-1 text-xs font-medium uppercase text-app-soft">
-                  {selectedFormat}
-                </span>
-                <span className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-semibold ${healthTone}`}>
-                  {healthStatus?.status || 'Unknown'} · {healthStatus?.score || 0}/100
-                </span>
-              </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-app">{chart.label}</p>
+                      <p className="text-xs text-app-muted truncate">{chart.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {previewMetrics.map((metric) => (
-                <div
-                  key={metric.label}
-                  className="relative overflow-hidden rounded-xl border border-app-subtle bg-app-surface-2 p-3 sm:p-4"
-                >
-                  <div className={`absolute inset-x-0 top-0 h-0.5 ${metric.bar}`} />
-                  <p className="text-[11px] sm:text-xs font-medium text-app-muted">{metric.label}</p>
-                  <p className={`mt-1 text-lg sm:text-2xl font-bold tabular-nums ${metric.accent}`}>
-                    {metric.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-              <div className="rounded-xl border border-app-subtle bg-app-surface-2 p-3.5 sm:p-4">
-                <h4 className="font-semibold text-app mb-3 flex items-center gap-2 text-sm sm:text-base">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-app-primary-soft text-app-primary">
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </span>
-                  Charts included
-                </h4>
-                <ul className="space-y-2">
-                  {previewCharts.map((chart) => (
-                    <li
-                      key={chart.label}
-                      className="flex items-start gap-2.5 rounded-lg border border-app-subtle bg-app-panel/60 px-3 py-2.5"
-                    >
-                      <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-app-primary-soft text-app-primary">
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-app">{chart.label}</p>
-                        <p className="text-xs text-app-muted truncate">{chart.detail}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-xl border border-app-subtle bg-app-surface-2 p-3.5 sm:p-4">
-                <h4 className="font-semibold text-app mb-3 flex items-center gap-2 text-sm sm:text-base">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-app-primary-soft text-app-primary">
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </span>
-                  Key findings
-                </h4>
-                <ul className="space-y-2">
-                  {(previewReport?.keyFindings || []).slice(0, 4).map((finding, index) => (
-                    <li
-                      key={`${index}-${finding.slice(0, 24)}`}
-                      className="flex items-start gap-2.5 rounded-lg border border-app-subtle bg-app-panel/60 px-3 py-2.5"
-                    >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-app-surface-3 text-[11px] font-semibold text-app-soft">
-                        {index + 1}
-                      </span>
-                      <p className="text-sm text-app-soft leading-relaxed">{finding}</p>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-app-muted">
-                  <span className="inline-flex items-center rounded-md border border-app-subtle bg-app-panel/60 px-2 py-1">
-                    {feedbackSummary?.totalFeedback || 0} feedback responses
-                  </span>
-                  <span className="inline-flex items-center rounded-md border border-app-subtle bg-app-panel/60 px-2 py-1">
-                    {metrics?.criticalTickets || 0} critical issues
-                  </span>
-                  <span className="inline-flex items-center rounded-md border border-app-subtle bg-app-panel/60 px-2 py-1">
-                    {(previewReport?.recommendations || []).length} recommendations
-                  </span>
-                </div>
+            <div className="rounded-xl border border-app/40 bg-app-surface-2/40 p-3.5 sm:p-4">
+              <h4 className="font-semibold text-app mb-3 text-sm sm:text-base">Key findings</h4>
+              <ul className="space-y-2">
+                {(previewReport?.keyFindings || []).slice(0, 4).map((finding, index) => (
+                  <li
+                    key={`${index}-${finding.slice(0, 24)}`}
+                    className="flex items-start gap-2.5 rounded-lg border border-app/30 bg-app-panel/50 px-3 py-2.5"
+                  >
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-app-surface-3 text-[11px] font-semibold text-app-soft">
+                      {index + 1}
+                    </span>
+                    <p className="text-sm text-app-soft leading-relaxed">{finding}</p>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-app-muted">
+                <span className="inline-flex items-center rounded-md border border-app/30 bg-app-panel/50 px-2 py-1">
+                  {feedbackSummary?.totalFeedback || 0} feedback responses
+                </span>
+                <span className="inline-flex items-center rounded-md border border-app/30 bg-app-panel/50 px-2 py-1">
+                  {(previewReport?.recommendations || []).length} recommendations
+                </span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Generate Button */}
-        <div className="flex justify-center px-1">
-          <button
-            onClick={generateReport}
-            disabled={isGenerating}
-            className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-app-primary text-app-on-primary hover:opacity-90 rounded-xl font-semibold text-sm sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
-          >
-            <span className="relative z-10">
+          <div className="pt-1 space-y-3">
+            <button
+              type="button"
+              onClick={generateReport}
+              disabled={isGenerating}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl bg-app-primary text-app-on-primary font-semibold text-sm sm:text-base shadow-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isGenerating ? (
-                <div className="flex items-center">
-                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-3"></div>
-                  <span>Generating {selectedFormat.toUpperCase()} Report... {generationProgress}%</span>
-                </div>
+                <>
+                  <span className="h-4 w-4 border-2 border-white/25 border-t-white rounded-full animate-spin" />
+                  Rendering accurate charts… {generationProgress}%
+                </>
               ) : (
-                `Generate & Download ${selectedFormat.toUpperCase()} Report`
+                <>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  {downloadLabel}
+                </>
               )}
-            </span>
-          </button>
-        </div>
+            </button>
 
-        {/* Progress Bar */}
-        {isGenerating && (
-          <div className="w-full bg-app-surface-2 rounded-full h-2 overflow-hidden">
-            <div 
-              className="bg-app-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${generationProgress}%` }}
-            ></div>
-          </div>
-        )}
-
-        {/* Report Features */}
-        <div className="app-card rounded-2xl p-4 sm:p-6 border shadow-xl">
-          <h3 className="text-lg font-semibold text-app mb-4">Report Features</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
-              <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
-                <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            {isGenerating ? (
+              <div className="w-full bg-app-surface-2 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-app-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${generationProgress}%` }}
+                />
               </div>
-              <div>
-                <h4 className="font-medium text-app">Robust Data Handling</h4>
-                <p className="text-sm text-app-muted">Safe handling of undefined or missing data</p>
-              </div>
-            </div>
-            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
-              <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
-                <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-app">Professional Formats</h4>
-                <p className="text-sm text-app-muted">PDF and PowerPoint with embedded chart images</p>
-              </div>
-            </div>
-            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
-              <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
-                <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-app">Error-Free Generation</h4>
-                <p className="text-sm text-app-muted">Comprehensive validation prevents crashes</p>
-              </div>
-            </div>
-            <div className="flex items-start p-3 bg-app-surface-2 rounded-lg border border-app-subtle">
-              <div className="w-8 h-8 rounded-full bg-app-primary-soft flex items-center justify-center mr-3 flex-shrink-0">
-                <svg className="w-4 h-4 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-app">Ready for Presentation</h4>
-                <p className="text-sm text-app-muted">Formatted for board meetings and executive reviews</p>
-              </div>
-            </div>
+            ) : (
+              <p className="text-xs text-app-muted">
+                Exports {selectedTypeMeta.name.toLowerCase()} for {reportPeriod.toLowerCase()} (
+                {periodSpan}) as {selectedFormatMeta.name}. May take longer — charts match the
+                Dashboard for accuracy.
+              </p>
+            )}
           </div>
         </div>
       </div>

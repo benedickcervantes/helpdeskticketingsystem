@@ -1,418 +1,424 @@
 // @ts-nocheck
 'use client';
 
-const parseTicketDate = (value) => {
-  if (!value) return null;
-  if (value.toDate) return value.toDate();
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+import { useMemo } from 'react';
+import {
+  filterTicketsByDateRange,
+  formatExecutiveDuration,
+  getDateRangeLabel,
+  getDateRangeSpanLabel,
+  getTicketHours,
+  isCompletedStatus,
+  isInProgressStatus,
+  isOpenStatus,
+  parseTicketDate,
+} from '@/lib/utils/analytics';
+import { filterFeedbackByDateRange } from '@/lib/utils/feedbackReportUtils';
+import DateRangeSelect from './DateRangeSelect';
+
+const toneLabel = {
+  excellent: 'Excellent',
+  good: 'Good',
+  warning: 'Needs work',
+  critical: 'At risk',
 };
 
-const getTicketHours = (start, end) => {
-  const startDate = parseTicketDate(start);
-  const endDate = parseTicketDate(end);
-  if (!startDate || !endDate) return null;
-  const hours = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
-  return hours >= 0 ? hours : null;
+const toneClass = {
+  excellent: 'bg-app-primary-soft text-app-primary border-app-primary/30',
+  good: 'bg-sky-500/15 text-sky-700 border-sky-500/30',
+  warning: 'bg-amber-500/15 text-amber-700 border-amber-500/30',
+  critical: 'bg-rose-500/15 text-rose-600 border-rose-500/30',
 };
 
-const PerformanceMetrics = ({ tickets = [], feedback = [], metrics = {}, dateRange = '30' }) => {
-  // Calculate performance metrics using real data
-  const totalTickets = tickets.length;
-  const resolvedTicketList = tickets.filter(
-    (t) => t && (t.status === 'resolved' || t.status === 'closed'),
-  );
-  const resolvedTickets = resolvedTicketList.length;
-  const openTickets = tickets.filter(t => t && t.status === 'open').length;
-  const inProgressTickets = tickets.filter(t => t && t.status === 'in-progress').length;
-  
-  // Calculate real feedback metrics
-  const calculateFeedbackMetrics = () => {
-    if (feedback.length === 0) {
-      return {
-        averageRating: 0,
-        totalFeedback: 0,
-        highRatings: 0,
-        lowRatings: 0,
-        satisfactionRate: 0
+const getTone = (value, excellent, good, warning) => {
+  if (value >= excellent) return 'excellent';
+  if (value >= good) return 'good';
+  if (value >= warning) return 'warning';
+  return 'critical';
+};
+
+const PerformanceMetrics = ({
+  tickets = [],
+  feedback = [],
+  dateRange = '30',
+  onDateRangeChange,
+}) => {
+  const periodLabel = getDateRangeLabel(dateRange).toLowerCase();
+  const periodSpan = getDateRangeSpanLabel(dateRange);
+
+  const data = useMemo(() => {
+    const scopedTickets = filterTicketsByDateRange(
+      Array.isArray(tickets) ? tickets : [],
+      dateRange,
+    );
+    const scopedFeedback = filterFeedbackByDateRange(
+      Array.isArray(feedback) ? feedback : [],
+      dateRange,
+    );
+
+    const totalTickets = scopedTickets.length;
+    const resolvedTicketList = scopedTickets.filter((t) =>
+      isCompletedStatus(String(t?.status ?? '')),
+    );
+    const resolvedTickets = resolvedTicketList.length;
+    const stillOpen = scopedTickets.filter(
+      (t) =>
+        isOpenStatus(String(t?.status ?? '')) ||
+        isInProgressStatus(String(t?.status ?? '')),
+    ).length;
+
+    const resolutionTimes = resolvedTicketList
+      .map((ticket) =>
+        getTicketHours(ticket.createdAt, ticket.resolvedAt || ticket.updatedAt),
+      )
+      .filter((hours) => hours !== null);
+
+    const avgResolutionTime =
+      resolutionTimes.length > 0
+        ? Math.round(
+            (resolutionTimes.reduce((sum, h) => sum + h, 0) / resolutionTimes.length) *
+              10,
+          ) / 10
+        : 0;
+
+    const resolutionRate =
+      totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0;
+
+    const fixedWithin2Days =
+      resolutionTimes.length === 0
+        ? 0
+        : Math.round(
+            (resolutionTimes.filter((h) => h / 24 < 3).length /
+              resolutionTimes.length) *
+              100,
+          );
+
+    const now = Date.now();
+    let overdueOpen = 0;
+    let agingOpen = 0;
+    scopedTickets.forEach((t) => {
+      if (isCompletedStatus(String(t?.status ?? ''))) return;
+      const created = parseTicketDate(t.createdAt);
+      if (!created) return;
+      const daysOpen = (now - created.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysOpen >= 14) overdueOpen += 1;
+      else if (daysOpen >= 7) agingOpen += 1;
+    });
+
+    let feedbackMetrics = {
+      averageRating: 0,
+      totalFeedback: 0,
+      highRatings: 0,
+      lowRatings: 0,
+      satisfactionRate: 0,
+    };
+    if (scopedFeedback.length > 0) {
+      const totalRating = scopedFeedback.reduce(
+        (sum, item) => sum + (item.rating || 0),
+        0,
+      );
+      const averageRating = totalRating / scopedFeedback.length;
+      const highRatings = scopedFeedback.filter((item) => item.rating >= 4).length;
+      const lowRatings = scopedFeedback.filter((item) => item.rating <= 2).length;
+      feedbackMetrics = {
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalFeedback: scopedFeedback.length,
+        highRatings,
+        lowRatings,
+        satisfactionRate:
+          Math.round((highRatings / scopedFeedback.length) * 1000) / 10,
       };
     }
 
-    const totalRating = feedback.reduce((sum, item) => sum + (item.rating || 0), 0);
-    const averageRating = totalRating / feedback.length;
-    const highRatings = feedback.filter(item => item.rating >= 4).length;
-    const lowRatings = feedback.filter(item => item.rating <= 2).length;
-    const satisfactionRate = (highRatings / feedback.length) * 100;
+    let score = 0;
+    score += Math.min(30, Math.round((resolutionRate / 100) * 30));
+    score += Math.min(25, Math.round((fixedWithin2Days / 100) * 25));
+    if (avgResolutionTime > 0 && avgResolutionTime / 24 < 3) score += 20;
+    else if (avgResolutionTime / 24 <= 6) score += 12;
+    else if (avgResolutionTime / 24 < 14) score += 5;
+    if (feedbackMetrics.totalFeedback > 0) {
+      score += Math.min(25, Math.round((feedbackMetrics.satisfactionRate / 100) * 25));
+    } else {
+      score += 10;
+    }
+    if (overdueOpen > 0) score = Math.max(0, score - Math.min(20, overdueOpen * 2));
 
-    return {
-      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
-      totalFeedback: feedback.length,
-      highRatings,
-      lowRatings,
-      satisfactionRate: Math.round(satisfactionRate)
-    };
-  };
-
-  const feedbackMetrics = calculateFeedbackMetrics();
-
-  const calculateSLACompliance = () => {
-    if (resolvedTicketList.length === 0) return 0;
-
-    const slaCompliantTickets = resolvedTicketList.filter((ticket) => {
-      const hours = getTicketHours(
-        ticket.createdAt,
-        ticket.resolvedAt || ticket.updatedAt,
-      );
-      return hours !== null && hours <= 24;
-    });
-
-    return Math.round((slaCompliantTickets.length / resolvedTicketList.length) * 100);
-  };
-
-  const calculateAvgResolutionTime = () => {
-    const resolutionTimes = resolvedTicketList
-      .map((ticket) => getTicketHours(ticket.createdAt, ticket.resolvedAt || ticket.updatedAt))
-      .filter((hours) => hours !== null);
-
-    if (resolutionTimes.length === 0) {
-      return metrics.avgResolutionTime || 0;
+    let verdict = 'At risk';
+    let verdictTone = 'critical';
+    let verdictSummary =
+      'Support is behind on completion or speed. Review overdue requests first.';
+    if (score >= 85) {
+      verdict = 'Strong service';
+      verdictTone = 'excellent';
+      verdictSummary =
+        'Most requests are finished quickly and users are generally satisfied.';
+    } else if (score >= 70) {
+      verdict = 'On track';
+      verdictTone = 'good';
+      verdictSummary =
+        'Service is solid overall. A few quality targets can still be improved.';
+    } else if (score >= 50) {
+      verdict = 'Mixed results';
+      verdictTone = 'warning';
+      verdictSummary =
+        'Some targets are met, but speed or satisfaction needs attention.';
     }
 
-    const avg = resolutionTimes.reduce((sum, hours) => sum + hours, 0) / resolutionTimes.length;
-    return Math.round(avg * 10) / 10;
-  };
+    const targets = [
+      {
+        title: 'Finished in 1–2 days',
+        value: fixedWithin2Days,
+        display: `${fixedWithin2Days}%`,
+        target: 80,
+        unit: '%',
+        hint: 'Share of completed requests finished quickly',
+        tone: getTone(fixedWithin2Days, 80, 60, 40),
+        higherIsBetter: true,
+      },
+      {
+        title: 'Completion rate',
+        value: resolutionRate,
+        display: `${resolutionRate}%`,
+        target: 90,
+        unit: '%',
+        hint: `${resolvedTickets} of ${totalTickets} finished`,
+        tone: getTone(resolutionRate, 90, 80, 70),
+        higherIsBetter: true,
+      },
+      {
+        title: 'Typical fix time',
+        value: avgResolutionTime,
+        display: formatExecutiveDuration(avgResolutionTime),
+        // Target: within 2 days (48h). Progress = how close we are (capped).
+        target: 48,
+        unit: 'h',
+        hint: 'Goal: finish within about 1–2 days',
+        tone:
+          avgResolutionTime <= 0
+            ? 'warning'
+            : avgResolutionTime / 24 < 3
+              ? 'excellent'
+              : avgResolutionTime / 24 <= 6
+                ? 'good'
+                : avgResolutionTime / 24 < 14
+                  ? 'warning'
+                  : 'critical',
+        higherIsBetter: false,
+      },
+      {
+        title: 'User satisfaction',
+        value: feedbackMetrics.totalFeedback > 0 ? feedbackMetrics.averageRating : 0,
+        display:
+          feedbackMetrics.totalFeedback > 0
+            ? `${feedbackMetrics.averageRating}/5`
+            : '—',
+        target: 4,
+        unit: '/5',
+        hint:
+          feedbackMetrics.totalFeedback > 0
+            ? `${feedbackMetrics.satisfactionRate}% gave 4–5 stars`
+            : 'No feedback yet',
+        tone:
+          feedbackMetrics.totalFeedback > 0
+            ? getTone(feedbackMetrics.averageRating, 4.5, 4.0, 3.5)
+            : 'warning',
+        higherIsBetter: true,
+        disabled: feedbackMetrics.totalFeedback === 0,
+      },
+    ];
 
-  const calculateFirstContactResolution = () => {
-    if (resolvedTicketList.length === 0) return 0;
+    return {
+      totalTickets,
+      stillOpen,
+      resolutionRate,
+      feedbackMetrics,
+      overdueOpen,
+      agingOpen,
+      score,
+      verdict,
+      verdictTone,
+      verdictSummary,
+      targets,
+    };
+  }, [tickets, feedback, dateRange]);
 
-    const fcrTickets = resolvedTicketList.filter((ticket) => {
-      const hours = getTicketHours(
-        ticket.createdAt,
-        ticket.resolvedAt || ticket.updatedAt,
-      );
-      return hours !== null && hours <= 8;
-    });
-
-    return Math.round((fcrTickets.length / resolvedTicketList.length) * 100);
-  };
-
-  const calculateEscalationRate = () => {
-    if (totalTickets === 0) return 0;
-    const escalated = tickets.filter(
-      (t) => t && (t.priority === 'critical' || t.priority === 'high'),
-    ).length;
-    return Math.round((escalated / totalTickets) * 100);
-  };
-
-  const calculateAvgResponseTime = () => {
-    const respondedTickets = tickets.filter((t) => t && t.status !== 'open');
-    const responseTimes = respondedTickets
-      .map((ticket) => getTicketHours(ticket.createdAt, ticket.updatedAt))
-      .filter((hours) => hours !== null);
-
-    if (responseTimes.length === 0) return 0;
-
-    const avg = responseTimes.reduce((sum, hours) => sum + hours, 0) / responseTimes.length;
-    return Math.round(avg * 10) / 10;
-  };
-
-  const performanceData = {
-    slaCompliance: calculateSLACompliance(),
-    firstContactResolution: calculateFirstContactResolution(),
-    customerSatisfaction: feedbackMetrics.averageRating,
-    escalationRate: calculateEscalationRate(),
-    avgResolutionTime: calculateAvgResolutionTime(),
-    avgResponseTime: calculateAvgResponseTime(),
-    ticketVolume: totalTickets,
-    resolutionRate: totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0
-  };
-
-  const MetricCard = ({ title, value, target, status, icon, color, subtitle }) => (
-    <div className="app-card rounded-xl border p-4 sm:p-6 hover:border-app-primary transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl ${color}`}>
-          {icon}
-        </div>
-        <div className="text-right">
-          <span className={`inline-flex px-2 py-1 text-[11px] font-semibold rounded-lg border ${
-            status === 'excellent' ? 'bg-app-primary-soft text-app-primary border-app-primary/30' :
-            status === 'good' ? 'bg-sky-500/15 text-sky-700 border-sky-500/30' :
-            status === 'warning' ? 'bg-amber-500/15 text-amber-700 border-amber-500/30' :
-            'bg-rose-500/15 text-rose-600 border-rose-500/30'
-          }`}>
-            {status === 'excellent' ? 'Excellent' :
-             status === 'good' ? 'Good' :
-             status === 'warning' ? 'Warning' : 'Critical'}
-          </span>
-        </div>
-      </div>
-      <div>
-        <h3 className="text-sm font-medium text-app-muted mb-1">{title}</h3>
-        <p className="text-2xl font-bold text-app">{value}</p>
-        {subtitle && <p className="text-xs text-app-muted mt-1">{subtitle}</p>}
-        {target && (
-          <div className="mt-2">
-            <div className="flex justify-between text-xs text-app-muted mb-1">
-              <span>Target: {target}</span>
-              <span>{Math.round((value / target) * 100)}%</span>
-            </div>
-            <div className="w-full bg-app-surface-2 rounded-full h-1">
-              <div 
-                className={`h-1 rounded-full ${
-                  (value / target) >= 1 ? 'bg-app-primary' :
-                  (value / target) >= 0.8 ? 'bg-amber-500' : 'bg-rose-500'
-                }`}
-                style={{ width: `${Math.min(100, (value / target) * 100)}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const getStatus = (value, thresholds) => {
-    if (value >= thresholds.excellent) return 'excellent';
-    if (value >= thresholds.good) return 'good';
-    if (value >= thresholds.warning) return 'warning';
-    return 'critical';
+  const progressPct = (item) => {
+    if (item.disabled) return 0;
+    if (!item.higherIsBetter) {
+      // Lower time is better: full bar when at/under target
+      if (item.value <= 0) return 0;
+      return Math.min(100, Math.round((item.target / item.value) * 100));
+    }
+    if (item.target <= 0) return 0;
+    return Math.min(100, Math.round((item.value / item.target) * 100));
   };
 
   return (
-    <div className="space-y-4 sm:space-y-8 min-w-0">
-      {/* Header */}
-      <div className="text-center px-1">
-        <h2 className="text-lg sm:text-2xl font-bold text-app mb-1 sm:mb-2">Performance Metrics</h2>
-        <p className="text-xs sm:text-sm text-app-muted">Real-time performance indicators and KPIs</p>
+    <div className="space-y-4 sm:space-y-6 min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between px-1">
+        <div className="text-center sm:text-left min-w-0">
+          <h2 className="text-lg sm:text-2xl font-bold text-app mb-1">Service Quality</h2>
+          <p className="text-xs sm:text-sm text-app-muted">
+            Quality targets & risks for the {periodLabel}
+            <span className="text-app-muted/80"> · {periodSpan}</span>
+            {' '}— volume charts live under Charts
+          </p>
+        </div>
+        {onDateRangeChange ? (
+          <DateRangeSelect value={dateRange} onChange={onDateRangeChange} />
+        ) : null}
       </div>
 
-      {/* Key Performance Indicators */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        <MetricCard
-          title="SLA Compliance"
-          value={`${performanceData.slaCompliance}%`}
-          target={95}
-          status={getStatus(performanceData.slaCompliance, { excellent: 95, good: 85, warning: 75 })}
-          color="bg-sky-500/15 text-sky-700"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          subtitle="24-hour resolution target"
-        />
-
-        <MetricCard
-          title="Resolution Rate"
-          value={`${performanceData.resolutionRate}%`}
-          target={90}
-          status={getStatus(performanceData.resolutionRate, { excellent: 90, good: 80, warning: 70 })}
-          color="bg-app-primary-soft text-app-primary"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          subtitle="Tickets successfully resolved"
-        />
-
-        <MetricCard
-          title="Avg Resolution Time"
-          value={`${performanceData.avgResolutionTime}h`}
-          target={24}
-          status={getStatus(24 - performanceData.avgResolutionTime, { excellent: 12, good: 6, warning: 0 })}
-          color="bg-amber-500/15 text-amber-700"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          }
-          subtitle="Hours to resolve tickets"
-        />
-
-        <MetricCard
-          title="Customer Satisfaction"
-          value={feedbackMetrics.totalFeedback > 0 ? `${feedbackMetrics.averageRating}/5` : 'N/A'}
-          target={4.5}
-          status={feedbackMetrics.totalFeedback > 0 ? 
-            getStatus(feedbackMetrics.averageRating, { excellent: 4.5, good: 4.0, warning: 3.5 }) : 
-            'warning'
-          }
-          color="bg-app-primary-soft text-app-primary"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          }
-          subtitle={feedbackMetrics.totalFeedback > 0 ? 
-            `Based on ${feedbackMetrics.totalFeedback} feedback submissions` : 
-            'No feedback data available'
-          }
-        />
+      {/* Overall verdict */}
+      <div
+        className={`rounded-xl border p-4 sm:p-5 ${
+          data.verdictTone === 'excellent'
+            ? 'border-app-primary/40 bg-app-primary-soft/40'
+            : data.verdictTone === 'good'
+              ? 'border-sky-500/40 bg-sky-500/10'
+              : data.verdictTone === 'warning'
+                ? 'border-amber-500/40 bg-amber-500/10'
+                : 'border-rose-500/40 bg-rose-500/10'
+        }`}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span
+                className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-lg border ${toneClass[data.verdictTone]}`}
+              >
+                {data.verdict}
+              </span>
+              <span className="text-xs text-app-muted">Score {data.score}/100</span>
+            </div>
+            <p className="text-sm sm:text-base text-app max-w-2xl">{data.verdictSummary}</p>
+          </div>
+          <div className="sm:text-right flex-shrink-0">
+            <p className="text-3xl font-bold text-app tabular-nums">{data.resolutionRate}%</p>
+            <p className="text-xs text-app-muted mt-0.5">completion rate</p>
+          </div>
+        </div>
       </div>
 
-      {/* Feedback Analysis Section */}
-      {feedbackMetrics.totalFeedback > 0 && (
-        <div className="app-card rounded-xl border p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Customer Feedback Analysis</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-app-primary mb-2">{feedbackMetrics.satisfactionRate}%</div>
-              <div className="text-sm text-app-muted">Satisfaction Rate</div>
-              <div className="text-xs text-app-muted mt-1">High ratings (4-5 stars)</div>
+      {/* Targets vs actual — unique to Service Quality */}
+      <div className="app-card rounded-xl border p-4 sm:p-5">
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-1">
+          Quality targets
+        </h3>
+        <p className="text-xs text-app-muted mb-4">
+          Are we hitting the goals executives care about?
+        </p>
+        <div className="space-y-4">
+          {data.targets.map((item) => {
+            const pct = progressPct(item);
+            return (
+              <div key={item.title}>
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between mb-1.5">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-app">{item.title}</p>
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-[11px] font-semibold rounded-lg border ${toneClass[item.tone]}`}
+                      >
+                        {toneLabel[item.tone]}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-app-muted mt-0.5">{item.hint}</p>
+                  </div>
+                  <div className="sm:text-right flex-shrink-0">
+                    <p className="text-lg font-bold text-app tabular-nums">{item.display}</p>
+                    <p className="text-[11px] text-app-muted">
+                      {item.disabled
+                        ? 'No data yet'
+                        : item.higherIsBetter
+                          ? `Target ${item.target}${item.unit === '/5' ? '' : item.unit}${item.unit === '/5' ? '/5' : ''}`
+                          : `Target ≤ ${formatExecutiveDuration(item.target)}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="h-2.5 rounded-full bg-app-surface-3 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      item.tone === 'excellent' || item.tone === 'good'
+                        ? 'bg-emerald-500'
+                        : item.tone === 'warning'
+                          ? 'bg-amber-500'
+                          : 'bg-rose-500'
+                    }`}
+                    style={{ width: `${item.disabled ? 0 : pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Risks — not shown as charts on Charts tab */}
+      <div className="app-card rounded-xl border p-4 sm:p-5">
+        <h3 className="text-base sm:text-lg font-semibold text-app mb-1">
+          Service risks
+        </h3>
+        <p className="text-xs text-app-muted mb-4">
+          Aging work that can hurt service quality
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-lg border border-app/30 bg-app-surface-2/50 p-4 text-center">
+            <p className="text-2xl font-bold text-amber-600 tabular-nums">{data.stillOpen}</p>
+            <p className="text-xs text-app-muted mt-1">Still open</p>
+          </div>
+          <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-4 text-center">
+            <p className="text-2xl font-bold text-orange-600 tabular-nums">{data.agingOpen}</p>
+            <p className="text-xs text-app-muted mt-1">Open 1–2 weeks</p>
+          </div>
+          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-center">
+            <p className="text-2xl font-bold text-rose-600 tabular-nums">{data.overdueOpen}</p>
+            <p className="text-xs text-app-muted mt-1">Open 2 weeks+</p>
+          </div>
+        </div>
+        {data.overdueOpen > 0 ? (
+          <p className="text-xs text-rose-600 mt-3">
+            {data.overdueOpen} request{data.overdueOpen > 1 ? 's have' : ' has'} been waiting
+            2 weeks or more — prioritize these to protect service quality.
+          </p>
+        ) : (
+          <p className="text-xs text-emerald-600 mt-3">
+            No requests are overdue past 2 weeks right now.
+          </p>
+        )}
+      </div>
+
+      {data.feedbackMetrics.totalFeedback > 0 && (
+        <div className="app-card rounded-xl border p-4 sm:p-5">
+          <h3 className="text-base sm:text-lg font-semibold text-app mb-1">
+            What users are saying
+          </h3>
+          <p className="text-xs text-app-muted mb-4">
+            Based on {data.feedbackMetrics.totalFeedback} feedback rating
+            {data.feedbackMetrics.totalFeedback > 1 ? 's' : ''}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-app/30 bg-app-surface-2/50 p-4 text-center sm:text-left">
+              <p className="text-3xl font-bold text-app-primary tabular-nums">
+                {data.feedbackMetrics.satisfactionRate}%
+              </p>
+              <p className="text-sm text-app-muted mt-1">Happy with support</p>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-amber-600 mb-2">{feedbackMetrics.highRatings}</div>
-              <div className="text-sm text-app-muted">Positive Reviews</div>
-              <div className="text-xs text-app-muted mt-1">4-5 star ratings</div>
+            <div className="rounded-lg border border-app/30 bg-app-surface-2/50 p-4 text-center sm:text-left">
+              <p className="text-3xl font-bold text-emerald-600 tabular-nums">
+                {data.feedbackMetrics.highRatings}
+              </p>
+              <p className="text-sm text-app-muted mt-1">Positive (4–5 stars)</p>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-rose-600 mb-2">{feedbackMetrics.lowRatings}</div>
-              <div className="text-sm text-app-muted">Areas for Improvement</div>
-              <div className="text-xs text-app-muted mt-1">1-2 star ratings</div>
+            <div className="rounded-lg border border-app/30 bg-app-surface-2/50 p-4 text-center sm:text-left">
+              <p className="text-3xl font-bold text-rose-600 tabular-nums">
+                {data.feedbackMetrics.lowRatings}
+              </p>
+              <p className="text-sm text-app-muted mt-1">Needs improvement (1–2)</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* Ticket Status Distribution */}
-      <div className="app-card rounded-xl border p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Ticket Status Distribution</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-cyan-600 mb-2">{openTickets}</div>
-            <div className="text-sm text-app-muted">Open Tickets</div>
-            <div className="text-xs text-app-muted mt-1">
-              {totalTickets > 0 ? Math.round((openTickets / totalTickets) * 100) : 0}% of total
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-amber-600 mb-2">{inProgressTickets}</div>
-            <div className="text-sm text-app-muted">In Progress</div>
-            <div className="text-xs text-app-muted mt-1">
-              {totalTickets > 0 ? Math.round((inProgressTickets / totalTickets) * 100) : 0}% of total
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-app-primary mb-2">{resolvedTickets}</div>
-            <div className="text-sm text-app-muted">Resolved</div>
-            <div className="text-xs text-app-muted mt-1">
-              {totalTickets > 0 ? Math.round((resolvedTickets / totalTickets) * 100) : 0}% of total
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Trends */}
-      <div className="app-card rounded-xl border p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold text-app mb-3 sm:mb-4">Performance Summary</h3>
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-app-primary-soft rounded-lg">
-                <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-app">Total Tickets Processed</p>
-                <p className="text-sm text-app-muted">Last {dateRange} days</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-app">{totalTickets}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-sky-500/15 rounded-lg">
-                <svg className="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-app">SLA Compliance</p>
-                <p className="text-sm text-app-muted">24-hour resolution target</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-app">{performanceData.slaCompliance}%</p>
-            </div>
-          </div>
-
-          {feedbackMetrics.totalFeedback > 0 && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-app-primary-soft rounded-lg">
-                  <svg className="w-5 h-5 text-app-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium text-app">Customer Satisfaction</p>
-                  <p className="text-sm text-app-muted">Based on user feedback</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-app">{feedbackMetrics.averageRating}/5</p>
-                <p className="text-sm text-app-muted">{feedbackMetrics.satisfactionRate}% satisfied</p>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-cyan-500/15 rounded-lg">
-                <svg className="w-5 h-5 text-cyan-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-app">First Contact Resolution</p>
-                <p className="text-sm text-app-muted">Resolved within 8 hours</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-app">{performanceData.firstContactResolution}%</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-500/15 rounded-lg">
-                <svg className="w-5 h-5 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-app">Escalation Rate</p>
-                <p className="text-sm text-app-muted">High or critical priority tickets</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-app">{performanceData.escalationRate}%</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-app-surface-2 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-amber-500/15 rounded-lg">
-                <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-app">Avg Response Time</p>
-                <p className="text-sm text-app-muted">Time until first status update</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-app">{performanceData.avgResponseTime}h</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

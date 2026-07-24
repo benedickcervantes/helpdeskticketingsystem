@@ -1,4 +1,8 @@
-import { parseTicketDate } from '@/lib/utils/analytics';
+import {
+  getDateRangeEnd,
+  getDateRangeStart,
+  parseTicketDate,
+} from '@/lib/utils/analytics';
 
 export type FeedbackItem = {
   id?: string;
@@ -52,19 +56,20 @@ export function filterFeedbackByDateRange(
   const days = parseInt(String(dateRange), 10);
   if (!days || Number.isNaN(days)) return feedback;
 
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
+  const start = getDateRangeStart(days);
+  const end = getDateRangeEnd();
 
   return feedback.filter((item) => {
     const itemDate = parseFeedbackDate(item.createdAt);
-    return itemDate ? itemDate >= cutoff : false;
+    return itemDate ? itemDate >= start && itemDate <= end : false;
   });
 }
 
 export function getFeedbackReportPeriodLabel(dateRange?: string | number): string {
   const days = parseInt(String(dateRange || '30'), 10);
-  if (days === 365) return 'Last 12 months';
+  if (days === 365) return 'Last year';
   if (days === 90) return 'Last 90 days';
+  if (days === 30) return 'Last 30 days';
   if (days === 7) return 'Last 7 days';
   return `Last ${days} days`;
 }

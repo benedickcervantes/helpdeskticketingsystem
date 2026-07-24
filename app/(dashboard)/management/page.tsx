@@ -29,7 +29,7 @@ export default function ManagementPage() {
   if (!mounted || loading || authLoading || !currentUser) {
     return (
       <div className="min-h-screen bg-app-gradient py-8">
-        <DashboardPageSkeleton tabCount={7} content="charts" />
+        <DashboardPageSkeleton tabCount={6} content="executive" />
       </div>
     );
   }
@@ -42,7 +42,7 @@ export default function ManagementPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-app-gradient py-8">
-          <DashboardPageSkeleton tabCount={7} content="charts" />
+          <DashboardPageSkeleton tabCount={6} content="executive" />
         </div>
       }
     >
