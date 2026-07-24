@@ -12,6 +12,14 @@ import {
   subscribeUserProfileEvents,
 } from '@/lib/realtime/socketClient';
 import OptionPickerModal from '@/lib/ui/OptionPickerModal';
+import { ExportMenu } from '@/lib/ui/ExportMenu';
+import { ExportColumnDialog } from '@/lib/ui/ExportColumnDialog';
+import {
+  ALL_USER_EXPORT_COLUMN_KEYS,
+  USER_EXPORT_COLUMN_SECTIONS,
+  exportUsersExcel,
+  exportUsersPdf,
+} from '@/lib/utils/exportUsers';
 
 const roleBadgeClass = (role) => {
   switch (role) {
@@ -309,6 +317,8 @@ const UserManagement = () => {
   const [editDepartmentPickerOpen, setEditDepartmentPickerOpen] = useState(false);
   const [addDesignationPickerOpen, setAddDesignationPickerOpen] = useState(false);
   const [addDepartmentPickerOpen, setAddDepartmentPickerOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const roles = ['user', 'admin', 'manager'];
 
   const pickerTriggerClass =
@@ -432,6 +442,48 @@ const UserManagement = () => {
         return aValue < bValue ? 1 : -1;
       }
     });
+
+  const buildUserFilterSummary = () => {
+    const parts = [];
+    if (searchTerm) parts.push(`Search: "${searchTerm}"`);
+    if (filterRole !== 'all') parts.push(`Role: ${filterRole}`);
+    if (filterDepartment === 'none') parts.push('Department: None');
+    else if (filterDepartment !== 'all') parts.push(`Department: ${filterDepartment}`);
+    if (filterStatus !== 'all') parts.push(`Status: ${filterStatus}`);
+    return parts.length ? parts.join(' · ') : 'None (all records)';
+  };
+
+  const runUserExport = async (format, columns = ALL_USER_EXPORT_COLUMN_KEYS) => {
+    if (exporting) return;
+    if (!columns.length) {
+      setError('Select at least one column to export.');
+      setExportDialogOpen(true);
+      return;
+    }
+    setExporting(true);
+    setError('');
+    setNotice('');
+    try {
+      if (filteredAndSortedUsers.length === 0) {
+        setError('No users match the current filters to export.');
+        return;
+      }
+      const filterSummary = buildUserFilterSummary();
+      if (format === 'excel') {
+        await exportUsersExcel(filteredAndSortedUsers, filterSummary, columns);
+      } else {
+        exportUsersPdf(filteredAndSortedUsers, filterSummary, columns);
+      }
+      setNotice(
+        `Exported ${filteredAndSortedUsers.length} user${filteredAndSortedUsers.length === 1 ? '' : 's'} to ${format === 'excel' ? 'Excel' : 'PDF'}.`,
+      );
+      setExportDialogOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleEditClick = (user) => {
     setSelectedUser(user);
@@ -717,6 +769,14 @@ const UserManagement = () => {
                 </svg>
               </button>
             </div>
+
+            <ExportMenu
+              disabled={filteredAndSortedUsers.length === 0}
+              exporting={exporting}
+              onCustomize={() => setExportDialogOpen(true)}
+              onExportExcel={() => runUserExport('excel')}
+              onExportPdf={() => runUserExport('pdf')}
+            />
 
             <button
               onClick={() => setShowAddModal(true)}
@@ -1303,6 +1363,17 @@ const UserManagement = () => {
         onSelect={(value) =>
           setAddFormData((prev) => ({ ...prev, department: value }))
         }
+      />
+
+      <ExportColumnDialog
+        open={exportDialogOpen}
+        titleId="user-export-columns"
+        allColumnKeys={ALL_USER_EXPORT_COLUMN_KEYS}
+        columnSections={USER_EXPORT_COLUMN_SECTIONS}
+        filterSummary={buildUserFilterSummary()}
+        exporting={exporting}
+        onClose={() => setExportDialogOpen(false)}
+        onExport={runUserExport}
       />
     </div>
   );

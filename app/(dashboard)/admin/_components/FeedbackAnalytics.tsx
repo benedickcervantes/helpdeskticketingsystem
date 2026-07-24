@@ -9,6 +9,14 @@ import {
   TicketListSkeleton,
   TitleBarSkeleton,
 } from '@/lib/ui/DashboardSkeletons';
+import { ExportMenu } from '@/lib/ui/ExportMenu';
+import { ExportColumnDialog } from '@/lib/ui/ExportColumnDialog';
+import {
+  ALL_FEEDBACK_EXPORT_COLUMN_KEYS,
+  FEEDBACK_EXPORT_COLUMN_SECTIONS,
+  exportFeedbackExcel,
+  exportFeedbackPdf,
+} from '@/lib/utils/exportFeedbackAdmin';
 
 const StarRow = ({ rating, size = 'sm' }) => {
   const sizeClass = size === 'md' ? 'w-4 h-4' : 'w-3.5 h-3.5';
@@ -35,6 +43,10 @@ const FeedbackAnalytics = () => {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportNotice, setExportNotice] = useState('');
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     api
@@ -125,6 +137,51 @@ const FeedbackAnalytics = () => {
     }
   };
 
+  const buildFeedbackFilterSummary = () => {
+    const parts = [];
+    if (searchTerm) parts.push(`Search: "${searchTerm}"`);
+    if (filter === 'high-rating') parts.push('Rating: High (4-5)');
+    else if (filter === 'medium-rating') parts.push('Rating: Medium (3)');
+    else if (filter === 'low-rating') parts.push('Rating: Low (1-2)');
+    if (sortBy !== 'newest') parts.push(`Sort: ${sortBy}`);
+    return parts.length ? parts.join(' · ') : 'None (all records)';
+  };
+
+  const runFeedbackExport = async (
+    format,
+    columns = ALL_FEEDBACK_EXPORT_COLUMN_KEYS,
+  ) => {
+    if (exporting) return;
+    if (!columns.length) {
+      setExportError('Select at least one column to export.');
+      setExportDialogOpen(true);
+      return;
+    }
+    setExporting(true);
+    setExportError('');
+    setExportNotice('');
+    try {
+      if (processedFeedback.length === 0) {
+        setExportError('No feedback matches the current filters to export.');
+        return;
+      }
+      const filterSummary = buildFeedbackFilterSummary();
+      if (format === 'excel') {
+        await exportFeedbackExcel(processedFeedback, filterSummary, columns);
+      } else {
+        exportFeedbackPdf(processedFeedback, filterSummary, columns);
+      }
+      setExportNotice(
+        `Exported ${processedFeedback.length} feedback row${processedFeedback.length === 1 ? '' : 's'} to ${format === 'excel' ? 'Excel' : 'PDF'}.`,
+      );
+      setExportDialogOpen(false);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4 sm:space-y-6">
@@ -193,8 +250,27 @@ const FeedbackAnalytics = () => {
             <option value="rating-high">Highest Rating</option>
             <option value="rating-low">Lowest Rating</option>
           </select>
+
+          <ExportMenu
+            disabled={processedFeedback.length === 0}
+            exporting={exporting}
+            onCustomize={() => setExportDialogOpen(true)}
+            onExportExcel={() => runFeedbackExport('excel')}
+            onExportPdf={() => runFeedbackExport('pdf')}
+          />
         </div>
       </div>
+
+      {exportNotice && (
+        <div className="rounded-lg border border-app-primary/30 bg-app-primary-soft/40 px-3 py-2 text-sm text-app-primary">
+          {exportNotice}
+        </div>
+      )}
+      {exportError && (
+        <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
+          {exportError}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="app-card rounded-xl border p-3 sm:p-4">
@@ -402,6 +478,17 @@ const FeedbackAnalytics = () => {
           </div>
         </>
       )}
+
+      <ExportColumnDialog
+        open={exportDialogOpen}
+        titleId="feedback-export-columns"
+        allColumnKeys={ALL_FEEDBACK_EXPORT_COLUMN_KEYS}
+        columnSections={FEEDBACK_EXPORT_COLUMN_SECTIONS}
+        filterSummary={buildFeedbackFilterSummary()}
+        exporting={exporting}
+        onClose={() => setExportDialogOpen(false)}
+        onExport={runFeedbackExport}
+      />
     </div>
   );
 };
