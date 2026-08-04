@@ -29,6 +29,20 @@ interface AuthContextValue {
   authAction: AuthLoadingAction;
   mounted: boolean;
   signin: (email: string, password: string) => Promise<UserProfile>;
+  requestRegisterOtp: (input: {
+    email: string;
+    password: string;
+    name: string;
+    department?: string;
+    designation?: string;
+  }) => Promise<{ email: string; expiresInMinutes: number; message: string }>;
+  resendRegisterOtp: (
+    email: string,
+  ) => Promise<{ email: string; expiresInMinutes: number; message: string }>;
+  verifyRegisterOtp: (
+    email: string,
+    otp: string,
+  ) => Promise<{ success: boolean; email: string; message: string }>;
   signup: (
     email: string,
     password: string,
@@ -186,6 +200,96 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [applySession]);
 
+  const requestRegisterOtp = async (input: {
+    email: string;
+    password: string;
+    name: string;
+    department?: string;
+    designation?: string;
+  }) => {
+    setLoaderVariant('loading');
+    setLoaderErrorMessage(null);
+    setAuthAction('signup');
+    setAuthLoading(true);
+    try {
+      const data = await api.post<{
+        sent: boolean;
+        email: string;
+        expiresInMinutes: number;
+        message: string;
+      }>('/api/v1/auth/register/send-otp', {
+        email: input.email,
+        password: input.password,
+        name: input.name,
+        department: input.department,
+        designation: input.designation?.trim() || undefined,
+      });
+      if (!data?.sent) throw new Error('Failed to send verification code');
+      return {
+        email: data.email,
+        expiresInMinutes: data.expiresInMinutes,
+        message: data.message,
+      };
+    } catch (error) {
+      await showAuthFailure(error, 'signup');
+      throw error;
+    } finally {
+      setAuthLoading(false);
+      setAuthAction('idle');
+      setLoaderVariant('loading');
+    }
+  };
+
+  const resendRegisterOtp = async (email: string) => {
+    const data = await api.post<{
+      sent: boolean;
+      email: string;
+      expiresInMinutes: number;
+      message: string;
+    }>('/api/v1/auth/register/resend-otp', { email });
+    if (!data?.sent) throw new Error('Failed to resend verification code');
+    return {
+      email: data.email,
+      expiresInMinutes: data.expiresInMinutes,
+      message: data.message,
+    };
+  };
+
+  const verifyRegisterOtp = async (email: string, otp: string) => {
+    setLoaderVariant('loading');
+    setLoaderErrorMessage(null);
+    setAuthAction('signup');
+    setAuthLoading(true);
+    try {
+      const data = await api.post<{
+        success?: boolean;
+        email?: string;
+        message?: string;
+        access_token?: string;
+        refresh_token?: string;
+        user?: UserProfile;
+      }>('/api/v1/auth/register/verify', {
+        email,
+        otp,
+      });
+      if (!data) throw new Error('Registration failed');
+      // Account is created — do not auto-login; user signs in next.
+      clearTokens();
+      return {
+        success: true,
+        email: data.email || email,
+        message: data.message || 'Account created — sign in to continue',
+      };
+    } catch (error) {
+      await showAuthFailure(error, 'signup');
+      throw error;
+    } finally {
+      setAuthLoading(false);
+      setAuthAction('idle');
+      setLoaderVariant('loading');
+    }
+  };
+
   const signup = async (
     email: string,
     password: string,
@@ -194,30 +298,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     department = '',
     designation = '',
   ) => {
-    setLoaderVariant('loading');
-    setLoaderErrorMessage(null);
-    setAuthAction('signup');
-    setAuthLoading(true);
-    try {
-      const data = await api.post<{
-        access_token: string;
-        refresh_token: string;
-        user: UserProfile;
-      }>('/api/v1/auth/register', {
-        email,
-        password,
-        name,
-        department,
-        designation: designation.trim() || undefined,
-      });
-      if (!data) throw new Error('Registration failed');
-      setTokens(data.access_token, data.refresh_token);
-      applySession(data.user);
-      return data.user;
-    } catch (error) {
-      await showAuthFailure(error, 'signup');
-      throw error;
-    }
+    await requestRegisterOtp({
+      email,
+      password,
+      name,
+      department,
+      designation,
+    });
+    return Promise.reject(
+      new Error(
+        'Verification code sent. Enter the code from your email to finish registration.',
+      ),
+    );
   };
 
   const signin = async (email: string, password: string) => {
@@ -349,6 +441,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authAction,
     mounted,
     signin,
+    requestRegisterOtp,
+    resendRegisterOtp,
+    verifyRegisterOtp,
     signup,
     logout,
     refreshProfile: loadSession,
