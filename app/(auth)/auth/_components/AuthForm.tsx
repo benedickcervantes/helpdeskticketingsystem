@@ -15,6 +15,7 @@ import {
   subscribeDesignationEvents,
 } from '@/lib/realtime/socketClient';
 import OptionPickerModal from '@/lib/ui/OptionPickerModal';
+import { getPasswordError, PASSWORD_RULE_MESSAGE } from '@/lib/validation/password';
 
 const FieldIcon = ({ children }) => (
   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 text-gray-400">
@@ -29,6 +30,12 @@ const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [forgotStep, setForgotStep] = useState(1);
+  const [registerStep, setRegisterStep] = useState(1);
+  const [registerOtp, setRegisterOtp] = useState('');
+  const [registerExpiresMinutes, setRegisterExpiresMinutes] = useState(15);
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotExpiresMinutes, setForgotExpiresMinutes] = useState(15);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [resetToken, setResetToken] = useState('');
   const [verifiedEmail, setVerifiedEmail] = useState('');
   const [verifiedName, setVerifiedName] = useState('');
@@ -50,7 +57,15 @@ const AuthForm = () => {
   const [designationPickerOpen, setDesignationPickerOpen] = useState(false);
   const [departmentPickerOpen, setDepartmentPickerOpen] = useState(false);
 
-  const { signin, signup, authLoading, currentUser, userProfile } = useAuth();
+  const {
+    signin,
+    requestRegisterOtp,
+    resendRegisterOtp,
+    verifyRegisterOtp,
+    authLoading,
+    currentUser,
+    userProfile,
+  } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -71,8 +86,17 @@ const AuthForm = () => {
     const registerParam = searchParams.get('register');
     if (registerParam === 'true') {
       setIsLogin(false);
+      setRegisterStep(1);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return undefined;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,7 +181,7 @@ const AuthForm = () => {
     } else if (error.code === 'auth/email-already-in-use') {
       return 'An account with this email already exists.';
     } else if (error.code === 'auth/weak-password') {
-      return 'Password should be at least 6 characters long.';
+      return PASSWORD_RULE_MESSAGE;
     } else if (error.code === 'auth/invalid-email') {
       return 'Please enter a valid email address.';
     } else if (rawMessage) {
@@ -169,9 +193,11 @@ const AuthForm = () => {
   const resetForgotFlow = () => {
     setIsForgotPassword(false);
     setForgotStep(1);
+    setForgotOtp('');
     setResetToken('');
     setVerifiedEmail('');
     setVerifiedName('');
+    setResendCooldown(0);
     setFormData((prev) => ({
       ...prev,
       password: '',
@@ -181,21 +207,71 @@ const AuthForm = () => {
     setSuccessMessage('');
   };
 
-  const handleVerifyEmail = async (e) => {
+  const handleSendForgotOtp = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
     setLoading(true);
 
     try {
-      const result = await api.post('/api/v1/auth/forgot-password/verify', {
+      const result = await api.post('/api/v1/auth/forgot-password/send-otp', {
         email: formData.email.trim(),
+      });
+      setVerifiedEmail(result.email);
+      setVerifiedName(result.name || '');
+      setForgotExpiresMinutes(result.expiresInMinutes || 15);
+      setForgotOtp('');
+      setForgotStep(2);
+      setResendCooldown(60);
+      setSuccessMessage('Verification code sent. Check your email inbox.');
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendForgotOtp = async () => {
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+    try {
+      const result = await api.post('/api/v1/auth/forgot-password/resend-otp', {
+        email: verifiedEmail || formData.email.trim(),
+      });
+      setForgotExpiresMinutes(result.expiresInMinutes || 15);
+      setForgotOtp('');
+      setResendCooldown(60);
+      setSuccessMessage('A new verification code was sent to your email.');
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyForgotOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    const otp = forgotOtp.trim();
+    if (!/^\d{6}$/.test(otp)) {
+      setError('Enter the 6-digit verification code from your email.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await api.post('/api/v1/auth/forgot-password/verify-otp', {
+        email: verifiedEmail || formData.email.trim(),
+        otp,
       });
       setResetToken(result.resetToken);
       setVerifiedEmail(result.email);
       setVerifiedName(result.name);
-      setForgotStep(2);
-      setSuccessMessage(`Email verified. Hello, ${result.name}! Set your new password below.`);
+      setForgotStep(3);
+      setSuccessMessage(`Code verified. Hello, ${result.name}! Set your new password below.`);
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {
@@ -212,8 +288,9 @@ const AuthForm = () => {
       setError('Passwords do not match');
       return;
     }
-    if (formData.password.length < 6) {
-      setError('Password should be at least 6 characters long.');
+    const passwordError = getPasswordError(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -249,9 +326,38 @@ const AuthForm = () => {
     try {
       if (isLogin) {
         await signin(formData.email, formData.password);
+      } else if (registerStep === 2) {
+        const otp = registerOtp.trim();
+        if (!/^\d{6}$/.test(otp)) {
+          setError('Enter the 6-digit verification code from your email.');
+          setLoading(false);
+          return;
+        }
+        const verifiedEmail = formData.email.trim();
+        const result = await verifyRegisterOtp(verifiedEmail, otp);
+        setRegisterOtp('');
+        setRegisterStep(1);
+        setIsForgotPassword(false);
+        setIsLogin(true);
+        setFormData({
+          email: verifiedEmail,
+          password: '',
+          name: '',
+          designation: '',
+          department: '',
+          confirmPassword: '',
+        });
+        setSuccessMessage('Account created — sign in to continue');
+        router.replace('/auth');
       } else {
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        const passwordError = getPasswordError(formData.password);
+        if (passwordError) {
+          setError(passwordError);
           setLoading(false);
           return;
         }
@@ -261,26 +367,40 @@ const AuthForm = () => {
           return;
         }
 
-        await signup(
-          formData.email,
-          formData.password,
-          formData.name,
-          'user',
-          formData.department,
-          formData.designation
-        );
-
-        setSuccessMessage('Account created successfully! Redirecting to your dashboard...');
-
-        setFormData({
-          email: '',
-          password: '',
-          name: '',
-          designation: '',
-          department: '',
-          confirmPassword: '',
+        const result = await requestRegisterOtp({
+          email: formData.email.trim(),
+          password: formData.password,
+          name: formData.name.trim(),
+          department: formData.department,
+          designation: formData.designation,
         });
+
+        setRegisterExpiresMinutes(result.expiresInMinutes || 15);
+        setRegisterStep(2);
+        setRegisterOtp('');
+        setResendCooldown(60);
+        setSuccessMessage(
+          result.message ||
+            `Verification code sent to ${formData.email.trim()}. Check your inbox.`,
+        );
       }
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendRegisterOtp = async () => {
+    if (resendCooldown > 0 || loading || authLoading) return;
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+    try {
+      const result = await resendRegisterOtp(formData.email.trim());
+      setRegisterExpiresMinutes(result.expiresInMinutes || 15);
+      setResendCooldown(60);
+      setSuccessMessage(result.message || 'A new verification code was sent.');
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {
@@ -292,6 +412,9 @@ const AuthForm = () => {
     setIsLogin(loginMode);
     setIsForgotPassword(false);
     setForgotStep(1);
+    setRegisterStep(1);
+    setRegisterOtp('');
+    setResendCooldown(0);
     setError('');
     setSuccessMessage('');
     router.replace(loginMode ? '/auth' : '/auth?register=true');
@@ -303,34 +426,50 @@ const AuthForm = () => {
   const title = isForgotPassword
     ? forgotStep === 1
       ? 'Forgot password'
-      : 'Set new password'
+      : forgotStep === 2
+        ? 'Check your email'
+        : 'Set new password'
     : isLogin
       ? 'Sign in'
-      : 'Create account';
+      : registerStep === 2
+        ? 'Check your email'
+        : 'Create account';
 
   const subtitle = isForgotPassword
     ? forgotStep === 1
-      ? 'Enter your registered email to verify your account'
-      : `Create a new password for ${verifiedEmail}`
+      ? 'Enter your registered email to receive a verification code'
+      : forgotStep === 2
+        ? `Enter the 6-digit code we sent to ${verifiedEmail || formData.email}.`
+        : `Create a new password for ${verifiedEmail}`
     : isLogin
       ? 'Access the FPDC IT Helpdesk'
-      : 'Register for FPDC IT support access';
+      : registerStep === 2
+        ? `Enter the 6-digit code we sent to ${formData.email}.`
+        : 'Create your FPDC IT Helpdesk account';
 
   const submitLabel = isForgotPassword
     ? forgotStep === 1
-      ? 'Verify email'
-      : 'Update password'
+      ? 'Send code'
+      : forgotStep === 2
+        ? 'Verify code'
+        : 'Update password'
     : isLogin
       ? 'Sign in'
-      : 'Create account';
+      : registerStep === 2
+        ? 'Verify code'
+        : 'Continue';
 
   const loadingLabel = isForgotPassword
     ? forgotStep === 1
-      ? 'Verifying...'
-      : 'Updating password...'
+      ? 'Sending code...'
+      : forgotStep === 2
+        ? 'Verifying...'
+        : 'Updating password...'
     : isLogin
       ? 'Signing in...'
-      : 'Creating account...';
+      : registerStep === 2
+        ? 'Verifying...'
+        : 'Sending code...';
 
   return (
     <div className="min-h-screen flex flex-col justify-center py-8 sm:py-10 px-3 sm:px-6 lg:px-8">
@@ -368,7 +507,7 @@ const AuthForm = () => {
           </div>
 
           {/* Mode tabs — sliding pill */}
-          {!isForgotPassword && (
+          {!isForgotPassword && !( !isLogin && registerStep === 2) && (
             <div
               className="relative flex p-1 mb-5 sm:mb-6 rounded-xl bg-gray-950/80 border border-gray-800"
               role="tablist"
@@ -408,7 +547,13 @@ const AuthForm = () => {
           )}
 
           <div
-            key={isForgotPassword ? `forgot-${forgotStep}` : isLogin ? 'login' : 'register'}
+            key={
+              isForgotPassword
+                ? `forgot-${forgotStep}`
+                : isLogin
+                  ? 'login'
+                  : `register-${registerStep}`
+            }
             className="auth-mode-panel"
           >
             <div className="mb-5">
@@ -421,12 +566,14 @@ const AuthForm = () => {
             onSubmit={
               isForgotPassword
                 ? forgotStep === 1
-                  ? handleVerifyEmail
-                  : handleResetPassword
+                  ? handleSendForgotOtp
+                  : forgotStep === 2
+                    ? handleVerifyForgotOtp
+                    : handleResetPassword
                 : handleSubmit
             }
           >
-            {!isLogin && !isForgotPassword && (
+            {!isLogin && !isForgotPassword && registerStep === 1 && (
               <>
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1.5">
@@ -557,6 +704,8 @@ const AuthForm = () => {
               </>
             )}
 
+            {!(!isLogin && !isForgotPassword && registerStep === 2) &&
+              !(isForgotPassword && forgotStep === 2) && (
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">
                 Email address
@@ -578,26 +727,167 @@ const AuthForm = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  readOnly={isForgotPassword && forgotStep === 2}
+                  readOnly={isForgotPassword && forgotStep === 3}
                   className={`${inputClass} ${
-                    isForgotPassword && forgotStep === 2 ? 'opacity-70 cursor-not-allowed' : ''
+                    isForgotPassword && forgotStep === 3 ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
                   placeholder="Enter email address"
-                  value={isForgotPassword && forgotStep === 2 ? verifiedEmail : formData.email}
+                  value={isForgotPassword && forgotStep === 3 ? verifiedEmail : formData.email}
                   onChange={handleChange}
-                  disabled={loading || authLoading || (isForgotPassword && forgotStep === 2)}
+                  disabled={loading || authLoading || (isForgotPassword && forgotStep === 3)}
                 />
               </div>
             </div>
+            )}
 
-            {isForgotPassword && forgotStep === 2 && verifiedName && (
+            {!isLogin && !isForgotPassword && registerStep === 2 && (
+              <div>
+                <div className="mb-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-100/90">
+                  <p className="leading-relaxed break-all">
+                    Code sent to <span className="font-semibold text-white">{formData.email}</span>
+                  </p>
+                </div>
+                <label htmlFor="registerOtp" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  Verification code
+                </label>
+                <div className="relative">
+                  <FieldIcon>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 11c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zm6 0c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zM9 17h6"
+                      />
+                    </svg>
+                  </FieldIcon>
+                  <input
+                    id="registerOtp"
+                    name="registerOtp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="\d{6}"
+                    maxLength={6}
+                    required
+                    className={`${inputClass} tracking-[0.35em] font-semibold`}
+                    placeholder="000000"
+                    value={registerOtp}
+                    onChange={(e) => {
+                      const next = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setRegisterOtp(next);
+                    }}
+                    disabled={loading || authLoading}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Code expires in {registerExpiresMinutes} minutes. Check spam if you do not see it.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                  <button
+                    type="button"
+                    onClick={handleResendRegisterOtp}
+                    disabled={loading || authLoading || resendCooldown > 0}
+                    className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegisterStep(1);
+                      setRegisterOtp('');
+                      setError('');
+                      setSuccessMessage('');
+                    }}
+                    disabled={loading || authLoading}
+                    className="font-medium text-gray-400 hover:text-gray-200 transition-colors"
+                  >
+                    Edit registration details
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isForgotPassword && forgotStep === 2 && (
+              <div>
+                <div className="mb-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-100/90">
+                  <p className="leading-relaxed break-all">
+                    Code sent to{' '}
+                    <span className="font-semibold text-white">{verifiedEmail || formData.email}</span>
+                  </p>
+                </div>
+                <label htmlFor="forgotOtp" className="block text-sm font-medium text-gray-300 mb-1.5">
+                  Verification code
+                </label>
+                <div className="relative">
+                  <FieldIcon>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 11c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zm6 0c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zM9 17h6"
+                      />
+                    </svg>
+                  </FieldIcon>
+                  <input
+                    id="forgotOtp"
+                    name="forgotOtp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="\d{6}"
+                    maxLength={6}
+                    required
+                    className={`${inputClass} tracking-[0.35em] font-semibold`}
+                    placeholder="000000"
+                    value={forgotOtp}
+                    onChange={(e) => {
+                      const next = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setForgotOtp(next);
+                    }}
+                    disabled={loading || authLoading}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Code expires in {forgotExpiresMinutes} minutes. Check spam if you do not see it.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                  <button
+                    type="button"
+                    onClick={handleResendForgotOtp}
+                    disabled={loading || authLoading || resendCooldown > 0}
+                    className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotStep(1);
+                      setForgotOtp('');
+                      setError('');
+                      setSuccessMessage('');
+                    }}
+                    disabled={loading || authLoading}
+                    className="font-medium text-gray-400 hover:text-gray-200 transition-colors"
+                  >
+                    Use a different email
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isForgotPassword && forgotStep === 3 && verifiedName && (
               <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-200">
                 Account verified:{' '}
                 <span className="font-semibold text-white">{verifiedName}</span>
               </div>
             )}
 
-            {(!isForgotPassword || forgotStep === 2) && (
+            {(!isForgotPassword || forgotStep === 3) &&
+              !( !isLogin && !isForgotPassword && registerStep === 2) && (
               <div>
                 <label
                   htmlFor="password"
@@ -621,7 +911,7 @@ const AuthForm = () => {
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete={isForgotPassword ? 'new-password' : 'current-password'}
-                    required={!isForgotPassword || forgotStep === 2}
+                    required={!isForgotPassword || forgotStep === 3}
                     className={`${inputClass} pr-12`}
                     placeholder={isForgotPassword ? 'Enter new password' : 'Enter password'}
                     value={formData.password}
@@ -662,10 +952,17 @@ const AuthForm = () => {
                     )}
                   </button>
                 </div>
+                {((!isLogin && !isForgotPassword && registerStep === 1) ||
+                  (isForgotPassword && forgotStep === 3)) && (
+                  <p className="mt-1.5 text-xs text-gray-500 leading-relaxed">
+                    {PASSWORD_RULE_MESSAGE}
+                  </p>
+                )}
               </div>
             )}
 
-            {(!isLogin && !isForgotPassword) || (isForgotPassword && forgotStep === 2) ? (
+            {((!isLogin && !isForgotPassword && registerStep === 1) ||
+              (isForgotPassword && forgotStep === 3)) ? (
               <div>
                 <label
                   htmlFor="confirmPassword"
@@ -689,7 +986,7 @@ const AuthForm = () => {
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     autoComplete="new-password"
-                    required={!isLogin || (isForgotPassword && forgotStep === 2)}
+                    required={!isLogin || (isForgotPassword && forgotStep === 3)}
                     className={`${inputClass} pr-12`}
                     placeholder="Confirm password"
                     value={formData.confirmPassword}
@@ -740,6 +1037,7 @@ const AuthForm = () => {
                   onClick={() => {
                     setIsForgotPassword(true);
                     setForgotStep(1);
+                    setForgotOtp('');
                     setError('');
                     setSuccessMessage('');
                   }}
@@ -749,6 +1047,18 @@ const AuthForm = () => {
                   Forgot password?
                 </button>
               </div>
+            )}
+
+            {isForgotPassword && forgotStep === 1 && (
+              <p className="text-xs text-gray-500 leading-relaxed -mt-1">
+                We&apos;ll email a 6-digit code to verify it&apos;s you before you can set a new password.
+              </p>
+            )}
+
+            {!isLogin && !isForgotPassword && registerStep === 1 && (
+              <p className="text-xs text-gray-500 leading-relaxed -mt-1">
+                We&apos;ll email a 6-digit code to verify your address before your account is created.
+              </p>
             )}
 
             {error && (
@@ -810,6 +1120,8 @@ const AuthForm = () => {
                     Back to sign in
                   </button>
                 </>
+              ) : !isLogin && registerStep === 2 ? (
+                <span>Didn&apos;t get the email? Check spam or resend the code.</span>
               ) : (
                 <>
                   {isLogin ? "Don't have an account?" : 'Already have an account?'}

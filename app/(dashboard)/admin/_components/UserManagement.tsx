@@ -20,6 +20,7 @@ import {
   exportUsersExcel,
   exportUsersPdf,
 } from '@/lib/utils/exportUsers';
+import { getPasswordError, PASSWORD_RULE_MESSAGE } from '@/lib/validation/password';
 
 const roleBadgeClass = (role) => {
   switch (role) {
@@ -530,6 +531,12 @@ const UserManagement = () => {
         isActive: editFormData.isActive,
       };
       if (editFormData.password.trim()) {
+        const passwordError = getPasswordError(editFormData.password.trim());
+        if (passwordError) {
+          setError(passwordError);
+          setFormSubmitting(false);
+          return;
+        }
         payload.password = editFormData.password.trim();
       }
       await api.patch(`/api/v1/users/admin/${selectedUser.id}`, payload);
@@ -550,6 +557,12 @@ const UserManagement = () => {
     try {
       setFormSubmitting(true);
       setError('');
+      const passwordError = getPasswordError(addFormData.password);
+      if (passwordError) {
+        setError(passwordError);
+        setFormSubmitting(false);
+        return;
+      }
       await api.post('/api/v1/users/admin', {
         name: addFormData.name,
         email: addFormData.email,
@@ -1182,7 +1195,7 @@ const UserManagement = () => {
             className="mt-1 block w-full app-field border rounded-xl shadow-sm py-2.5 px-3 focus:outline-none text-sm placeholder:text-app-muted"
           />
           <p className="mt-1 text-xs text-app-muted">
-            Set a new password if the user forgot theirs (min. 6 characters).
+            Set a new password if the user forgot theirs ({PASSWORD_RULE_MESSAGE}).
           </p>
         </div>
         <div className="flex items-center">
@@ -1246,6 +1259,7 @@ const UserManagement = () => {
             className="mt-1 block w-full app-field border rounded-xl shadow-sm py-2.5 px-3 focus:outline-none text-sm"
             required
           />
+          <p className="mt-1.5 text-xs text-app-muted leading-relaxed">{PASSWORD_RULE_MESSAGE}</p>
         </div>
         <div>
           <label htmlFor="add-designation" className="block text-xs sm:text-sm font-medium text-app-soft">Designation</label>
