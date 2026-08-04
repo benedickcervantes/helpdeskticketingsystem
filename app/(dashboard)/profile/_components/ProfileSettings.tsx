@@ -18,6 +18,7 @@ import { getDashboardPath } from '@/lib/utils/roles';
 import { ProfileFormSkeleton } from '@/lib/ui/DashboardSkeletons';
 import OptionPickerModal from '@/lib/ui/OptionPickerModal';
 import type { UserProfile } from '@/types/user';
+import { getPasswordError, PASSWORD_RULE_MESSAGE } from '@/lib/validation/password';
 
 type FormErrors = Record<string, string>;
 
@@ -342,8 +343,9 @@ const ProfileSettings = () => {
     }
     if (!passwordForm.newPassword) {
       next.newPassword = 'New password is required';
-    } else if (passwordForm.newPassword.length < 6) {
-      next.newPassword = 'Password must be at least 6 characters';
+    } else {
+      const passwordError = getPasswordError(passwordForm.newPassword);
+      if (passwordError) next.newPassword = passwordError;
     }
     if (!passwordForm.confirmPassword) {
       next.confirmPassword = 'Please confirm your new password';
@@ -754,10 +756,13 @@ const ProfileSettings = () => {
                 onChange={handlePasswordChange}
                 autoComplete="new-password"
                 className={inputClass}
-                placeholder="At least 6 characters"
+                placeholder="8+ chars, uppercase, number, special"
               />
               {passwordErrors.newPassword && (
                 <p className="text-sm text-red-400 mt-1 break-words">{passwordErrors.newPassword}</p>
+              )}
+              {!passwordErrors.newPassword && (
+                <p className="text-xs text-app-muted mt-1.5 leading-relaxed">{PASSWORD_RULE_MESSAGE}</p>
               )}
             </div>
 
