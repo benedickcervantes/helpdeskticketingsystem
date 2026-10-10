@@ -2,6 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { draftTicketReply, summarizeTicket } from '@/lib/api/ai';
 import {
   getTicketMessages,
   markTicketMessagesRead,
@@ -118,9 +119,22 @@ export default function TicketConversation({
   const [attachmentPreviews, setAttachmentPreviews] = useState([]);
   const [attachmentError, setAttachmentError] = useState('');
   const [sending, setSending] = useState(false);
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState('');
+  const [draft, setDraft] = useState(null);
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftError, setDraftError] = useState('');
   const threadEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const markReadInFlight = useRef(false);
+
+  useEffect(() => {
+    setSummary(null);
+    setDraft(null);
+    setSummaryError('');
+    setDraftError('');
+  }, [ticketId]);
 
   const isStaff = isStaffRole(currentUserRole);
   // Require real IDs — `undefined === undefined` must never grant access.
@@ -330,6 +344,40 @@ export default function TicketConversation({
     }
   };
 
+  const handleSummarize = async () => {
+    if (!ticketId || summaryLoading) return;
+    setSummaryLoading(true);
+    setSummaryError('');
+    try {
+      const result = await summarizeTicket(ticketId);
+      setSummary(result);
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : 'Could not summarize this thread.');
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  const handleSuggestReply = async () => {
+    if (!ticketId || draftLoading) return;
+    setDraftLoading(true);
+    setDraftError('');
+    try {
+      const result = await draftTicketReply(ticketId);
+      setDraft(result);
+    } catch (err) {
+      setDraftError(err instanceof Error ? err.message : 'Could not draft a reply.');
+    } finally {
+      setDraftLoading(false);
+    }
+  };
+
+  const useDraft = () => {
+    if (!draft?.draft) return;
+    setBody(draft.draft);
+    setDraft(null);
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -388,6 +436,72 @@ export default function TicketConversation({
           </span>
         )}
       </div>
+
+      {isStaff && (
+        <div className="px-3 sm:px-4 py-2.5 border-b border-app-subtle bg-app-surface-2/40 space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSummarize}
+              disabled={summaryLoading}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-app-subtle bg-app-surface-2 text-app-soft hover:text-app disabled:opacity-50"
+            >
+              {summaryLoading ? 'Summarizing…' : 'Summarize'}
+            </button>
+            {canReply && (
+              <button
+                type="button"
+                onClick={handleSuggestReply}
+                disabled={draftLoading}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-app-subtle bg-app-surface-2 text-app-soft hover:text-app disabled:opacity-50"
+              >
+                {draftLoading ? 'Drafting…' : 'Suggest reply'}
+              </button>
+            )}
+            <span className="text-[11px] text-app-muted">Suggestions only. Nothing is sent automatically.</span>
+          </div>
+
+          {summaryError && <p className="text-xs text-red-400">{summaryError}</p>}
+          {summary && (
+            <div className="rounded-lg border border-app bg-app-panel px-3 py-2.5 space-y-1.5">
+              <p className="text-xs text-app"><span className="font-semibold">Problem.</span> {summary.problem}</p>
+              <p className="text-xs text-app"><span className="font-semibold">Already tried.</span> {summary.tried}</p>
+              <p className="text-xs text-app"><span className="font-semibold">Waiting on.</span> {summary.waitingOn}</p>
+              <button
+                type="button"
+                onClick={() => setSummary(null)}
+                className="text-[11px] text-app-muted hover:text-app"
+              >
+                Hide summary
+              </button>
+            </div>
+          )}
+
+          {draftError && <p className="text-xs text-red-400">{draftError}</p>}
+          {draft?.draft && (
+            <div className="rounded-lg border border-app-primary/30 bg-app-primary-soft/30 px-3 py-2.5 space-y-2">
+              <p className="text-[11px] uppercase tracking-wide text-app-muted">Draft reply</p>
+              <p className="text-sm text-app whitespace-pre-wrap">{draft.draft}</p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={useDraft}
+                  className="text-xs font-semibold text-app-primary hover:underline"
+                >
+                  {body.trim() ? 'Replace message' : 'Use draft'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraft(null)}
+                  className="text-xs text-app-muted hover:text-app"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="p-3 sm:p-4 max-h-80 sm:max-h-96 overflow-y-auto space-y-3 sm:space-y-4">
         {loading ? (

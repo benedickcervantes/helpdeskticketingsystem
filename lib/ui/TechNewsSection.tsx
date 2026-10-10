@@ -294,7 +294,7 @@ const TechNewsSection = ({ ctaHref = '/auth', ctaLabel = 'Get Started' }) => {
               </div>
             </div>
             <p className="text-sm sm:text-lg text-gray-300 leading-relaxed max-w-xl">
-              Submit IT requests, track progress, and stay current with technology news — all in one place.
+              Open a ticket when you need the IT team. Ask IT can guide a basic fix, and it sets the category and priority if the ticket comes from the chat.
             </p>
             <div className="flex flex-col min-[380px]:flex-row gap-2.5 sm:gap-3 pt-0.5 w-full">
               <Link
@@ -307,12 +307,15 @@ const TechNewsSection = ({ ctaHref = '/auth', ctaLabel = 'Get Started' }) => {
                 </svg>
               </Link>
               <a
-                href="#tech-news"
-                className="inline-flex w-full min-[380px]:w-auto min-h-11 items-center justify-center gap-2 border border-gray-600 hover:border-gray-500 text-gray-200 hover:text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                href="#ask-it"
+                className="inline-flex w-full min-[380px]:w-auto min-h-11 items-center justify-center gap-2 border border-emerald-500/40 hover:border-emerald-400 hover:bg-emerald-500/10 text-emerald-100 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-900"
               >
-                Browse tech news
+                Ask IT
               </a>
             </div>
+            <a href="#tech-news" className="inline-flex text-sm font-medium text-gray-400 hover:text-white transition-colors">
+              Browse tech news
+            </a>
           </div>
 
           <div className="hidden lg:block text-right pb-1 shrink-0">

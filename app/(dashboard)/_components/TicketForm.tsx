@@ -1,8 +1,9 @@
 // @ts-nocheck
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { suggestTicket } from '@/lib/api/ai';
 import { api, apiFetch } from '@/lib/api/client';
 
 const MAX_ATTACHMENTS = 3;
@@ -49,6 +50,12 @@ const TicketForm = ({ onTicketCreated }) => {
   const [createdTicketNumber, setCreatedTicketNumber] = useState('');
   const [uploadWarning, setUploadWarning] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [suggestion, setSuggestion] = useState(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestError, setSuggestError] = useState('');
+  const priorityTouchedRef = useRef(false);
+  const categoryTouchedRef = useRef(false);
+  const suggestRequestRef = useRef(0);
 
   const categories = [
     { value: 'hardware', label: 'Hardware', description: 'Devices & equipment' },
@@ -95,6 +102,8 @@ const TicketForm = ({ onTicketCreated }) => {
   const descNearLimit = formData.description.length >= 900;
 
   const handleChange = (e) => {
+    if (e.target.name === 'priority') priorityTouchedRef.current = true;
+    if (e.target.name === 'category') categoryTouchedRef.current = true;
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -102,6 +111,61 @@ const TicketForm = ({ onTicketCreated }) => {
     setError('');
     setSuccess(false);
     setUploadWarning('');
+  };
+
+  useEffect(() => {
+    const title = formData.title.trim();
+    const description = formData.description.trim();
+    if (title.length < 4 || description.length < 12) {
+      setSuggestion(null);
+      setSuggesting(false);
+      setSuggestError('');
+      return undefined;
+    }
+
+    const requestId = suggestRequestRef.current + 1;
+    suggestRequestRef.current = requestId;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      if (cancelled) return;
+      setSuggesting(true);
+      setSuggestError('');
+      try {
+        const result = await suggestTicket(title, description);
+        if (cancelled || suggestRequestRef.current !== requestId || !result) return;
+        setSuggestion(result);
+        setFormData((prev) => {
+          if (prev.title.trim() !== title || prev.description.trim() !== description) return prev;
+          return {
+            ...prev,
+            category: categoryTouchedRef.current ? prev.category : result.category,
+            priority: priorityTouchedRef.current ? prev.priority : result.priority,
+          };
+        });
+      } catch (err) {
+        if (cancelled || suggestRequestRef.current !== requestId) return;
+        setSuggestion(null);
+        setSuggestError(err instanceof Error ? err.message : 'Could not suggest a category.');
+      } finally {
+        if (!cancelled && suggestRequestRef.current === requestId) setSuggesting(false);
+      }
+    }, 700);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [formData.title, formData.description]);
+
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    priorityTouchedRef.current = true;
+    categoryTouchedRef.current = true;
+    setFormData((prev) => ({
+      ...prev,
+      category: suggestion.category,
+      priority: suggestion.priority,
+    }));
   };
 
   const resetAttachments = () => {
@@ -266,6 +330,10 @@ const TicketForm = ({ onTicketCreated }) => {
           priority: 'medium',
           category: 'software',
         });
+        priorityTouchedRef.current = false;
+        categoryTouchedRef.current = false;
+        setSuggestion(null);
+        setSuggestError('');
         resetAttachments();
         setSuccess(false);
         setCreatedTicketNumber('');
@@ -360,6 +428,52 @@ const TicketForm = ({ onTicketCreated }) => {
               Add screenshots below if available — it helps IT resolve faster.
             </p>
           </div>
+
+          {(suggesting || suggestion || suggestError) && (
+            <div className="rounded-xl border border-app-primary/30 bg-app-primary-soft/40 px-4 py-3 space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-app">
+                    {suggesting && !suggestion ? 'Reading the request…' : 'Suggested category and priority'}
+                  </p>
+                  {suggestion?.reason && (
+                    <p className="text-xs text-app-soft mt-1 leading-relaxed">{suggestion.reason}</p>
+                  )}
+                </div>
+                {suggestion &&
+                  (suggestion.category !== formData.category ||
+                    suggestion.priority !== formData.priority) && (
+                    <button
+                      type="button"
+                      onClick={applySuggestion}
+                      className="shrink-0 text-xs font-semibold text-app-primary hover:underline"
+                    >
+                      Apply
+                    </button>
+                  )}
+              </div>
+              {suggestion && (
+                <p className="text-[11px] text-app-muted">
+                  {suggestion.source === 'model' ? 'AI suggestion' : 'Suggested from the wording'}.
+                  {' '}You can still change category and priority before submitting.
+                </p>
+              )}
+              {suggestion?.similarTickets?.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-app">A similar request is already open</p>
+                  {suggestion.similarTickets.map((ticket) => (
+                    <p key={ticket.id} className="text-xs text-app-soft leading-relaxed">
+                      <span className="font-semibold text-app">{ticket.ticketNumber}</span>
+                      {' · '}
+                      {ticket.title}
+                      {ticket.department ? ` · ${ticket.department}` : ''}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {suggestError && <p className="text-xs text-amber-400">{suggestError}</p>}
+            </div>
+          )}
 
           {/* Attachments */}
           <div className="space-y-3">
