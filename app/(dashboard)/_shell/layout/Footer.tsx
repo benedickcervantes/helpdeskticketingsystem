@@ -203,6 +203,11 @@ const ICON = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
     </svg>
   ),
+  ask: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2.2l1.15 4.55c.22.86.9 1.54 1.76 1.76L19.5 9.7l-4.59 1.19a2.4 2.4 0 00-1.76 1.76L12 17.2l-1.15-4.55a2.4 2.4 0 00-1.76-1.76L4.5 9.7l4.59-1.19a2.4 2.4 0 001.76-1.76L12 2.2z" />
+    </svg>
+  ),
   learn: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -290,10 +295,16 @@ const Footer = () => {
       description: 'Back to the landing page',
     },
     {
+      href: '/#ask-it',
+      icon: ICON.ask,
+      title: 'Ask IT',
+      description: 'Optional guide. Sets category and priority on a chat ticket',
+    },
+    {
       href: '/#how-it-works',
       icon: ICON.steps,
       title: 'How it works',
-      description: 'Submit, track, and resolve',
+      description: 'Ask, submit, and track',
     },
     {
       href: '/#tech-news',
@@ -420,7 +431,7 @@ const Footer = () => {
               <div className="mx-1 sm:mx-3 mb-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 sm:p-3.5">
                 <p className="text-sm font-medium text-emerald-200">Need IT help now?</p>
                 <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                  Submit a ticket in the helpdesk — the fastest way to reach the FPDC IT team.
+                  Open a ticket directly, or let Ask IT guide a basic fix. A ticket from the chat needs the full details, and Ask IT sets the category and priority.
                 </p>
                 <Link
                   href={createTicketHref}
