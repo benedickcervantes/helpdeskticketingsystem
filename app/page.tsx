@@ -58,9 +58,23 @@ function LandingSkeleton() {
 const HOW_IT_WORKS = [
   {
     step: '01',
-    title: 'Submit a ticket',
+    title: 'Ask IT, if you want',
     description:
-      'Describe the issue, pick a category, and send it to the FPDC IT team in a few clicks.',
+      'Optional. Ask IT guides a basic fix. If it still cannot be fixed, describe the issue in full and Ask IT creates the ticket, including the category and priority.',
+    icon: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
+    ),
+  },
+  {
+    step: '02',
+    title: 'Open a ticket',
+    description:
+      'Send the request straight to the FPDC IT team and choose the category and priority yourself. You do not have to use Ask IT first.',
     icon: (
       <path
         strokeLinecap="round"
@@ -71,24 +85,10 @@ const HOW_IT_WORKS = [
     ),
   },
   {
-    step: '02',
-    title: 'Track progress',
-    description:
-      'Follow status updates and conversation replies as your request moves through the queue.',
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-      />
-    ),
-  },
-  {
     step: '03',
-    title: 'Get it resolved',
+    title: 'Follow it through',
     description:
-      'IT closes the loop when the fix is done — and you can leave feedback on the support you received.',
+      'Track status and replies until the FPDC IT team closes the request. You can leave feedback when it is done.',
     icon: (
       <path
         strokeLinecap="round"
@@ -159,6 +159,9 @@ export default function HomePage() {
 
   const dashboardPath = currentUser ? getDashboardPath(userProfile?.role) : '/auth';
   const ctaLabel = currentUser ? 'Go to Dashboard' : 'Get Started';
+  const canOpenAsk = !currentUser || !['admin', 'manager'].includes(userProfile?.role);
+  const askHref = !currentUser ? '/auth' : canOpenAsk ? '/user?tab=ask' : dashboardPath;
+  const askLabel = !currentUser ? 'Sign in to use Ask IT' : canOpenAsk ? 'Open Ask IT' : 'Go to Dashboard';
 
   return (
     <>
@@ -168,6 +171,8 @@ export default function HomePage() {
           <TechNewsSection ctaHref={dashboardPath} ctaLabel={ctaLabel} />
         </div>
 
+        <AskItPreview href={askHref} label={askLabel} />
+
         {/* How it works */}
         <section id="how-it-works" className="py-10 sm:py-14 md:py-20 bg-gradient-to-b from-gray-900 to-gray-800 relative scroll-mt-16 sm:scroll-mt-20">
           <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -176,7 +181,7 @@ export default function HomePage() {
                 How the helpdesk works
               </h2>
               <p className="text-sm sm:text-base md:text-lg text-gray-400 max-w-2xl mx-auto px-1">
-                Three steps from issue to resolution — built for FPDC employees and IT support.
+                Open a ticket directly, or use Ask IT for a basic fix. If you create the ticket from the chat, Ask IT sets the category and priority from the full details.
               </p>
             </div>
 
@@ -325,8 +330,8 @@ export default function HomePage() {
             </h2>
             <p className="text-sm sm:text-base text-gray-400 mb-6 sm:mb-8 px-1">
               {currentUser
-                ? 'Open your dashboard to submit tickets, check updates, or manage requests.'
-                : 'Sign in to the FPDC Helpdesk to submit a ticket and track your request.'}
+                ? 'Open your dashboard to ask IT, check a ticket, or manage requests.'
+                : 'Sign in to ask IT, submit a ticket, and track your request with the FPDC IT team.'}
             </p>
             <Link
               href={dashboardPath}
@@ -342,5 +347,114 @@ export default function HomePage() {
       </AppShell>
       <Footer />
     </>
+  );
+}
+
+function AskItPreview({ href, label }) {
+  return (
+    <section id="ask-it" className="relative scroll-mt-16 sm:scroll-mt-20 overflow-hidden bg-gray-950 py-10 sm:py-14 md:py-20">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div
+          className="absolute inset-0 opacity-80"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 70% 55% at 80% 20%, rgba(16, 185, 129, 0.16), transparent 60%)',
+          }}
+        />
+      </div>
+      <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-3 sm:gap-10 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold tracking-[0.16em] text-emerald-400 uppercase">Ask IT</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl">
+            A guide for basic problems
+          </h2>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-gray-400 sm:text-base">
+            Ask IT is optional. It walks you through a simple fix. If the problem remains, describe it in full and Ask IT creates the ticket, then sets the category and priority from those details.
+          </p>
+          <ul className="mt-6 space-y-3">
+            {[
+              'Optional guidance for Wi-Fi, email, printers, computers, and software.',
+              'The reply follows the language of your message.',
+              'A ticket from the chat needs the full details. Ask IT sets the category and priority.',
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-gray-300">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href={href}
+            className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-900/30 transition-colors hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-950 sm:w-auto sm:text-base"
+          >
+            <span>{label}</span>
+            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-gray-900 shadow-2xl shadow-black/40">
+          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3.5 sm:px-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M12 2.2l1.15 4.55c.22.86.9 1.54 1.76 1.76L19.5 9.7l-4.59 1.19a2.4 2.4 0 00-1.76 1.76L12 17.2l-1.15-4.55a2.4 2.4 0 00-1.76-1.76L4.5 9.7l4.59-1.19a2.4 2.4 0 001.76-1.76L12 2.2z" />
+                <path d="M18.2 14.1l.55 2.15c.1.4.42.72.82.82l2.13.55-2.13.55a1.1 1.1 0 00-.82.82l-.55 2.15-.55-2.15a1.1 1.1 0 00-.82-.82l-2.13-.55 2.13-.55c.4-.1.72-.42.82-.82l.55-2.15z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white">Hello, IT</p>
+              <p className="text-xs text-gray-400">Guides a basic fix. After you confirm, it sets the category and priority from the full details.</p>
+            </div>
+          </div>
+          <div className="space-y-3 px-4 py-4 sm:px-5">
+            <div className="flex justify-end">
+              <p className="max-w-[85%] rounded-2xl rounded-br-md bg-emerald-600 px-3.5 py-2.5 text-sm leading-relaxed text-white">
+                My desktop computer will not turn on.
+              </p>
+            </div>
+            <div className="flex justify-start">
+              <p className="max-w-[90%] rounded-2xl rounded-bl-md border border-white/10 bg-gray-800 px-3.5 py-2.5 text-sm leading-relaxed text-gray-100">
+                Start with the power cable and the wall outlet. If it still stays off, describe the issue in full and I can create the ticket after you confirm.
+              </p>
+            </div>
+            <div className="flex justify-end">
+              <p className="max-w-[85%] rounded-2xl rounded-br-md bg-emerald-600 px-3.5 py-2.5 text-sm leading-relaxed text-white">
+                Yes, create the ticket. It is in the Accounting office, it started at 8:00 this morning, and I cannot work.
+              </p>
+            </div>
+            <div className="flex justify-start">
+              <p className="max-w-[90%] rounded-2xl rounded-bl-md border border-white/10 bg-gray-800 px-3.5 py-2.5 text-sm leading-relaxed text-gray-100">
+                Done. I created the ticket as Hardware with high priority from those details.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {['Desktop', 'Email', 'Printer', 'Laptop'].map((topic) => (
+                <span key={topic} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-gray-300">
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 border-t border-white/10 px-4 py-3 sm:px-5">
+            <div className="flex h-10 min-w-0 flex-1 items-center rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-gray-500">
+              Ask a question
+            </div>
+            <span className="inline-flex h-10 items-center gap-1.5 rounded-full bg-emerald-600 px-3 text-xs font-semibold text-white">
+              <span className="flex h-3.5 items-end gap-0.5" aria-hidden>
+                <span className="ask-it-blink h-1 w-1 rounded-full bg-white" />
+                <span className="ask-it-blink ask-it-type-2 h-1 w-1 rounded-full bg-white" />
+                <span className="ask-it-blink ask-it-type-3 h-1 w-1 rounded-full bg-white" />
+              </span>
+              Ask IT
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

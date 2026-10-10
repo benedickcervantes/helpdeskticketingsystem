@@ -20,6 +20,10 @@ const TicketForm = dynamic(
     loading: () => <TicketFormSkeleton />,
   },
 );
+const HelpChat = dynamic(
+  () => import('@/app/(dashboard)/_components/HelpChat'),
+  { ssr: false },
+);
 const TicketList = dynamic(
   () => import('@/app/(dashboard)/_components/TicketList'),
   {
@@ -36,6 +40,8 @@ const UserDashboard = () => {
   const openKey = searchParams.get('open');
   const focusConversation = searchParams.get('focus') === 'conversation';
   const [activeTab, setActiveTab] = useState('overview');
+  const [askOpen, setAskOpen] = useState(false);
+  const [showAskNudge, setShowAskNudge] = useState(false);
   const [ticketFilter, setTicketFilter] = useState('all'); // 'all' or 'my'
   const [allTicketsStats, setAllTicketsStats] = useState({
     total: 0,
@@ -61,10 +67,28 @@ const UserDashboard = () => {
       setActiveTab('tickets');
     } else if (tabParam === 'create') {
       setActiveTab('create');
+    } else if (tabParam === 'ask') {
+      setAskOpen(true);
     } else if (!tabParam) {
       setActiveTab('overview');
     }
   }, [tabParam]);
+
+  useEffect(() => {
+    const userId = currentUser?.uid;
+    if (!userId) return;
+    const seen = window.localStorage.getItem(`ask-it-invite:${userId}`) === '1';
+    setShowAskNudge(!seen);
+  }, [currentUser?.uid]);
+
+  const dismissAskNudge = () => {
+    setShowAskNudge(false);
+    if (currentUser?.uid) window.localStorage.setItem(`ask-it-invite:${currentUser.uid}`, '1');
+  };
+
+  useEffect(() => {
+    if (askOpen) dismissAskNudge();
+  }, [askOpen, currentUser?.uid]);
 
   useEffect(() => {
     if (ticketParam) {
@@ -516,6 +540,109 @@ const UserDashboard = () => {
           </Suspense>
         </div>
       )}
+
+      <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-3 z-[55] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+        <div
+          className={
+            askOpen
+              ? 'flex h-[min(40rem,calc(100dvh-8.5rem))] w-[min(26rem,calc(100vw-1.5rem))] shadow-2xl shadow-black/30 max-sm:fixed max-sm:inset-x-2 max-sm:top-[max(3.75rem,env(safe-area-inset-top))] max-sm:bottom-[max(0.5rem,env(safe-area-inset-bottom))] max-sm:h-auto max-sm:w-auto'
+              : 'hidden'
+          }
+          aria-hidden={!askOpen}
+        >
+          <HelpChat
+            floating
+            userId={currentUser?.uid}
+            onClose={() => setAskOpen(false)}
+            onOpenTickets={() => {
+              setAskOpen(false);
+              setActiveTab('tickets');
+              setTicketFilter('my');
+            }}
+            onCreateTicket={() => {
+              setAskOpen(false);
+              setActiveTab('create');
+            }}
+          />
+        </div>
+        {showAskNudge && !askOpen && (
+          <div className="ask-it-invite relative w-[min(18rem,calc(100vw-1.5rem))]">
+            <div className="rounded-[1.25rem] bg-gradient-to-br from-emerald-300/90 via-app-primary/50 to-transparent p-px shadow-2xl shadow-emerald-950/30">
+              <div className="relative overflow-hidden rounded-[1.2rem] bg-app-panel">
+                <div className="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full bg-app-primary/25 blur-2xl" />
+                <button
+                  type="button"
+                  onClick={dismissAskNudge}
+                  aria-label="Dismiss"
+                  className="absolute right-1.5 top-1.5 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full text-app-muted hover:bg-app-surface-2 hover:text-app"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    dismissAskNudge();
+                    setAskOpen(true);
+                  }}
+                  className="relative flex w-full items-center gap-3 px-3 py-3 pr-9 text-left"
+                >
+                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-app-primary-soft text-app-primary">
+                    <span className="flex items-end gap-1" aria-hidden="true">
+                      <span className="ask-it-dot" />
+                      <span className="ask-it-dot ask-it-dot--mid" />
+                      <span className="ask-it-dot ask-it-dot--late" />
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-app-primary">Hello, IT</span>
+                    <span className="mt-0.5 block text-sm font-medium leading-snug text-app">Ask before you open a ticket.</span>
+                  </span>
+                </button>
+              </div>
+            </div>
+            <span className="absolute -bottom-1.5 right-8 h-3 w-3 rotate-45 bg-app-panel shadow-[1px_1px_0_0] shadow-emerald-400/40" aria-hidden="true" />
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setAskOpen((open) => !open);
+            dismissAskNudge();
+          }}
+          aria-expanded={askOpen}
+          aria-label={askOpen ? 'Close Ask IT' : 'Open Ask IT'}
+          className={`inline-flex h-12 items-center gap-2 rounded-full bg-app-primary px-4 text-sm font-semibold text-app-on-primary shadow-lg shadow-black/20 ${askOpen ? 'max-sm:hidden' : ''}`}
+        >
+          <span className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center" aria-hidden="true">
+            {askOpen ? (
+              <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M6 9l6 6 6-6" />
+              </svg>
+            ) : (
+              <>
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+                </svg>
+                <span className="pointer-events-none absolute left-[20%] right-[20%] top-[24%] flex h-[36%] items-end justify-center gap-px overflow-hidden pb-px">
+                  <span className="ask-it-blink" />
+                  <span className="ask-it-blink ask-it-type-2" />
+                  <span className="ask-it-blink ask-it-type-3" />
+                </span>
+              </>
+            )}
+          </span>
+          {askOpen ? (
+            <span>Close</span>
+          ) : (
+            <span className="inline-flex items-center">
+              Ask IT
+              <span className="ask-it-caret" aria-hidden="true" />
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   );
 };
